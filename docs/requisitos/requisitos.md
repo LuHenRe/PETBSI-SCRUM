@@ -80,12 +80,12 @@ flowchart LR
     Google((Google))
     Scheduler((Agendador))
 
-    Membro --|> Usuario
-    ScrumMaster --|> Membro
-    Coordenador --|> Usuario
-    PO --|> Usuario
-    Stakeholder --|> Usuario
-    Admin --|> Usuario
+    Membro -->|generaliza| Usuario
+    ScrumMaster -->|generaliza| Membro
+    Coordenador -->|generaliza| Usuario
+    PO -->|generaliza| Usuario
+    Stakeholder -->|generaliza| Usuario
+    Admin -->|generaliza| Usuario
 
     Usuario --> UC01[Fazer login]
     Usuario --> UC02[Consultar visão geral]
@@ -100,16 +100,16 @@ flowchart LR
     Scheduler --> UC11[Executar lembrete]
     Admin --> UC12[Configurar integração]
 
-    UC02 -. include .-> UC01
-    UC03 -. include .-> UC13[Validar autorização]
-    UC04 -. include .-> UC13
-    UC05 -. include .-> UC13
-    UC08 -. include .-> UC13
-    UC09 -. include .-> UC13
-    UC08 -. include .-> UC14[Registrar auditoria]
-    UC09 -. include .-> UC14
-    UC10 -. extend .-> UC15[Sincronizar Calendar]
-    UC11 -. extend .-> UC09
+    UC02 -.->|include| UC01
+    UC03 -.->|include| UC13[Validar autorização]
+    UC04 -.->|include| UC13
+    UC05 -.->|include| UC13
+    UC08 -.->|include| UC13
+    UC09 -.->|include| UC13
+    UC08 -.->|include| UC14[Registrar auditoria]
+    UC09 -.->|include| UC14
+    UC10 -.->|extend| UC15[Sincronizar Calendar]
+    UC11 -.->|extend| UC09
     UC12 --> Google
     UC08 --> Google
     UC09 --> Google
