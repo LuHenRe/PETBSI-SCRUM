@@ -37,12 +37,12 @@ flowchart LR
     Google((A08 Google))
     Scheduler((A09 Agendador))
 
-    Membro --|> Usuario
-    ScrumMaster --|> Membro
-    Coordenador --|> Usuario
-    PO --|> Usuario
-    Stakeholder --|> Usuario
-    Admin --|> Usuario
+    Membro -. generaliza .-> Usuario
+    ScrumMaster -. generaliza .-> Membro
+    Coordenador -. generaliza .-> Usuario
+    PO -. generaliza .-> Usuario
+    Stakeholder -. generaliza .-> Usuario
+    Admin -. generaliza .-> Usuario
 
     UC01[Autenticar usuário]
     UC02[Consultar visão geral]
@@ -62,15 +62,20 @@ flowchart LR
     Usuario --> UC01
     Usuario --> UC02
     PO --> UC03
+    PO --> UC04
     Membro --> UC04
     Membro --> UC05
     Membro --> UC06
     Coordenador --> UC07
+    Stakeholder --> UC07
     Membro --> UC08
     Coordenador --> UC09
+    ScrumMaster --> UC09
     Coordenador --> UC10
+    Coordenador --> UC11
     Scheduler --> UC11
     Admin --> UC12
+    Google --> UC01
 
     UC02 -. include .-> UC13
     UC03 -. include .-> UC13
@@ -83,7 +88,7 @@ flowchart LR
     UC05 -. include .-> UC14
     UC08 -. include .-> UC14
     UC09 -. include .-> UC14
-    UC10 -. extend .-> UC11
+    UC11 -. extend .-> UC10
     UC08 --> Google
     UC09 --> Google
     UC11 --> Google
