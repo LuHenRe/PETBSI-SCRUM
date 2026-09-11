@@ -19,7 +19,7 @@ Essa separação será traduzida posteriormente para as camadas de Clean Archite
 
 - Boundaries não decidem regras de autorização ou transição de domínio.
 - Controls não acessam tabelas diretamente; dependem de ports/repositories.
-- Entities não conhecem React, Next.js, banco ou SDK Google.
+- Entities não conhecem React, Next.js, banco ou SDK Google/Telegram.
 - Gateways externos são adapters usados pelos controls através de portas.
 - Uma operação de escrita deve passar por autorização e auditoria quando exigido.
 
@@ -38,7 +38,9 @@ Essa separação será traduzida posteriormente para as camadas de Clean Archite
 | UC09 Enviar notificação por Gmail | `NotificationComposer`, `SendNotificationRoute` | `SendNotificationUseCase` | `Notification`, `NotificationRecipient`, `Person`, `EmailGateway`, `NotificationRepository`, `AuditPort` |
 | UC10 Configurar lembrete | `ReminderForm`, `AgendaPage` | `ConfigureReminderUseCase` | `Deadline`, `CalendarEvent`, `Person`, `CalendarRepository` |
 | UC11 Sincronizar Calendar | `CalendarSyncRoute`, `SchedulerAdapter` | `SyncCalendarEventUseCase` | `CalendarEvent`, `Deadline`, `Sprint`, `CalendarGateway`, `CalendarEventRepository`, `AuditPort` |
-| UC12 Configurar integração | `IntegrationSettingsPage`, `OAuthCallbackRoute` | `ManageIntegrationConnectionUseCase` | `IntegrationConnection`, `AuthGateway`, `FileStorageGateway`, `EmailGateway`, `CalendarGateway`, `AuditPort` |
+| UC12 Configurar integração | `IntegrationSettingsPage`, `OAuthCallbackRoute` | `ManageIntegrationConnectionUseCase` | `IntegrationConnection`, `AuthGateway`, `FileStorageGateway`, `EmailGateway`, `TelegramGateway`, `CalendarGateway`, `AuditPort` |
+| UC15 Enviar notificação por Telegram | `TelegramNotifyRoute`, `EventNotificationAdapter` | `SendTelegramMessageUseCase` | `TelegramMessage`, `Project`, `TelegramGateway`, `TelegramMessageRepository`, `AuditPort` |
+| UC16 Gerenciar permissões por frente | `FrontPermissionsPage` | `ManageFrontPermissionsUseCase` | `ProjectMembership`, `WorkFront`, `Project`, `AuditPort` |
 
 ## 4. Diagrama de robustez geral
 
@@ -94,7 +96,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    Coordenador((Coordenador)) --> Composer[NotificationComposer «boundary»]
+    ScrumMaster((Scrum Master)) --> Composer[NotificationComposer «boundary»]
     Composer --> Send[SendNotificationUseCase «control»]
     Send --> Notification[Notification «entity»]
     Send --> Recipient[NotificationRecipient «entity»]
@@ -102,6 +104,19 @@ flowchart LR
     Send --> Email[[EmailGateway «port»]]
     Email -. implementado por .-> Gmail[GmailGateway «adapter»]
     Gmail --> Google[(Gmail)]
+```
+
+### 5.4 Notificação por Telegram
+
+```mermaid
+flowchart LR
+    Sistema((Sistema / Agendador)) --> Route[TelegramNotifyRoute «boundary»]
+    Route --> Send[SendTelegramMessageUseCase «control»]
+    Send --> Message[TelegramMessage «entity»]
+    Send --> Project[Project «entity»]
+    Send --> TelegramGW[[TelegramGateway «port»]]
+    TelegramGW -. implementado por .-> Bot[TelegramBotGateway «adapter»]
+    Bot --> Telegram[(Telegram Bot API)]
 ```
 
 ## 6. Responsabilidades e limites
@@ -113,7 +128,7 @@ flowchart LR
 | Entity | Manter invariantes e comportamento do domínio | Conhecer HTTP, React, banco ou Google |
 | Repository port | Definir contrato de persistência | Depender de uma tabela específica na camada de domínio |
 | Gateway port | Definir contrato de serviço externo | Expor tokens ao frontend |
-| Adapter | Converter tecnologia externa para port | Espalhar detalhes Google pelo domínio |
+| Adapter | Converter tecnologia externa para port | Espalhar detalhes de fornecedores externos pelo domínio |
 
 ## 7. Relação com Clean Architecture
 

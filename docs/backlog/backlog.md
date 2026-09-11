@@ -9,7 +9,7 @@
 - Prioridade: Alta
 - Tipo: Produto
 - Requisito: RF01
-- Descrição: O sistema deve permitir que participantes, coordenadores, professores e responsáveis autorizados acessem o projeto conforme seus papéis.
+- Descrição: O sistema deve permitir que participantes autorizados acessem o projeto conforme seus papéis e permissões de acesso/edição por frente.
 - Critério de aceitação:
   - o usuário consegue iniciar e concluir o login;
   - usuários sem vínculo não acessam o projeto;
@@ -96,9 +96,10 @@
 - Prioridade: Alta
 - Tipo: Produto
 - Requisitos: RF10-RF11
-- Descrição: Coordenadores e stakeholders autorizados devem consultar entregas e histórico por frente, Sprint, período e status.
+- Descrição: Product Owner e Scrum Master devem consultar entregas e histórico por frente, Sprint, período e status.
 - Critério de aceitação:
   - é possível filtrar entregas por frente e Sprint;
+  - o Product Owner visualiza todos os planos das frentes;
   - mudanças relevantes ficam consultáveis;
   - o histórico informa ator, data, ação e contexto;
   - nenhum registro histórico é apagado por uma alteração comum.
@@ -121,9 +122,9 @@
 - Prioridade: Alta
 - Tipo: Produto
 - Requisitos: RF14-RF16
-- Descrição: Coordenadores ou papéis autorizados devem redigir, revisar e enviar notificações aos membros do projeto.
+- Descrição: O Scrum Master deve redigir, revisar e enviar notificações aos membros do projeto via Gmail.
 - Critério de aceitação:
-  - o usuário seleciona destinatários permitidos;
+  - o Scrum Master seleciona destinatários permitidos;
   - existe prévia antes da confirmação;
   - o sistema só apresenta sucesso após confirmação do Gmail;
   - falhas ficam registradas como pendentes ou falhas;

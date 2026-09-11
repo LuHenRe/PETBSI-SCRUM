@@ -7,7 +7,7 @@
 
 ## 1. Objetivo
 
-Descrever os componentes técnicos, suas responsabilidades e dependências. O diagrama materializa a arquitetura definida anteriormente, sem permitir que o frontend, o banco ou os SDKs Google contaminem o domínio.
+Descrever os componentes técnicos, suas responsabilidades e dependências. O diagrama materializa a arquitetura definida anteriormente, sem permitir que o frontend, o banco ou os SDKs de Internet (Google e Telegram) contaminem o domínio.
 
 ## 2. Componentes
 
@@ -17,14 +17,16 @@ Descrever os componentes técnicos, suas responsabilidades e dependências. O di
 | UI Components | Apresentação e interação | cliente de aplicação |
 | Application Client | Comunicação do frontend com servidor | rotas/API |
 | API/Server Actions | Entrada, validação de formato e contexto | casos de uso |
-| Authorization Service | Sessão, projeto, papel e permissão | gateway de autenticação e membership repository |
+| Authorization Service | Sessão, projeto, papel e permissão de frente | gateway de autenticação e membership repository |
 | Application Use Cases | Orquestração dos fluxos | domínio e ports |
 | Domain Model | Entidades, value objects e políticas | nenhuma infraestrutura |
 | Repository Adapters | Persistência PostgreSQL | cliente Neon |
 | Google Gateways | Drive, Gmail e Calendar | OAuth, SDKs Google e retry |
+| Telegram Gateway | Envio de notificações ao grupo do projeto | bot do Telegram e retry |
 | Auth Adapter | Identidade e sessão | provedor OAuth |
 | Neon PostgreSQL | Dados locais e histórico | conexão server-side |
 | Google APIs | Arquivos, e-mails e eventos externos | OAuth autorizado |
+| Telegram Bot API | Mensagens no grupo do projeto | bot autorizado |
 | Audit/Observability | Auditoria, logs sanitizados e métricas | armazenamento configurado |
 
 ## 3. Diagrama de componentes
@@ -56,6 +58,7 @@ flowchart TB
     subgraph Adapters[Interface Adapters]
         Repo[PostgreSQL Repositories]
         GoogleGateway[Google Gateways]
+        TelegramGateway[Telegram Gateway]
         AuthAdapter[Authentication Adapter]
         Presenter[Presenters / DTOs]
     end
@@ -63,6 +66,7 @@ flowchart TB
     subgraph Drivers[Frameworks and Drivers]
         Neon[(Neon PostgreSQL)]
         Google[Google Drive, Gmail, Calendar]
+        Telegram[Telegram Bot API]
         OAuth[OAuth Provider]
         Audit[Audit and Observability]
     end
@@ -80,9 +84,11 @@ flowchart TB
     UseCases --> Presenter
     Repo -. implements .-> Ports
     GoogleGateway -. implements .-> Ports
+    TelegramGateway -. implements .-> Ports
     AuthAdapter -. implements .-> Ports
     Repo --> Neon
     GoogleGateway --> Google
+    TelegramGateway --> Telegram
     AuthAdapter --> OAuth
     UseCases --> Audit
     Routes --> Presenter
@@ -109,23 +115,27 @@ flowchart TB
     RepoPort[[Repository Port]]
     FilePort[[FileStorageGateway]]
     EmailPort[[EmailGateway]]
+    TelegramPort[[TelegramGateway]]
     CalendarPort[[CalendarGateway]]
     AuthPort[[AuthGateway]]
 
     RepoImpl[PostgreSQL Repository]
     DriveImpl[Google Drive Gateway]
     GmailImpl[Gmail Gateway]
+    TelegramImpl[Telegram Bot Gateway]
     CalendarImpl[Google Calendar Gateway]
     AuthImpl[OAuth Adapter]
 
     UseCase --> RepoPort
     UseCase --> FilePort
     UseCase --> EmailPort
+    UseCase --> TelegramPort
     UseCase --> CalendarPort
     UseCase --> AuthPort
     RepoImpl -. provides .-> RepoPort
     DriveImpl -. provides .-> FilePort
     GmailImpl -. provides .-> EmailPort
+    TelegramImpl -. provides .-> TelegramPort
     CalendarImpl -. provides .-> CalendarPort
     AuthImpl -. provides .-> AuthPort
 ```
@@ -135,8 +145,8 @@ flowchart TB
 - O navegador conhece somente dados de tela, comandos e respostas sanitizadas.
 - `app/api`, Server Actions e `src/server` executam validação de sessão e autorização.
 - Repositories usam o banco somente no servidor.
-- Google Gateways usam tokens somente no servidor.
-- O domínio não recebe token, `folder_id` arbitrário ou segredo.
+- Google Gateways e Telegram Gateway usam tokens somente no servidor.
+- O domínio não recebe token, `folder_id` arbitrário ou segredo de Google nem do Telegram.
 - Logs não registram credenciais, tokens ou conteúdo sensível desnecessário.
 - Falhas de integração são convertidas em estados de aplicação, não em exceções vazadas para o usuário.
 
@@ -148,10 +158,12 @@ flowchart TB
 | Product Backlog | `ProductBacklogPage` | `ManageBacklogUseCase` | `BacklogRepository` / Neon |
 | Fluxo Kanban | `WorkflowBoard` | `MoveBacklogItemUseCase` | `BacklogRepository` / Neon |
 | Upload | `AttachmentPanel` | `UploadAttachmentUseCase` | `GoogleDriveGateway` / Drive |
-| Notificação | `NotificationComposer` | `SendNotificationUseCase` | `GmailGateway` / Gmail |
+| Notificação Gmail | `NotificationComposer` | `SendNotificationUseCase` | `GmailGateway` / Gmail |
+| Notificação Telegram | `EventNotificationAdapter` | `SendTelegramMessageUseCase` | `TelegramBotGateway` / Telegram |
+| Permissões por frente | `FrontPermissionsPage` | `ManageFrontPermissionsUseCase` | `ProjectMembership` / Neon |
 | Agenda | `AgendaPage` | `ConfigureReminderUseCase` | `CalendarRepository` / Neon |
 | Sincronização | `CalendarSyncRoute` | `SyncCalendarEventUseCase` | `GoogleCalendarGateway` / Calendar |
-| Integrações | `IntegrationSettingsPage` | `ManageIntegrationConnectionUseCase` | `AuthAdapter` e gateways Google |
+| Integrações | `IntegrationSettingsPage` | `ManageIntegrationConnectionUseCase` | `AuthAdapter`, gateways Google e Telegram |
 
 ## 8. Deploy lógico
 
@@ -164,6 +176,7 @@ flowchart LR
     Server --> Drive[Google Drive API]
     Server --> Gmail[Gmail API]
     Server --> Calendar[Google Calendar API]
+    Server --> Telegram[Telegram Bot API]
     Server --> Logs[Logs e auditoria sanitizados]
 ```
 
@@ -173,7 +186,7 @@ O frontend pode ser entregue como aplicação Next.js, mas a execução server-s
 
 1. Um novo componente deve declarar sua responsabilidade e camada.
 2. Uma integração externa deve ser introduzida por uma port e um adapter.
-3. Um caso de uso não deve importar SDK de banco ou Google.
+3. Um caso de uso não deve importar SDK de banco, Google ou Telegram.
 4. Uma entidade não deve depender de uma página ou rota.
 5. Mudanças de persistência devem permanecer nos repositories e migrations.
 6. Todo componente novo deve possuir testes compatíveis com sua camada.

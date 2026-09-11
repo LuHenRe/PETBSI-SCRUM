@@ -14,7 +14,7 @@ O projeto utiliza **Scrum como estrutura principal** e o **Método Kanban como c
 
 A equipe possui oito pessoas organizadas em quatro duplas, com diferentes frentes e funções, mas integradas em um único Scrum Team. Uma das duplas atua como apoio de Gestão Ágil. A responsabilidade formal de Scrum Master é exercida por uma pessoa por vez e pode alternar entre os integrantes da dupla.
 
-Os coordenadores são superiores dos membros e acompanham andamento, prazos, entregas e resultados. Professores e stakeholders acompanham o trabalho, avaliam resultados e fornecem feedback.
+O sistema possui três papéis: **Membro**, **Product Owner** e **Scrum Master**. O Product Owner vê todos os planos das quatro frentes e conduz o Product Backlog. O Scrum Master possui a maior permissão, cuidando da transparência, do fluxo, das configurações técnicas (integrações) e da delimitação de permissões de acesso/edição por frente. Os membros apenas veem ou alteram as frentes para as quais possuem permissão.
 
 ## 3. Frentes de trabalho
 
@@ -66,11 +66,9 @@ A quarta-feira possui maior importância operacional, mas não constitui um novo
 
 | Público | Valor esperado |
 |---|---|
-| Membros | Clareza sobre prioridades, responsabilidades, bloqueios e entregas |
-| Scrum Master | Transparência, facilitação, inspeção e melhoria do fluxo |
-| Coordenadores | Visão transversal de andamento, prazos, frentes e resultados |
-| Professores | Acompanhamento, avaliação e informações para relatórios |
-| Stakeholders | Consulta de resultados e fornecimento de feedback |
+| Membros | Clareza sobre prioridades, responsabilidades, bloqueios e entregas nas frentes em que atuam |
+| Product Owner | Visão de todos os planos das frentes, priorização do Product Backlog e metas |
+| Scrum Master | Transparência, facilitação, inspeção, melhoria do fluxo, configuração de integrações e gestão de permissões |
 
 ## 7. Escopo do MVP
 
@@ -85,6 +83,7 @@ O MVP contempla:
 - participantes, duplas e responsabilidades;
 - upload de arquivos para diretório Google Drive existente;
 - notificações por Gmail;
+- notificações automáticas para o grupo do projeto no Telegram, como canal de comunicação entre os membros;
 - agenda interna e integração opcional com Google Calendar.
 
 ## 8. Fora do escopo inicial
@@ -104,8 +103,9 @@ O MVP contempla:
 - A transparência deve ser gerada pelo trabalho cotidiano.
 - Product Backlog e Sprint Backlog não podem ser confundidos.
 - A dupla de Gestão Ágil não deve centralizar a distribuição de tarefas.
-- Falhas em integrações Google não podem impedir o uso dos dados locais.
+- Falhas em integrações Google ou no Telegram não podem impedir o uso dos dados locais.
 - O sistema deve tratar Calendar como integração opcional.
+- O Telegram é um canal de comunicação e notificação entre os membros, não um novo sistema de gerenciamento.
 - O produto deve permanecer simples o suficiente para o projeto que o originou.
 
 ## 10. Critérios de sucesso
@@ -116,7 +116,7 @@ O produto será considerado conceitualmente adequado se:
 2. mostrar o que está planejado, em progresso, bloqueado e concluído;
 3. preservar os conceitos fundamentais de Scrum;
 4. melhorar a visualização e o fluxo sem substituir Scrum;
-5. apoiar coordenadores, professores e Scrum Master;
+5. apoiar o Product Owner, o Scrum Master e os membros nas respectivas responsabilidades;
 6. gerar histórico útil para acompanhamento e prestação de contas;
 7. reduzir dependência de informações dispersas;
 8. respeitar os limites e responsabilidades definidos pela equipe.
@@ -130,7 +130,8 @@ O produto será considerado conceitualmente adequado se:
 - definição exata do Produto e da Meta do Produto;
 - provedor de autenticação;
 - conta Google, pasta Drive, remetente Gmail e calendário;
-- escopos OAuth e políticas de retenção.
+- escopos OAuth e políticas de retenção;
+- grupo do Telegram, bot e configuração de notificações automáticas.
 
 ## 12. Referências
 

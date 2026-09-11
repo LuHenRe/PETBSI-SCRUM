@@ -9,7 +9,7 @@
 
 Documentar os ciclos de vida das entidades que possuem múltiplos estados e regras de transição. O estado deve ser alterado por métodos de domínio ou casos de uso autorizados, nunca por troca solta de coluna no banco.
 
-Foram considerados complexos os ciclos de `BacklogItem`, `Sprint`, `Notification` e `CalendarEvent`. As transições definitivas dependem da validação do fluxo real da equipe.
+Foram considerados complexos os ciclos de `BacklogItem`, `Sprint`, `Notification` e `CalendarEvent`. A `TelegramMessage` possui ciclo simples, descrito na seção 6.1. As transições definitivas dependem da validação do fluxo real da equipe.
 
 ## 2. Regras gerais de transição
 
@@ -78,7 +78,7 @@ stateDiagram-v2
 - A reunião de quarta-feira pode apoiar inspeção, Review ou adaptação conforme o calendário definido, mas não cria um estado adicional.
 - Uma Sprint encerrada mantém itens, histórico, entregas e decisões.
 
-## 5. Estado da `Notification`
+## 5. Estado da `Notification` (Gmail)
 
 ```mermaid
 stateDiagram-v2
@@ -99,6 +99,27 @@ stateDiagram-v2
 - O frontend não pode apresentar `Enviada` antes da confirmação do servidor.
 - Retry deve respeitar a chave de idempotência e o status dos destinatários.
 - O corpo da mensagem e os dados de auditoria devem seguir a política de retenção aprovada.
+
+## 5.1 Estado da `TelegramMessage`
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pendente
+    Pendente --> Enviando : iniciarEnvio [Telegram configurado]
+    Enviando --> Enviada : gatewayAceitou
+    Enviando --> Falha : gatewayRecusou
+    Falha --> Pendente : solicitarRetry [chave idempotente]
+    Pendente --> Cancelada : cancelar [antes do envio]
+    Enviada --> [*]
+    Cancelada --> [*]
+```
+
+### Regras
+
+- A mensagem é gerada a partir de um evento do projeto (item movido, bloqueio, Sprint, entrega).
+- A configuração do grupo e do bot é feita pelo Scrum Master.
+- `Falha` mantém o vínculo com o evento original e não corrompe os dados locais.
+- Retry respeita a chave de idempotência.
 
 ## 6. Estado do `CalendarEvent`
 
@@ -142,20 +163,23 @@ stateDiagram-v2
     Revogada --> [*]
 ```
 
-Tokens e segredos não aparecem como atributos do domínio. O estado representa somente a conexão e suas capacidades autorizadas.
+Tokens e segredos não aparecem como atributos do domínio. O estado representa somente a conexão e suas capacidades autorizadas. A configuração da conexão, inclusive do Telegram, é responsabilidade do Scrum Master.
 
 ## 8. Matriz de responsabilidade
 
 | Transição | Responsável autorizado |
 |---|---|
 | Selecionar item para Sprint | Developers com apoio do Product Owner |
-| Mover item no fluxo | Membro responsável ou Scrum Master, conforme política |
-| Resolver bloqueio | Membro responsável, Scrum Master ou pessoa designada |
+| Mover item no fluxo | Membro responsável na frente com permissão ou Scrum Master |
+| Resolver bloqueio | Membro responsável ou Scrum Master, conforme política |
 | Encerrar Sprint | Scrum Team conforme processo validado |
 | Ordenar Product Backlog | Product Owner |
-| Enviar Gmail | Coordenador ou papel autorizado |
-| Sincronizar Calendar | Coordenador ou agendador autorizado |
-| Conectar/revogar Google | Administrador técnico ou responsável autorizado |
+| Consultar todos os planos (frentes) | Product Owner (e Scrum Master conforme permissão) |
+| Enviar Gmail | Scrum Master |
+| Enviar mensagem ao grupo Telegram | Sistema (eventos automáticos) ou Scrum Master |
+| Sincronizar Calendar | Scrum Master ou agendador autorizado |
+| Delimitar permissões de acesso/edição dos membros por frente | Scrum Master |
+| Conectar/revogar integrações (Google e Telegram) | Scrum Master |
 
 ## 9. Eventos de domínio sugeridos
 
@@ -169,8 +193,11 @@ Tokens e segredos não aparecem como atributos do domínio. O estado representa 
 - `SprintClosed`;
 - `NotificationSent`;
 - `NotificationFailed`;
+- `TelegramMessageSent`;
+- `TelegramMessageFailed`;
 - `CalendarEventSynchronized`;
-- `IntegrationRevoked`.
+- `IntegrationRevoked`;
+- `FrontPermissionChanged`.
 
 Esses eventos devem gerar auditoria quando alterarem informações relevantes do projeto.
 
@@ -180,7 +207,7 @@ Esses eventos devem gerar auditoria quando alterarem informações relevantes do
 - validar se `Entregue` será estado do item ou apenas consequência de uma `Delivery`;
 - definir quem pode forçar uma transição excepcional;
 - confirmar duração e regras de encerramento da Sprint;
-- definir política de retry do Gmail e Calendar;
+- definir política de retry do Telegram, Gmail e Calendar;
 - definir feriados e calendário acadêmico.
 
 ## 11. Referências

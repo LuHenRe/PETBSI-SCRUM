@@ -20,7 +20,7 @@ O banco armazena dados da aplicação e metadados de serviços externos. Arquivo
 - Histórico de mudanças relevantes preservado em tabelas append-only.
 - Exclusão lógica ou arquivamento para dados com valor histórico.
 - Regras de autorização aplicadas no servidor antes das consultas e escritas.
-- Dados locais continuam disponíveis quando Drive, Gmail ou Calendar estiverem indisponíveis.
+- Dados locais continuam disponíveis quando Drive, Gmail, Calendar ou Telegram estiverem indisponíveis.
 
 ## 3. Diagrama entidade-relacionamento
 
@@ -53,6 +53,7 @@ erDiagram
     PROJECT ||--o{ NOTIFICATION : registra
     NOTIFICATION ||--o{ NOTIFICATION_RECIPIENT : envia
     PERSON ||--o{ NOTIFICATION_RECIPIENT : recebe
+    PROJECT ||--o{ TELEGRAM_MESSAGE : notifica_no_grupo
     PROJECT ||--o{ CALENDAR_EVENT : agenda
 
     PROJECT ||--o{ INTEGRATION_CONNECTION : configura
@@ -200,6 +201,18 @@ erDiagram
         string delivery_status
         string provider_message_id
     }
+    TELEGRAM_MESSAGE {
+        uuid id PK
+        uuid project_id FK
+        string group_name
+        string chat_id
+        text body
+        string status
+        string idempotency_key
+        string provider_message_id
+        datetime created_at
+        datetime sent_at
+    }
     CALENDAR_EVENT {
         uuid id PK
         uuid project_id FK
@@ -247,6 +260,7 @@ erDiagram
 - Uma pessoa pode participar de mais de um projeto futuramente.
 - O e-mail não é chave primária.
 - O vínculo define papel, frente, dupla e período de validade.
+- O vínculo também define a permissão de acesso e edição do membro na frente; tal permissão é delimitada pelo Scrum Master.
 - Deve existir no máximo um Product Owner ativo por projeto.
 - O Scrum Master atual deve ser identificável sem eliminar o histórico de alternâncias.
 - A dupla de Gestão Ágil não substitui a accountability individual do Scrum Master.
@@ -276,10 +290,18 @@ erDiagram
 
 ### `notifications` e `notification_recipients`
 
-- A chave de idempotência evita o mesmo envio automático mais de uma vez.
+- A chave de idempotência evita o mesmo envio automático mais de uma vez (Gmail).
 - Destinatários devem pertencer ao projeto ou estar explicitamente autorizados.
 - O status do envio geral não substitui o status individual dos destinatários.
 - O conteúdo deve seguir a política de retenção definida pelo projeto.
+
+### `telegram_messages`
+
+- Representa notificação enviada ao grupo do projeto via bot do Telegram.
+- `chat_id` referencia o grupo configurado pelo Scrum Master e não deve ser tratado como atributo público.
+- A chave de idempotência evita duplicidade de envio nas mesmas condições.
+- Falha de envio altera `status`, mas não invalida dados locais vinculados ao evento que originou a mensagem.
+- Configurações do bot (token, grupo, permissões de envio) ficam fora das tabelas de domínio e fora do navegador.
 
 ### `calendar_events`
 
@@ -303,6 +325,7 @@ erDiagram
 - `deliveries(project_id, status, completed_on)`;
 - `attachments(provider, external_file_id)` unique;
 - `notifications(project_id, status, created_at)`;
+- `telegram_messages(project_id, status, created_at)`;
 - `calendar_events(project_id, sync_status)`;
 - `audit_events(project_id, created_at)`.
 
@@ -346,6 +369,14 @@ Seeds iniciais sugeridos:
 3. Enviar pelo gateway.
 4. Atualizar resultado geral e individual.
 5. Registrar auditoria sem armazenar segredo.
+
+### Envio Telegram
+
+1. Gerar mensagem a partir de evento do projeto.
+2. Criar `telegram_message` pendente com chave de idempotência.
+3. Verificar grupo/bot configurados pelo Scrum Master.
+4. Enviar pelo gateway do Telegram.
+5. Atualizar resultado e auditoria; falha permanece recuperável e não afeta os dados locais.
 
 ## 8. Relação com outros documentos
 

@@ -16,7 +16,7 @@ Definir as entidades, value objects, agregados e relacionamentos centrais do dom
 | `Project` | Representar o projeto acadêmico e suas configurações | Sim |
 | `ProductGoal` | Representar a Meta do Produto | Sim |
 | `WorkFront` | Representar uma das quatro frentes | Sim |
-| `Person` | Identificar participante, professor ou coordenador | Sim |
+| `Person` | Identificar participante do projeto | Sim |
 | `Pair` | Representar uma dupla de trabalho | Sim |
 | `ProjectMembership` | Relacionar pessoa, projeto, frente, dupla e papel | Sim |
 | `Sprint` | Representar período, Meta da Sprint e estado | Sim |
@@ -28,7 +28,8 @@ Definir as entidades, value objects, agregados e relacionamentos centrais do dom
 | `Delivery` | Representar resultado verificável | Sim |
 | `Deadline` | Representar prazo acadêmico ou operacional | Sim |
 | `Attachment` | Vincular arquivo externo ao domínio | Sim |
-| `Notification` | Representar solicitação e resultado de envio | Sim |
+| `Notification` | Representar solicitação e resultado de envio (Gmail) | Sim |
+| `TelegramMessage` | Representar notificação enviada ao grupo do Telegram | Sim |
 | `CalendarEvent` | Representar evento local e sincronização externa | Sim |
 | `IntegrationConnection` | Representar estado de conexão de provedor | Sim |
 | `AuditEvent` | Registrar operação relevante | Sim |
@@ -37,7 +38,7 @@ Definir as entidades, value objects, agregados e relacionamentos centrais do dom
 
 | Tipo | Uso |
 |---|---|
-| `ProjectRole` | `MEMBER`, `SCRUM_MASTER`, `COORDINATOR`, `PRODUCT_OWNER`, `STAKEHOLDER`, `TECHNICAL_ADMIN` |
+| `ProjectRole` | `MEMBER`, `SCRUM_MASTER`, `PRODUCT_OWNER` |
 | `BacklogPriority` | Ordenação do Product Backlog |
 | `WorkItemStatus` | Estado atual do item no fluxo |
 | `WorkflowPolicy` | Critérios de entrada, saída e movimentação |
@@ -45,6 +46,7 @@ Definir as entidades, value objects, agregados e relacionamentos centrais do dom
 | `EmailAddress` | Validação de destinatários |
 | `ExternalFileReference` | Provedor, identificador e URL do arquivo |
 | `NotificationStatus` | `PENDING`, `SENT`, `FAILED`, `CANCELLED` |
+| `TelegramMessageStatus` | `PENDING`, `SENT`, `FAILED`, `CANCELLED` |
 | `SyncStatus` | `DISABLED`, `PENDING`, `SYNCED`, `FAILED`, `REVOKED` |
 | `MeetingType` | Reunião de terça, reunião principal de quarta ou outro evento |
 | `DateRange` | Período da Sprint ou do evento |
@@ -177,6 +179,13 @@ classDiagram
         +UUID personId
         +String deliveryStatus
     }
+    class TelegramMessage {
+        <<entity>>
+        +UUID id
+        +String groupName
+        +TelegramMessageStatus status
+        +send()
+    }
     class CalendarEvent {
         <<entity>>
         +UUID id
@@ -228,6 +237,7 @@ classDiagram
     Notification *-- "1..*" NotificationRecipient : envia_para
     NotificationRecipient --> "1" Person : destinatario
     Project *-- "0..*" Notification : registra
+    Project *-- "0..*" TelegramMessage : envia
     Project *-- "0..*" CalendarEvent : agenda
     BacklogItem --> "0..1" DateRange : prazo
     Sprint --> "1" DateRange : periodo
@@ -240,7 +250,7 @@ classDiagram
 - **Composição:** `Project` compõe metas, frentes, vínculos e Sprints; `Sprint` compõe itens selecionados; `BacklogItem` compõe bloqueios e mudanças de estado.
 - **Agregação:** `Project` agrega pessoas e duplas, pois elas podem existir fora deste projeto; `Sprint` agrega entregas, pois uma entrega pode ser consultada no histórico.
 - **Associação:** itens relacionam-se a frentes, colunas, entregas e arquivos sem assumir posse exclusiva em todos os casos.
-- **Herança de atores:** papéis de aplicação especializam o usuário autenticado no diagrama de casos de uso; não é necessário duplicar pessoas no banco por papel.
+- **Herança de atores:** no diagrama de casos de uso, `Membro` especializa o usuário autenticado; `Scrum Master` e `Product Owner` especializam `Membro`. Não é necessário duplicar pessoas no banco por papel; a permissão por frente deriva do vínculo de `ProjectMembership`.
 
 ## 6. Persistência
 
@@ -262,6 +272,7 @@ classDiagram
 | `Attachment` | `attachments` | `id` | apenas metadados Google |
 | `Notification` | `notifications` | `id` | status e auditoria |
 | `NotificationRecipient` | `notification_recipients` | `(notification_id, person_id)` | destinatários |
+| `TelegramMessage` | `telegram_messages` | `id` | grupo e status do envio |
 | `CalendarEvent` | `calendar_events` | `id` | vínculo externo opcional |
 | `IntegrationConnection` | `integration_connections` | `id` | nunca guardar token puro |
 | `AuditEvent` | `audit_events` | `id` | trilha de operações |

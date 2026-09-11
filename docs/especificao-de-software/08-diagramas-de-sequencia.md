@@ -172,7 +172,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor Coordenador
+    actor ScrumMaster as Scrum Master
     participant UI as NotificationComposer «boundary»
     participant API as SendNotificationRoute «boundary»
     participant UC as SendNotificationUseCase «control»
@@ -185,7 +185,7 @@ sequenceDiagram
     participant Google as Gmail
     participant Audit as AuditPort «port»
 
-    Coordenador->>UI: redige e revisa mensagem
+    ScrumMaster->>UI: redige e revisa mensagem
     UI->>API: confirma envio
     API->>UC: send(input)
     UC->>Auth: authorize(send_notification)
@@ -211,7 +211,7 @@ sequenceDiagram
         UC-->>API: falha
     end
     API-->>UI: status sanitizado
-    UI-->>Coordenador: exibe resultado
+    UI-->>ScrumMaster: exibe resultado
 ```
 
 ## 8. UC11 — Sincronizar Calendar
@@ -261,7 +261,56 @@ sequenceDiagram
     end
 ```
 
-## 9. Rastreabilidade para testes
+## 9. UC15 — Enviar notificação por Telegram
+
+```mermaid
+sequenceDiagram
+    actor Sistema as Sistema/Agendador
+    participant Route as TelegramNotifyRoute «boundary»
+    participant UC as SendTelegramMessageUseCase «control»
+    participant Auth as AuthorizationService
+    participant Message as TelegramMessage «entity»
+    participant Repo as TelegramMessageRepository «port»
+    participant TelegramGW as TelegramGateway «port»
+    participant Bot as TelegramBotGateway «adapter»
+    participant Telegram as Telegram Bot API
+    participant Audit as AuditPort «port»
+
+    Sistema->>Route: evento de projeto (item movido, bloqueio, Sprint, entrega)
+    Route->>UC: send(event)
+    UC->>Auth: authorize(send_telegram)
+    Auth-->>UC: permitido
+    UC->>Message: createPending(event)
+    UC->>Repo: savePending(message)
+    alt Telegram configurado pelo Scrum Master
+        UC->>TelegramGW: send(message)
+        TelegramGW->>Bot: sendMessage(chatId, body)
+        Bot->>Telegram: envia mensagem ao grupo
+        alt Telegram aceita envio
+            Telegram-->>Bot: messageId
+            Bot-->>TelegramGW: messageId
+            TelegramGW-->>UC: resultado aceito
+            UC->>Message: markSent(messageId)
+            UC->>Repo: saveResult()
+            UC->>Audit: record(TelegramMessageSent)
+            UC-->>Route: enviado
+        else Telegram recusa ou falha
+            Telegram-->>Bot: erro
+            Bot-->>TelegramGW: falha
+            TelegramGW-->>UC: falha recuperável
+            UC->>Message: markFailed(error)
+            UC->>Repo: saveResult()
+            UC->>Audit: record(TelegramMessageFailed)
+            UC-->>Route: falha recuperável
+        end
+    else Telegram não configurado
+        UC->>Message: markPending()
+        UC->>Repo: save(message)
+        UC-->>Route: mantido pendente sem envio
+    end
+```
+
+## 10. Rastreabilidade para testes
 
 | Diagrama | Teste de aplicação correspondente |
 |---|---|
@@ -272,8 +321,9 @@ sequenceDiagram
 | UC08 | upload concluído, falha e retry idempotente |
 | UC09 | envio aceito, falha e status por destinatário |
 | UC11 | sincronização, Calendar desabilitado e falha externa |
+| UC15 | Telegram configurado/ausente, envio aceito, falha e retry idempotente |
 
-## 10. Referências
+## 11. Referências
 
 - [02 — Requisitos](02-requisitos.md)
 - [03 — Casos de Uso](03-casos-de-uso.md)

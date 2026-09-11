@@ -7,7 +7,7 @@
 
 ## 1. Objetivo
 
-Orientar a implementação do software usando Domain-Driven Design (DDD) e Clean Architecture. As regras do projeto devem permanecer independentes da interface, do banco Neon e das APIs Google.
+Orientar a implementação do software usando Domain-Driven Design (DDD) e Clean Architecture. As regras do projeto devem permanecer independentes da interface, do banco Neon e das APIs Google e do Telegram.
 
 ## 2. Linguagem ubíqua
 
@@ -26,12 +26,12 @@ Os nomes do código devem preservar os termos usados pela equipe e pelos documen
 - WIP;
 - Scrum Master;
 - Product Owner;
-- Developer;
-- Coordenador;
-- Stakeholder;
+- Membro (Developer);
 - Integração;
 - Anexo;
 - Notificação;
+- Mensagem Telegram;
+- Grupo do Telegram;
 - Sincronização.
 
 Não usar termos genéricos como `Manager`, `Helper` ou `Processor` para esconder regras de domínio.
@@ -44,7 +44,7 @@ Não usar termos genéricos como `Manager`, `Helper` ou `Processor` para esconde
 | Planejamento Scrum | Product Backlog, Sprints e seleção de itens | `BacklogItem`, `Sprint`, `SprintItem` |
 | Fluxo Kanban | colunas, WIP, bloqueios e mudanças de estado | `WorkflowColumn`, `WorkItemStateChange`, `Blocker` |
 | Entregas e Histórico | resultados verificáveis, prazos e auditoria | `Delivery`, `Deadline`, `AuditEvent` |
-| Integrações | arquivos, notificações, agenda e conexões externas | `Attachment`, `Notification`, `CalendarEvent`, `IntegrationConnection` |
+| Integrações | arquivos, notificações (Gmail), mensagens do grupo, agenda e conexões externas | `Attachment`, `Notification`, `TelegramMessage`, `CalendarEvent`, `IntegrationConnection` |
 
 Os contextos compartilham o identificador do projeto, mas não devem acessar diretamente o estado interno dos agregados uns dos outros.
 
@@ -57,6 +57,7 @@ Os contextos compartilham o identificador do projeto, mas não devem acessar dir
 | `BacklogItem` | transição permitida; WIP respeitado; bloqueio consistente | `BacklogItemRepository` |
 | `Delivery` | entrega possui contexto, estado e vínculos válidos | `DeliveryRepository` |
 | `Notification` | destinatários permitidos; status e idempotência consistentes | `NotificationRepository` |
+| `TelegramMessage` | grupo configurado pelo Scrum Master; status e idempotência consistentes; falha preserva dados locais | `TelegramMessageRepository` |
 | `CalendarEvent` | evento local válido sem Google; sincronização rastreável | `CalendarEventRepository` |
 
 ### Regras de acesso
@@ -77,8 +78,8 @@ Value objects devem ser imutáveis e comparados por valor:
 - `ProjectRole` representa responsabilidade;
 - `WorkItemStatus` representa estado permitido;
 - `BacklogPriority` representa ordenação;
-- `ExternalFileReference` representa referência externa sem expor token;
-- `SyncStatus` e `NotificationStatus` representam ciclos controlados.
+- `DocumentReference` (ExternalFileReference) representa referência externa sem expor token;
+- `SyncStatus`, `NotificationStatus` e `TelegramMessageStatus` representam ciclos controlados.
 
 ## 6. Camadas da Clean Architecture
 
@@ -92,11 +93,11 @@ Casos de uso, DTOs de entrada/saída e portas. Coordena transações e chama ent
 
 ### 6.3 Interface Adapters
 
-Rotas, Server Actions, presenters, repositories concretos, adapters de autenticação e gateways Google.
+Rotas, Server Actions, presenters, repositories concretos, adapters de autenticação, gateways Google e gateway do Telegram.
 
 ### 6.4 Frameworks e Drivers
 
-Next.js, React, Neon/PostgreSQL, ORM/driver, SDKs Google, OAuth, logs e configuração de ambiente.
+Next.js, React, Neon/PostgreSQL, ORM/driver, SDKs Google, SDK do Telegram, OAuth, logs e configuração de ambiente.
 
 ## 7. Regra de dependência
 
@@ -117,11 +118,13 @@ SprintRepository
 BacklogItemRepository
 DeliveryRepository
 NotificationRepository
+TelegramMessageRepository
 CalendarEventRepository
 
 AuthGateway
 FileStorageGateway
 EmailGateway
+TelegramGateway
 CalendarGateway
 AuditPort
 ```
@@ -147,10 +150,12 @@ src/
 │   ├── workflow/
 │   ├── attachments/
 │   ├── notifications/
+│   ├── telegram-messages/
 │   └── calendar/
 ├── adapters/
 │   ├── repositories/
 │   ├── google/
+│   ├── telegram/
 │   ├── http/
 │   └── auth/
 └── server/
@@ -166,7 +171,7 @@ src/
 3. Repositories e gateways como interfaces.
 4. Casos de uso com fakes em memória.
 5. Migrations e repositories PostgreSQL.
-6. Adapters Google e OAuth.
+6. Adapters Google, OAuth e Telegram.
 7. Rotas e Server Actions.
 8. Componentes e páginas do frontend.
 9. Integração E2E e observabilidade.
@@ -175,7 +180,7 @@ A ordem reduz o risco de deixar o domínio dependente de decisões prematuras de
 
 ## 11. Regras contra violações
 
-- Entidade importando React, Next.js, ORM ou SDK Google é violação.
+- Entidade importando React, Next.js, ORM ou SDK Google/Telegram é violação.
 - Use case executando SQL diretamente é violação.
 - Componente React acessando Neon ou token OAuth é violação.
 - Gateway retornando modelo específico do SDK ao domínio é violação.

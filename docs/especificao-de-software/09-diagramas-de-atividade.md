@@ -86,11 +86,11 @@ flowchart TD
 
 ## 5. Atividade — Enviar notificação por Gmail
 
-**Raias:** Coordenador, Frontend, Servidor, Gmail.
+**Raias:** Scrum Master, Frontend, Servidor, Gmail.
 
 ```mermaid
 flowchart TD
-    Start((Início)) --> Compose[Coordenador seleciona destinatários e redige mensagem]
+    Start((Início)) --> Compose[Scrum Master seleciona destinatários e redige mensagem]
     Compose --> Preview[Frontend apresenta prévia]
     Preview --> Decision1{Confirmar envio?}
     Decision1 -- Não --> Cancel[Descartar ou salvar rascunho]
@@ -113,7 +113,7 @@ flowchart TD
 
 ## 6. Atividade — Sincronizar evento com Google Calendar
 
-**Raias:** Agendador/Coordenador, Servidor, Agenda local, Google Calendar.
+**Raias:** Agendador/Scrum Master, Servidor, Agenda local, Google Calendar.
 
 ```mermaid
 flowchart TD
@@ -134,17 +134,38 @@ flowchart TD
     Audit --> End3((Sincronizado))
 ```
 
-## 7. Pontos de decisão relevantes
+## 7. Atividade — Enviar notificação por Telegram
+
+**Raias:** Sistema/Agendador, Servidor, Telegram Bot API.
+
+```mermaid
+flowchart TD
+    Start((Início)) --> Event[Evento do projeto: item movido, bloqueio, Sprint iniciada/encerrada ou entrega]
+    Event --> Validate[Servidor valida evento e permissão de envio]
+    Validate --> Decision1{Telegram configurado pelo Scrum Master?}
+    Decision1 -- Não --> Pending[Manter telegram_message pendente]
+    Pending --> End1((Pendente))
+    Decision1 -- Sim --> Create[Registrar TelegramMessage pendente]
+    Create --> Send[Enviar mensagem ao grupo pelo bot]
+    Send --> Decision2{Telegram aceitou?}
+    Decision2 -- Não --> Failed[Registrar falha recuperável e auditoria]
+    Failed --> End2((Falha recuperável))
+    Decision2 -- Sim --> Save[Registrar message_id, status enviado e auditoria]
+    Save --> End3((Concluído))
+```
+
+## 8. Pontos de decisão relevantes
 
 | Fluxo | Decisões que devem ser regra de domínio ou aplicação |
 |---|---|
 | Sprint | entendimento do item, coerência entre Meta da Sprint e seleção |
-| Fluxo | autorização, transição permitida, limite de WIP e transação |
+| Fluxo | autorização, permissão de frente, transição permitida, limite de WIP e transação |
 | Drive | tipo/tamanho, autorização, conexão e resultado externo |
 | Gmail | destinatários, confirmação, conexão, idempotência e resultado |
 | Calendar | habilitação, autorização, sincronização, falha e retry |
+| Telegram | habilitação/configuração, permissão, conexão, idempotência e resultado |
 
-## 8. Referências
+## 9. Referências
 
 - [02 — Requisitos](02-requisitos.md)
 - [03 — Casos de Uso](03-casos-de-uso.md)
