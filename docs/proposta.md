@@ -13,7 +13,7 @@
 
 Esta proposta apresenta a criação de um sistema web sob medida para apoiar a gestão, o acompanhamento e a transparência de um projeto acadêmico multidisciplinar.
 
-O software será concebido para uma equipe de oito pessoas, organizada em quatro duplas, com diferentes frentes e funções, mas reunida em um único Scrum Team. Uma das duplas atuará como apoio de Gestão Ágil e Scrum Master; a responsabilidade formal de Scrum Master será exercida por uma pessoa por vez, podendo alternar entre a dupla. Os coordenadores acompanharão todos os membros, as entregas e os resultados do projeto.
+O software será concebido para uma equipe de oito pessoas, organizada em quatro duplas, com diferentes frentes e funções, mas reunida em um único Scrum Team. Uma das duplas atuará como apoio de Gestão Ágil e Scrum Master; a responsabilidade formal de Scrum Master será exercida por uma pessoa por vez, alternando entre o Scrum Master e o Scrum Master Assistente, ambos com permissões de Administrador Técnico. Os coordenadores acompanharão todos os membros, as entregas e os resultados do projeto e atuarão como Product Owner — um deles, por vez, exerce essa responsabilidade, com alternância análoga à do Scrum Master.
 
 A solução combinará **Scrum**, como estrutura de organização do trabalho, e **Kanban**, como método complementar para visualização, gestão e melhoria do fluxo. O objetivo é oferecer uma visão operacional comum, reduzir a dispersão de informações e transformar o trabalho cotidiano em evidências úteis para acompanhamento e relatórios.
 
@@ -60,7 +60,7 @@ Desenvolver uma aplicação web para apoiar o planejamento, a execução, a insp
 4. Registrar bloqueios, mudanças de estado e decisões relevantes.
 5. Apoiar o acompanhamento das quatro frentes sem dividi-las em Scrum Teams independentes.
 6. Facilitar a atuação dos Scrum Masters como agentes de transparência, inspeção e adaptação.
-7. Permitir que coordenadores e professores acompanhem o andamento sem depender de informações dispersas.
+7. Permitir que os coordenadores acompanhem o andamento sem depender de informações dispersas.
 8. Integrar arquivos ao Google Drive, notificações ao Gmail e lembretes ao Google Calendar, conforme autorização.
 9. Criar histórico útil para avaliações, prestação de contas e relatórios posteriores.
 
@@ -104,7 +104,7 @@ As frentes serão usadas como perspectivas de organização e acompanhamento do 
 
 - cadastro e identificação dos participantes autorizados;
 - representação de duplas, frentes e responsabilidades;
-- distinção entre membros, Scrum Masters, Product Owner, coordenadores e stakeholders;
+- distinção entre membros (Membro por padrão; Visitante sem permissão de edição), Scrum Master/Scrum Master Assistente (Administradores Técnicos) e Coordenadores (um deles exerce o Product Owner por vez);
 - controle de acesso baseado no vínculo da pessoa com o projeto e em seu papel.
 
 #### Scrum
@@ -207,7 +207,7 @@ O desenvolvimento seguirá uma abordagem incremental e orientada a validação c
 - validar a Meta do Produto e a primeira Meta da Sprint;
 - mapear o fluxo real de trabalho;
 - identificar estados, políticas e limites de WIP;
-- confirmar necessidades dos coordenadores, professores e participantes;
+- confirmar necessidades dos coordenadores e participantes;
 - definir regras de feriados, prazos e relatórios.
 
 ### Fase 2 — Especificação e desenho
@@ -298,7 +298,7 @@ Funcionalidades adicionais poderão ser analisadas como evolução, mediante rev
 - suporte à melhoria do fluxo sem centralizar a execução;
 - políticas e responsabilidades mais transparentes.
 
-### Para coordenadores e professores
+### Para os coordenadores
 
 - acompanhamento transversal do projeto;
 - visibilidade sobre prazos, entregas e andamento;
@@ -348,7 +348,7 @@ O MVP será considerado apto para validação quando:
 - validar requisitos, papéis e prioridades;
 - disponibilizar acesso às contas e configurações Google necessárias;
 - informar a pasta do Drive e as políticas de compartilhamento;
-- indicar responsáveis por Product Owner, Scrum Master e coordenação;
+- indicar responsáveis por Product Owner (exercido por um coordenador por vez), Scrum Master/Scrum Master Assistente e coordenação;
 - fornecer feedback nas validações;
 - participar da definição do fluxo real, políticas e critérios de aceite;
 - manter a disponibilidade dos responsáveis para decisões de domínio.
@@ -400,7 +400,7 @@ Essas evoluções não fazem parte do escopo atual e deverão ser priorizadas em
 
 A criação deste sistema representa uma oportunidade de transformar a gestão do projeto acadêmico em um processo mais transparente, integrado e orientado por evidências. Ao combinar Scrum e Kanban de maneira coerente, a aplicação apoiará tanto a organização das Sprints quanto a melhoria do fluxo cotidiano.
 
-O resultado esperado é um ambiente único no qual estudantes, Scrum Masters, coordenadores e professores possam compreender o estado real do trabalho, agir sobre bloqueios, acompanhar entregas e preservar informações úteis para o futuro.
+O resultado esperado é um ambiente único no qual os membros, os Scrum Masters e os coordenadores possam compreender o estado real do trabalho, agir sobre bloqueios, acompanhar entregas e preservar informações úteis para o futuro.
 
 A proposta recomenda iniciar pela validação das decisões de domínio e pela consolidação do escopo do MVP. Com essas definições aprovadas, o projeto poderá avançar para o detalhamento da arquitetura, implementação incremental e validação contínua com os usuários.
 

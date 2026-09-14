@@ -33,9 +33,9 @@
 - Prioridade: Alta
 - Tipo: Produto
 - Requisito: RF03
-- Descrição: O Product Owner deve criar, editar, consultar e ordenar itens do Product Backlog.
+- Descrição: O Coordenador (Product Owner) deve criar, editar, consultar e ordenar itens do Product Backlog.
 - Critério de aceitação:
-  - o Product Owner consegue criar um item com título, descrição, prioridade e frente;
+  - o Coordenador (Product Owner) consegue criar um item com título, descrição, prioridade e frente;
   - itens podem ser editados e reordenados;
   - usuários sem a permissão adequada não alteram o backlog;
   - as alterações ficam registradas no histórico.
@@ -96,10 +96,10 @@
 - Prioridade: Alta
 - Tipo: Produto
 - Requisitos: RF10-RF11
-- Descrição: Product Owner e Scrum Master devem consultar entregas e histórico por frente, Sprint, período e status.
+- Descrição: Coordenador (Product Owner) e Scrum Master/Scrum Master Assistente devem consultar entregas e histórico por frente, Sprint, período e status.
 - Critério de aceitação:
   - é possível filtrar entregas por frente e Sprint;
-  - o Product Owner visualiza todos os planos das frentes;
+  - o Coordenador (Product Owner) visualiza todos os planos das frentes;
   - mudanças relevantes ficam consultáveis;
   - o histórico informa ator, data, ação e contexto;
   - nenhum registro histórico é apagado por uma alteração comum.
@@ -122,9 +122,9 @@
 - Prioridade: Alta
 - Tipo: Produto
 - Requisitos: RF14-RF16
-- Descrição: O Scrum Master deve redigir, revisar e enviar notificações aos membros do projeto via Gmail.
+- Descrição: O Scrum Master/Scrum Master Assistente deve redigir, revisar e enviar notificações aos membros do projeto via Gmail.
 - Critério de aceitação:
-  - o Scrum Master seleciona destinatários permitidos;
+  - o Scrum Master/Scrum Master Assistente seleciona destinatários permitidos;
   - existe prévia antes da confirmação;
   - o sistema só apresenta sucesso após confirmação do Gmail;
   - falhas ficam registradas como pendentes ou falhas;
@@ -162,7 +162,7 @@
 - Prioridade: Média
 - Tipo: Produto
 - Requisitos: RF02, RF11
-- Descrição: Coordenadores e Scrum Masters devem visualizar o andamento comparado das quatro frentes.
+- Descrição: Coordenador (Product Owner) e Scrum Master/Scrum Master Assistente devem visualizar o andamento comparado das quatro frentes.
 - Critério de aceitação:
   - é possível filtrar por frente;
   - itens em progresso, bloqueados e concluídos ficam distinguíveis;
@@ -180,6 +180,19 @@
   - o período de análise é informado;
   - dados insuficientes são sinalizados;
   - métricas não são apresentadas como avaliação automática de conformidade Scrum.
+
+#### BP-15 — Notificar eventos e prazos no Telegram
+
+- Prioridade: Alta
+- Tipo: Produto
+- Requisitos: RF21-RF23
+- Descrição: O sistema deve enviar ao chat "PETBSI notificações" no Telegram, por meio de bot, notificações automáticas de eventos do projeto (itens movidos, bloqueios, Sprints e entregas) e lembretes de prazos de tarefas, como "A tarefa X falta Y dias para o prazo final.".
+- Critério de aceitação:
+  - o envio usa somente o chat "PETBSI notificações" configurado;
+  - eventos do projeto geram mensagens automáticas com registro de status;
+  - prazos próximos de tarefas geram lembretes no formato "A tarefa X falta Y dias para o prazo final.";
+  - tarefa sem prazo definido não gera lembrete de prazo;
+  - falha do Telegram mantém a mensagem pendente e os dados locais intactos;
 
 ## Backlog técnico
 
@@ -312,6 +325,19 @@
   - contratos dos gateways Google;
   - testes E2E do núcleo e integrações controladas.
 
+#### BT-11 — Implementar gateway do Telegram e lembretes de prazo
+
+- Prioridade: Alta
+- Tipo: Técnico
+- Requisitos: RF21-RF23, RN14, RNF01, RNF04-RNF05
+- Descrição: Encapsular o envio de mensagens ao chat "PETBSI notificações" e gerar lembretes de prazo de tarefas a partir das datas registradas de `Deadline`.
+- Entregáveis:
+  - port `TelegramGateway` e adapter do bot;
+  - geração de mensagens de evento e de lembrete de prazo ("A tarefa X falta Y dias para o prazo final.");
+  - envio agendado pelo Agendador (A08) com enfileiramento de mensagens;
+  - status pendente, concluído e falho com idempotência;
+  - testes e auditoria sem exposição de segredos do Telegram.
+
 ## Priorização
 
 ### P0 — MVP obrigatório
@@ -336,9 +362,11 @@
 
 - BP-09 — Enviar arquivos para Google Drive
 - BP-10 — Enviar notificações por Gmail
+- BP-15 — Notificar eventos e prazos no Telegram
 - BT-06 — Gateway Google Drive
 - BT-07 — Gateway Gmail
 - BT-09 — Auditoria e observabilidade
+- BT-11 — Gateway do Telegram e lembretes de prazo
 
 ### P2 — Evolução opcional
 
@@ -356,10 +384,11 @@
 5. BT-05 depende dos contratos da aplicação e das regras de autorização.
 6. BT-06 e BT-07 dependem de OAuth, contas Google e políticas de escopo.
 7. BT-08 depende da validação da agenda interna e do calendário acadêmico.
+8. BT-11 depende do modelo de `Deadline` validado, do Agendador e da integração base do Telegram.
 
 ## Resumo executivo
 
-O backlog prioriza primeiro o núcleo operacional do projeto: autenticação, visão geral, Product Backlog, Sprints, fluxo Kanban, bloqueios, entregas e histórico. Em seguida entram Drive e Gmail, por serem integrações diretamente solicitadas para arquivos e notificações. Calendar, métricas e painéis avançados permanecem como evolução controlada, sem comprometer o funcionamento local do sistema.
+O backlog prioriza primeiro o núcleo operacional do projeto: autenticação, visão geral, Product Backlog, Sprints, fluxo Kanban, bloqueios, entregas e histórico. Em seguida entram Drive, Gmail e Telegram, por serem integrações diretamente solicitadas para arquivos, notificações e lembretes de prazo. Calendar, métricas e painéis avançados permanecem como evolução controlada, sem comprometer o funcionamento local do sistema.
 
 ## Referências
 

@@ -15,8 +15,8 @@ Esta especificação detalha a experiência do frontend, o modelo persistente in
 
 - A aplicação atende inicialmente um único projeto e um único Scrum Team.
 - Oito pessoas participam do projeto, organizadas em quatro duplas.
-- Uma dupla atua como apoio de Gestão Ágil; uma pessoa exerce a responsabilidade formal de Scrum Master por vez, com possibilidade de alternância.
-- Coordenadores acompanham todos os membros e possuem visão ampliada do projeto.
+- Uma dupla atua como apoio de Gestão Ágil; uma pessoa exerce a responsabilidade formal de Scrum Master por vez, alternando entre o Scrum Master e o Scrum Master Assistente, ambos com permissões de Administrador Técnico.
+- Coordenadores acompanham todos os membros, possuem visão ampliada do projeto e atuam como Product Owner; um deles, por vez, exerce essa responsabilidade.
 - As frentes são agrupamentos de trabalho, não Scrum Teams independentes.
 - As reuniões presenciais ocorrem às terças e quartas-feiras, das 08:00 às 10:00, exceto feriados.
 - A quarta-feira é o principal momento de apresentação de atualizações, andamento e adaptações.
@@ -25,17 +25,16 @@ Esta especificação detalha a experiência do frontend, o modelo persistente in
 - O banco será online, utilizando Neon como infraestrutura PostgreSQL.
 - A pasta de destino do Google Drive já existe e será identificada por configuração, preferencialmente por `folder_id`.
 - A integração com Calendar será opcional no primeiro incremento, mas o domínio deverá comportar lembretes e eventos futuros.
+- O chat "PETBSI notificações" no Telegram e o bot serão configurados pelo Scrum Master/Scrum Master Assistente para notificações automáticas de eventos e lembretes de prazo de tarefa (formato "A tarefa X falta Y dias para o prazo final.").
 
 ## 3. Atores e Permissões
 
 | Ator | Responsabilidade | Acesso esperado |
 |---|---|---|
-| Membro da equipe | Executar e atualizar o trabalho | Consultar projeto, atualizar itens próprios ou permitidos, registrar bloqueios e participar das Sprints |
-| Scrum Master | Apoiar transparência, inspeção, adaptação e facilitação | Gerenciar fluxo, políticas, bloqueios e eventos; não distribuir tarefas como gerente |
-| Coordenador | Supervisionar todos os membros e o andamento do projeto | Visão ampla, consulta de histórico, acompanhamento de entregas, prazos e notificações |
-| Product Owner | Maximizar valor e ordenar o Product Backlog | Definir Meta do Produto, criar/editar itens e ordenar o Product Backlog |
-| Professor/Stakeholder | Acompanhar resultados e fornecer feedback | Consultar progresso, entregas, prazos, histórico e informações compartilhadas |
-| Administrador técnico | Configurar o ambiente e integrações | Configurar credenciais, pasta do Drive, escopos e parâmetros técnicos; acesso restrito |
+| Membro da equipe | Executar e atualizar o trabalho | Título padrão "Membro"; exibido como "Visitante" quando não possui permissão de edição; consulta projeto, atualiza itens permitidos, registra bloqueios e participa das Sprints |
+| Scrum Master | Apoiar transparência, inspeção, adaptação e facilitação; atuar como Administrador Técnico | Gerenciar fluxo, políticas, bloqueios e eventos; configurar integrações e permissões; não distribuir tarefas como gerente |
+| Scrum Master Assistente | Alternar, por período, com o Scrum Master; atuar como Administrador Técnico | Mesmas permissões técnicas do Scrum Master (integrações, configurações e delimitação de permissões) |
+| Coordenador (Product Owner) | Supervisionar todos os membros e o andamento do projeto; maximizar valor e ordenar o Product Backlog | Visão ampla, consulta de histórico, acompanhamento de entregas, prazos e notificações; definir Meta do Produto, criar/editar itens e ordenar o Product Backlog |
 | Google | Sistema externo | Fornecer OAuth, Drive, Gmail e Calendar conforme escopos consentidos |
 
 ### 3.1 Regra de autorização
@@ -50,7 +49,7 @@ As permissões devem ser verificadas no servidor em toda operação de escrita e
 |---|---|---|---|
 | RF01 | O sistema deve autenticar e identificar os participantes autorizados do projeto. | Alta | Segurança e operação |
 | RF02 | O sistema deve exibir uma visão geral com Sprint, metas, prazos, bloqueios, WIP e entregas recentes. | Alta | Fase 1 |
-| RF03 | O Product Owner deve criar, editar e ordenar itens do Product Backlog. | Alta | Scrum |
+| RF03 | O Coordenador (Product Owner atual) deve criar, editar e ordenar itens do Product Backlog. | Alta | Scrum |
 | RF04 | A equipe deve selecionar itens para uma Sprint e manter o Sprint Backlog. | Alta | Scrum |
 | RF05 | O sistema deve permitir registrar e consultar a Meta da Sprint e a Meta do Produto. | Alta | Scrum |
 | RF06 | Membros autorizados devem atualizar o estado real dos itens no fluxo Kanban. | Alta | Kanban |
@@ -68,6 +67,7 @@ As permissões devem ser verificadas no servidor em toda operação de escrita e
 | RF18 | O sistema deve criar ou sincronizar evento no Google Calendar quando o recurso estiver habilitado e autorizado. | Baixa/Média | Integração opcional |
 | RF19 | O sistema deve permitir desativar Calendar sem impedir o uso do restante do sistema. | Alta | Resiliência |
 | RF20 | O sistema deve distinguir as reuniões de terça e quarta e marcar a quarta como reunião principal de acompanhamento. | Alta | Cadência do projeto |
+| RF21 | O sistema deve notificar eventos e prazos de tarefas no chat "PETBSI notificações" do Telegram, por meio de bot, incluindo mensagens como "A tarefa X falta Y dias para o prazo final.", registrando o resultado de cada envio. | Média | Nova integração |
 
 ## 5. Requisitos Não Funcionais
 
@@ -219,7 +219,7 @@ Cada evento sincronizado deve guardar o `external_event_id`, calendário de dest
 | `Project` | Representar o projeto acadêmico |
 | `ProductGoal` | Registrar a Meta do Produto |
 | `WorkFront` | Representar as quatro frentes |
-| `Person` | Identificar participante, professor ou coordenador |
+| `Person` | Identificar participante ou coordenador |
 | `ProjectMembership` | Associar pessoa, projeto, frente, dupla e papel |
 | `Pair` | Representar uma dupla de trabalho |
 | `Sprint` | Registrar período, objetivo e estado da Sprint |
@@ -425,14 +425,14 @@ erDiagram
 
 ### UC01 — Consultar visão geral
 
-**Ator:** qualquer membro autorizado, coordenador ou stakeholder com acesso.  
+**Ator:** qualquer membro autorizado, coordenador ou Scrum Master com acesso.  
 **Pré-condição:** sessão válida e vínculo com o projeto.  
 **Fluxo:** o frontend solicita dados locais agregados; servidor aplica autorização; banco retorna Sprint, metas, bloqueios, WIP, prazos e entregas; frontend apresenta os estados.  
 **Pós-condição:** nenhuma alteração persistente.
 
 ### UC02 — Atualizar item no fluxo
 
-**Ator:** membro autorizado ou Scrum Master.  
+**Ator:** membro autorizado ou Scrum Master/Scrum Master Assistente.  
 **Pré-condição:** item pertence ao projeto e a movimentação respeita política e WIP, ou possui autorização explícita para exceção.  
 **Fluxo alternativo:** se o limite for atingido, o servidor rejeita ou exige confirmação conforme política; o frontend mantém o item no estado anterior e informa o motivo.  
 **Pós-condição:** estado atual e histórico são atualizados atomicamente.
@@ -446,7 +446,7 @@ erDiagram
 
 ### UC04 — Enviar notificação por Gmail
 
-**Ator:** coordenador, Scrum Master ou outro papel autorizado.  
+**Ator:** coordenador, Scrum Master/Scrum Master Assistente ou outro papel autorizado.  
 **Pré-condição:** conexão Gmail ativa e destinatários permitidos.  
 **Fluxo:** redigir; revisar; confirmar; enviar no servidor; registrar status e auditoria.  
 **Pós-condição:** mensagem enviada ou operação marcada como falha recuperável.
@@ -458,6 +458,13 @@ erDiagram
 **Fluxo:** criar ou atualizar evento externo; persistir identificador e resultado; manter evento interno mesmo em caso de falha.  
 **Pós-condição:** evento local possui estado de sincronização conhecido.
 
+### UC06 — Notificar eventos e prazos no Telegram
+
+**Ator:** sistema, agendador ou usuário autorizado.  
+**Pré-condição:** chat "PETBSI notificações" e bot configurados; evento ou lembrete de prazo habilitado.  
+**Fluxo:** gerar mensagem a partir de evento ou de prazo de tarefa ("A tarefa X falta Y dias para o prazo final."); enviar ao chat via bot; registrar status e auditoria.  
+**Pós-condição:** mensagem enviada ou operação marcada como pendente/falha recuperável.
+
 ## 10. Classes de Fronteira, Controle e Entidade
 
 | Caso de uso | Boundary | Control | Entidades principais |
@@ -467,6 +474,7 @@ erDiagram
 | Enviar arquivo ao Drive | `AttachmentPanel` | `UploadAttachmentUseCase` | `Attachment`, `BacklogItem`, `Delivery` |
 | Enviar notificação Gmail | `NotificationComposer` | `SendNotificationUseCase` | `Notification`, `NotificationRecipient`, `ProjectMembership` |
 | Sincronizar Calendar | `CalendarSettings` | `SyncCalendarEventUseCase` | `CalendarEvent`, `Deadline`, `Sprint` |
+| Notificar eventos e prazos no Telegram | `TelegramNotifyRoute`/`Agendador` | `SendTelegramMessageUseCase` | `TelegramMessage`, `Project`, `Deadline`, `BacklogItem` |
 
 ## 11. Sequência de Upload para o Drive
 
@@ -616,7 +624,7 @@ Testes mínimos por integração:
 | Drive | pasta correta, arquivo aceito, tipo/tamanho inválido, token ausente, retry e duplicação |
 | Gmail | destinatários autorizados, conteúdo validado, envio único, falha externa e auditoria |
 | Calendar | criação, atualização idempotente, desconexão e preservação do evento local |
-| Autorização | membro, Scrum Master, coordenador, Product Owner e acesso negado |
+| Autorização | membro, Scrum Master/Scrum Master Assistente, coordenador (Product Owner) e acesso negado |
 | Frontend | loading, vazio, erro recuperável, sucesso, operação pendente e responsividade |
 
 Cada requisito funcional deve ser rastreável a pelo menos um caso de uso e a um teste de aceitação.

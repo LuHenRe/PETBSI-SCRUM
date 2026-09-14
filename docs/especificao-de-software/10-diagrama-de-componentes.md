@@ -22,11 +22,11 @@ Descrever os componentes técnicos, suas responsabilidades e dependências. O di
 | Domain Model | Entidades, value objects e políticas | nenhuma infraestrutura |
 | Repository Adapters | Persistência PostgreSQL | cliente Neon |
 | Google Gateways | Drive, Gmail e Calendar | OAuth, SDKs Google e retry |
-| Telegram Gateway | Envio de notificações ao grupo do projeto | bot do Telegram e retry |
+| Telegram Gateway | Envio de notificações e lembretes de prazo ao chat "PETBSI notificações" | bot do Telegram e retry |
 | Auth Adapter | Identidade e sessão | provedor OAuth |
 | Neon PostgreSQL | Dados locais e histórico | conexão server-side |
 | Google APIs | Arquivos, e-mails e eventos externos | OAuth autorizado |
-| Telegram Bot API | Mensagens no grupo do projeto | bot autorizado |
+| Telegram Bot API | Mensagens no chat "PETBSI notificações" | bot autorizado |
 | Audit/Observability | Auditoria, logs sanitizados e métricas | armazenamento configurado |
 
 ## 3. Diagrama de componentes
@@ -159,7 +159,7 @@ flowchart TB
 | Fluxo Kanban | `WorkflowBoard` | `MoveBacklogItemUseCase` | `BacklogRepository` / Neon |
 | Upload | `AttachmentPanel` | `UploadAttachmentUseCase` | `GoogleDriveGateway` / Drive |
 | Notificação Gmail | `NotificationComposer` | `SendNotificationUseCase` | `GmailGateway` / Gmail |
-| Notificação Telegram | `EventNotificationAdapter` | `SendTelegramMessageUseCase` | `TelegramBotGateway` / Telegram |
+| Notificação Telegram | `EventNotificationAdapter`, `DeadlineReminderAdapter` | `SendTelegramMessageUseCase` | `TelegramBotGateway` / Telegram |
 | Permissões por frente | `FrontPermissionsPage` | `ManageFrontPermissionsUseCase` | `ProjectMembership` / Neon |
 | Agenda | `AgendaPage` | `ConfigureReminderUseCase` | `CalendarRepository` / Neon |
 | Sincronização | `CalendarSyncRoute` | `SyncCalendarEventUseCase` | `GoogleCalendarGateway` / Calendar |

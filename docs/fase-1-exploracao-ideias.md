@@ -23,7 +23,7 @@ O projeto acadêmico possui quatro frentes principais:
 - **Frente 3 — Extensão e Letramento Algorítmico:** voltada ao relacionamento com a comunidade externa, produção de materiais e realização de oficinas.
 - **Frente 4 — Gestão Ágil:** responsável pelo acompanhamento transversal do trabalho, apoio ao fluxo, acompanhamento das entregas e suporte à coordenação do projeto.
 
-Além da necessidade cotidiana de organização, o projeto possui obrigações institucionais. Há bolsas envolvidas, prazos e entregas definidos ou acompanhados pelos professores orientadores e necessidade de produzir informações que auxiliem o acompanhamento e a elaboração posterior de relatórios.
+Além da necessidade cotidiana de organização, o projeto possui obrigações institucionais. Há bolsas envolvidas, prazos e entregas definidos ou acompanhados pelos coordenadores e necessidade de produzir informações que auxiliem o acompanhamento e a elaboração posterior de relatórios.
 
 ### Problema Central
 
@@ -50,7 +50,7 @@ Scrum fornece a estrutura de trabalho baseada em responsabilidades, Sprints, eve
 O produto deverá:
 
 - centralizar a visão do trabalho do projeto;
-- proporcionar transparência entre estudantes e professores;
+- proporcionar transparência entre membros e coordenadores;
 - permitir acompanhamento transversal das quatro frentes;
 - apoiar Product Backlog e Sprint Backlog sem confundir seus significados;
 - tornar o fluxo de trabalho visível;
@@ -69,7 +69,7 @@ O sistema não tem como objetivo principal ensinar Scrum e Kanban por meio de co
 
 ### Projeto Acadêmico
 
-Projeto acadêmico representa a iniciativa como um todo, envolvendo professores, estudantes, frentes, objetivos, prazos e entregas.
+Projeto acadêmico representa a iniciativa como um todo, envolvendo coordenadores, membros, frentes, objetivos, prazos e entregas.
 
 O termo pertence ao domínio acadêmico e não corresponde a um artefato específico do Scrum.
 
@@ -116,7 +116,7 @@ Os itens de trabalho podem variar em tipo e granularidade de acordo com a nature
 
 Frente de trabalho representa uma área temática do projeto acadêmico.
 
-As quatro frentes deverão permanecer visíveis porque existem institucionalmente e são relevantes para o acompanhamento do professor. Contudo, não deverão ser tratadas automaticamente como Scrum Teams independentes.
+As quatro frentes deverão permanecer visíveis porque existem institucionalmente e são relevantes para o acompanhamento dos coordenadores. Contudo, não deverão ser tratadas automaticamente como Scrum Teams independentes.
 
 No sistema, as frentes poderão funcionar como agrupamentos temáticos, perspectivas de acompanhamento ou formas de organização do trabalho dentro de um único Scrum Team.
 
@@ -138,23 +138,23 @@ O contexto atual possui oito pessoas, organizadas em quatro duplas com diferente
 
 Uma das duplas está associada à Frente 4 — Gestão Ágil e apoia o acompanhamento transversal do trabalho. A composição detalhada das duplas e a distribuição de funções ainda deverão ser validadas.
 
-### Professores Orientadores
+### Coordenadores
 
-Os professores:
+Os coordenadores:
 
 - estabelecem ou negociam prazos;
 - avaliam resultados;
 - acompanham entregas;
 - possuem obrigações relacionadas a relatórios e prestação de contas;
-- atuam como importantes stakeholders e clientes do sistema.
+- representam o produto no sistema; um deles, por vez, exerce o Product Owner.
 
 ### Product Owner
 
 O Scrum Guide define Product Owner como uma única pessoa, não um comitê.
 
-Para utilização integral de Scrum, um dos professores orientadores poderá exercer essa responsabilidade, representando também as necessidades dos demais professores e stakeholders.
+Para utilização integral de Scrum, um dos coordenadores exerce essa responsabilidade por vez, representando também as necessidades dos demais coordenadores, com alternância análoga à do Scrum Master.
 
-A definição de qual professor exercerá a responsabilidade não pertence a esta fase.
+A definição de quem exercerá a responsabilidade em cada período não pertence a esta fase.
 
 ### Scrum Master
 
@@ -255,14 +255,14 @@ O Scrum Master utilizará o sistema como apoio à transparência, inspeção, ad
 
 O sistema não deverá transformar o Scrum Master em gerente responsável por distribuir tarefas.
 
-### Professores e Stakeholders
+### Coordenadores
 
-Professores e stakeholders deverão poder:
+Os coordenadores deverão poder:
 
 - acompanhar progresso;
 - visualizar entregas e resultados;
 - observar prazos relevantes;
-- participar da inspeção dos resultados;
+- definir metas e ordenar o Product Backlog (um coordenador, por vez, exerce o Product Owner);
 - consultar histórico útil à elaboração de relatórios;
 - fornecer feedback.
 
@@ -474,7 +474,7 @@ As permissões deverão ser derivadas dos casos de uso e das responsabilidades r
 
 ## 4.3 Histórico e Relatórios
 
-Essa capacidade possui relevância especial porque o projeto recebe bolsas e os professores precisam acompanhar atividades e elaborar relatórios.
+Essa capacidade possui relevância especial porque o projeto recebe bolsas e os coordenadores precisam acompanhar atividades e elaborar relatórios.
 
 O sistema deverá ser concebido para que o trabalho cotidiano gere naturalmente evidências históricas consultáveis.
 
@@ -555,10 +555,9 @@ Termos que exigem consistência incluem:
 - Item de Trabalho;
 - Frente;
 - Responsabilidade;
-- Scrum Master;
-- Product Owner;
-- Developer;
-- Stakeholder;
+- Scrum Master e Scrum Master Assistente;
+- Coordenador (Product Owner);
+- Membro (Developer), com título padrão "Membro" e exibição "Visitante" quando sem permissão de edição;
 - Bloqueio;
 - WIP.
 
@@ -586,9 +585,9 @@ Termos do domínio não deverão ser utilizados de forma ambígua ou contraditó
 O sistema deverá preservar os conceitos fundamentais de Scrum aplicáveis ao projeto:
 
 - Scrum Team;
-- Product Owner;
-- Scrum Master;
-- Developers;
+- Product Owner (exercido por um coordenador por vez);
+- Scrum Master e Scrum Master Assistente;
+- Developers (membros);
 - Sprint;
 - Sprint Planning;
 - Daily Scrum;
@@ -644,15 +643,15 @@ As frentes serão representadas como agrupamentos do trabalho e não como Scrum 
 
 ## 8.3 Product Owner
 
-Um dos professores poderá exercer a responsabilidade de Product Owner e representar também os demais professores e stakeholders.
+Um dos coordenadores exerce, por vez, a responsabilidade de Product Owner e representa também os demais coordenadores.
 
 O Product Owner não será modelado como comitê.
 
 ## 8.4 Scrum Master
 
-Uma pessoa da Dupla Ágil exercerá a responsabilidade formal de Scrum Master em determinado período, enquanto a outra poderá apoiar as atividades da Frente de Gestão Ágil.
+Uma pessoa da Dupla Ágil exercerá a responsabilidade formal de Scrum Master em determinado período, enquanto a outra exerce o papel de Scrum Master Assistente, também com permissões de Administrador Técnico.
 
-A responsabilidade poderá ser alternada posteriormente, desde que exista clareza sobre quem a exerce em cada momento. A dupla, como unidade organizacional, não substitui a accountability individual prevista no Scrum.
+A responsabilidade alterna entre o Scrum Master e o Scrum Master Assistente, desde que exista clareza sobre quem a exerce em cada momento. A dupla, como unidade organizacional, não substitui a accountability individual prevista no Scrum.
 
 ## 8.5 Daily Scrum
 
@@ -693,7 +692,7 @@ Uma lista genérica de pendências não deverá receber automaticamente um desse
 
 - um único projeto acadêmico;
 - um único Scrum Team;
-- professores e stakeholders;
+- coordenadores (sem stakeholder ou professor externo ao sistema);
 - responsabilidade de Product Owner;
 - responsabilidade de Scrum Master;
 - quatro frentes;
@@ -813,7 +812,7 @@ A solução será considerada conceitualmente bem-sucedida se conseguir:
 2. tornar claro o que está planejado, em progresso, bloqueado e concluído;
 3. preservar corretamente a diferença entre Product Backlog e Sprint Backlog;
 4. permitir que as frentes continuem existindo sem dividir o Scrum Team em equipes independentes;
-5. auxiliar professores no acompanhamento de entregas e histórico;
+5. auxiliar coordenadores no acompanhamento de entregas e histórico;
 6. apoiar a Dupla Ágil sem transformá-la em gerência centralizadora;
 7. permitir que Kanban melhore o fluxo sem substituir Scrum;
 8. evitar que práticas informais sejam apresentadas como regras oficiais;
@@ -826,7 +825,7 @@ A solução será considerada conceitualmente bem-sucedida se conseguir:
 
 O produto é definido, ao final desta fase, como:
 
-> Uma aplicação web para tornar transparente e acompanhar o trabalho de um projeto acadêmico multidisciplinar, utilizando Scrum como estrutura de organização empírica e o Método Kanban para visualizar e melhorar o fluxo, permitindo que estudantes e professores acompanhem objetivos, Sprints, frentes, trabalho, bloqueios, entregas e histórico de maneira compartilhada.
+> Uma aplicação web para tornar transparente e acompanhar o trabalho de um projeto acadêmico multidisciplinar, utilizando Scrum como estrutura de organização empírica e o Método Kanban para visualizar e melhorar o fluxo, permitindo que membros e coordenadores acompanhem objetivos, Sprints, frentes, trabalho, bloqueios, entregas e histórico de maneira compartilhada.
 
 A principal diferença em relação à ideia inicial é que o produto deixa de ser concebido como um simples gerenciador de tarefas.
 

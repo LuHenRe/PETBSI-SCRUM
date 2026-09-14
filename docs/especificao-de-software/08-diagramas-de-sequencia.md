@@ -73,7 +73,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor PO as Product Owner
+    actor PO as Coordenador (Product Owner)
     participant UI as ProductBacklogPage «boundary»
     participant UC as ManageBacklogUseCase «control»
     participant Auth as AuthorizationService
@@ -172,7 +172,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor ScrumMaster as Scrum Master
+    actor ScrumMaster as Scrum Master/Scrum Master Assistente
     participant UI as NotificationComposer «boundary»
     participant API as SendNotificationRoute «boundary»
     participant UC as SendNotificationUseCase «control»
@@ -276,16 +276,16 @@ sequenceDiagram
     participant Telegram as Telegram Bot API
     participant Audit as AuditPort «port»
 
-    Sistema->>Route: evento de projeto (item movido, bloqueio, Sprint, entrega)
-    Route->>UC: send(event)
+    Sistema->>Route: evento de projeto ou lembrete de prazo ("A tarefa X falta Y dias para o prazo final.")
+    Route->>UC: send(event ou deadline)
     UC->>Auth: authorize(send_telegram)
     Auth-->>UC: permitido
-    UC->>Message: createPending(event)
+    UC->>Message: createPending(event ou deadline, kind)
     UC->>Repo: savePending(message)
-    alt Telegram configurado pelo Scrum Master
+    alt chat "PETBSI notificações" configurado pelo Scrum Master/Scrum Master Assistente
         UC->>TelegramGW: send(message)
         TelegramGW->>Bot: sendMessage(chatId, body)
-        Bot->>Telegram: envia mensagem ao grupo
+        Bot->>Telegram: envia mensagem ao chat "PETBSI notificações"
         alt Telegram aceita envio
             Telegram-->>Bot: messageId
             Bot-->>TelegramGW: messageId
@@ -316,7 +316,7 @@ sequenceDiagram
 |---|---|
 | UC01 | autenticação, vínculo e acesso negado |
 | UC02 | agregação da visão geral sem dependência Google |
-| UC03 | Product Owner cria e ordena item |
+| UC03 | Coordenador (Product Owner) cria e ordena item |
 | UC05 | movimentação válida, WIP excedido e rollback |
 | UC08 | upload concluído, falha e retry idempotente |
 | UC09 | envio aceito, falha e status por destinatário |

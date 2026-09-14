@@ -8,21 +8,22 @@
 
 Este documento transforma a visão de produto e a especificação técnica em requisitos rastreáveis para o MVP. Ele é a origem dos casos de uso, da arquitetura e dos testes de aceitação.
 
-O sistema atende um projeto acadêmico com oito pessoas organizadas em quatro duplas, um único Scrum Team, quatro frentes de trabalho e uma dupla de apoio de Gestão Ágil. O Scrum Master possui a maior permissão; o Product Owner vê todos os planos das frentes; os membros só veem ou alteram as frentes para as quais possuem permissão delimitada pelo Scrum Master.
+O sistema atende um projeto acadêmico com oito pessoas organizadas em quatro duplas, um único Scrum Team, quatro frentes de trabalho e uma dupla de apoio de Gestão Ágil. O Scrum Master e o Scrum Master Assistente atuam como Administradores Técnicos e possuem as maiores permissões de configuração; os coordenadores atuam como Product Owner (um por vez) e veem todos os planos das frentes; os membros só veem ou alteram as frentes para as quais possuem permissão delimitada pelo Scrum Master/Scrum Master Assistente.
 
 ## 2. Atores
 
 | Ator | Descrição |
 |---|---|
 | Usuário autenticado | Pessoa identificada com acesso ao projeto |
-| Membro da equipe | Participante que consulta e atualiza o trabalho das frentes para as quais possui permissão |
-| Scrum Master | Pessoa formalmente responsável, por período, por transparência, inspeção, adaptação, facilitação, configurações técnicas e delimitação de permissões |
-| Product Owner | Pessoa única responsável por maximizar valor, ordenar o Product Backlog e visualizar todos os planos das frentes |
+| Membro da equipe | Participante com título padrão "Membro"; exibido como "Visitante" quando não possui permissão de edição nas frentes a que tem acesso |
+| Scrum Master | Pessoa formalmente responsável, por período, por transparência, inspeção, adaptação e facilitação; atua como Administrador Técnico (configurações técnicas, integrações e delimitação de permissões) |
+| Scrum Master Assistente | Pessoa da dupla de Gestão Ágil que alterna, por período, com o Scrum Master; também Administrador Técnico |
+| Coordenador (Product Owner) | Coordenador com título "Coordenador" e visão de todos os planos das frentes; um deles, por vez, exerce o Product Owner, maximizando valor e ordenando o Product Backlog |
 | Google | Sistema externo que fornece OAuth, Drive, Gmail e Calendar |
-| Telegram | Sistema externo que recebe notificações automáticas do projeto via bot |
-| Agendador | Ator temporal que dispara lembretes e sincronizações habilitadas |
+| Telegram | Sistema externo que recebe notificações automáticas e lembretes de prazo do projeto via bot, no chat "PETBSI notificações" |
+| Agendador | Ator temporal que dispara lembretes de prazo, demais lembretes e sincronizações habilitadas |
 
-A dupla de Gestão Ágil é uma unidade de apoio organizacional. A responsabilidade formal de Scrum Master permanece individual e pode alternar entre seus integrantes. O Scrum Master é responsável por configurar as integrações (Google e Telegram) e delimitar as permissões de acesso/edição dos membros em cada frente.
+A dupla de Gestão Ágil é uma unidade de apoio organizacional. A responsabilidade formal de Scrum Master permanece individual e alterna entre o Scrum Master e o Scrum Master Assistente, ambos responsáveis por configurar as integrações (Google e Telegram) e delimitar as permissões de acesso/edição dos membros em cada frente. Todos os coordenadores recebem o título "Coordenador"; um deles, por vez, exerce o Product Owner, com alternância análoga à do Scrum Master. Todo membro recebe o título padrão "Membro" e é exibido como "Visitante" quando não possui permissão de edição.
 
 ## 3. Requisitos Funcionais
 
@@ -30,28 +31,28 @@ A dupla de Gestão Ágil é uma unidade de apoio organizacional. A responsabilid
 |---|---|---|---|
 | RF01 | O sistema deve autenticar e identificar participantes autorizados do projeto. | Alta | Usuário autenticado |
 | RF02 | O sistema deve exibir a visão geral com Sprint, metas, prazos, bloqueios, WIP e entregas recentes. | Alta | Membro da equipe |
-| RF03 | O Product Owner deve criar, editar e ordenar itens do Product Backlog. | Alta | Product Owner |
+| RF03 | O Coordenador (Product Owner atual) deve criar, editar e ordenar itens do Product Backlog. | Alta | Coordenador (Product Owner) |
 | RF04 | A equipe deve selecionar itens para uma Sprint e manter o Sprint Backlog. | Alta | Membro da equipe |
-| RF05 | O sistema deve registrar e consultar a Meta do Produto e a Meta da Sprint. | Alta | Product Owner |
+| RF05 | O sistema deve registrar e consultar a Meta do Produto e a Meta da Sprint. | Alta | Coordenador (Product Owner) |
 | RF06 | Usuários autorizados devem atualizar o estado real dos itens no fluxo Kanban. | Alta | Membro da equipe |
-| RF07 | O sistema deve impedir ou alertar movimentações que violem políticas e limites de WIP. | Alta | Scrum Master |
+| RF07 | O sistema deve impedir ou alertar movimentações que violem políticas e limites de WIP. | Alta | Scrum Master/Scrum Master Assistente |
 | RF08 | Usuários autorizados devem registrar, atualizar, resolver e consultar bloqueios. | Alta | Membro da equipe |
 | RF09 | O sistema deve relacionar itens a frente, Sprint, responsáveis e entregas quando aplicável. | Alta | Membro da equipe |
 | RF10 | O sistema deve registrar histórico de mudanças em itens, Sprints, fluxo, bloqueios e integrações. | Alta | Sistema |
-| RF11 | O Product Owner e o Scrum Master devem consultar entregas por frente, Sprint, período e status. | Média | Product Owner / Scrum Master |
+| RF11 | O Coordenador (Product Owner) e o Scrum Master/Scrum Master Assistente devem consultar entregas por frente, Sprint, período e status. | Média | Coordenador (Product Owner) / Scrum Master/Assistente |
 | RF12 | O sistema deve enviar arquivos ao diretório Google Drive configurado. | Alta | Membro da equipe |
 | RF13 | O sistema deve armazenar o vínculo e os metadados do arquivo sem duplicar seu conteúdo binário no banco. | Alta | Sistema |
-| RF14 | O Scrum Master deve redigir uma mensagem para destinatários do projeto. | Média | Scrum Master |
-| RF15 | O sistema deve enviar notificações autorizadas por Gmail e registrar seu resultado. | Média | Scrum Master |
+| RF14 | O Scrum Master/Scrum Master Assistente deve redigir uma mensagem para destinatários do projeto. | Média | Scrum Master/Scrum Master Assistente |
+| RF15 | O sistema deve enviar notificações autorizadas por Gmail e registrar seu resultado. | Média | Scrum Master/Scrum Master Assistente |
 | RF16 | O sistema deve exibir sucesso, pendência ou falha de cada operação Google. | Alta | Usuário autenticado |
-| RF17 | O Scrum Master deve configurar lembretes de reuniões, prazos e eventos relevantes. | Média | Scrum Master |
-| RF18 | O sistema deve criar ou sincronizar eventos com Google Calendar quando habilitado. | Média | Scrum Master / Agendador |
+| RF17 | O Scrum Master/Scrum Master Assistente deve configurar lembretes de reuniões, prazos e eventos relevantes. | Média | Scrum Master/Scrum Master Assistente |
+| RF18 | O sistema deve criar ou sincronizar eventos com Google Calendar quando habilitado. | Média | Scrum Master/Scrum Master Assistente / Agendador |
 | RF19 | O sistema deve manter a agenda interna quando Calendar estiver desabilitado ou indisponível. | Alta | Sistema |
 | RF20 | O sistema deve distinguir a reunião de terça-feira da reunião principal de quarta-feira, ambas das 08:00 às 10:00 em dias não feriados. | Alta | Sistema |
-| RF21 | O Scrum Master deve configurar o grupo do Telegram e o bot responsável pelas notificações. | Média | Scrum Master |
-| RF22 | O sistema deve enviar notificações automáticas ao grupo do Telegram sobre eventos do projeto (itens movidos, bloqueios, Sprints e entregas) e registrar o resultado. | Média | Sistema / Telegram |
+| RF21 | O Scrum Master/Scrum Master Assistente deve configurar o chat "PETBSI notificações" no Telegram e o bot responsável pelas notificações. | Média | Scrum Master/Scrum Master Assistente |
+| RF22 | O sistema deve enviar notificações automáticas e lembretes de prazo ao chat "PETBSI notificações" no Telegram, informando eventos do projeto (itens movidos, bloqueios, Sprints e entregas) e prazos próximos de tarefas com prazo definido, por exemplo "A tarefa X falta Y dias para o prazo final.", registrando o resultado de cada operação. | Média | Sistema / Telegram / Agendador |
 | RF23 | O sistema deve exibir sucesso, pendência ou falha de cada operação do Telegram. | Alta | Usuário autenticado |
-| RF24 | O Scrum Master deve delimitar as permissões de acesso e edição dos membros em cada frente. | Alta | Scrum Master |
+| RF24 | O Scrum Master/Scrum Master Assistente deve delimitar as permissões de acesso e edição dos membros em cada frente. | Alta | Scrum Master/Scrum Master Assistente |
 
 ## 4. Requisitos Não Funcionais
 
@@ -75,32 +76,41 @@ flowchart LR
     Usuario((Usuário autenticado))
     Membro((Membro da equipe))
     ScrumMaster((Scrum Master))
-    PO((Product Owner))
+    ScrumMasterAssistente((Scrum Master Assistente))
+    Coordenador((Coordenador (Product Owner)))
     Google((Google))
     Telegram((Telegram))
     Scheduler((Agendador))
 
     Membro -->|generaliza| Usuario
     ScrumMaster -->|generaliza| Membro
-    PO -->|generaliza| Membro
+    ScrumMasterAssistente -->|generaliza| Membro
+    Coordenador -->|generaliza| Membro
 
     Usuario --> UC01[Fazer login]
     Usuario --> UC02[Consultar visão geral]
     Membro --> UC03[Atualizar item no fluxo]
     Membro --> UC04[Registrar bloqueio]
-    PO --> UC05[Gerenciar Product Backlog]
-    PO --> UC06[Planejar Sprint]
+    Coordenador --> UC05[Gerenciar Product Backlog]
+    Coordenador --> UC06[Planejar Sprint]
     Membro --> UC06
-    PO --> UC07[Consultar entregas e histórico]
+    Coordenador --> UC07[Consultar entregas e histórico]
     ScrumMaster --> UC07
+    ScrumMasterAssistente --> UC07
     Membro --> UC08[Enviar arquivo ao Drive]
     ScrumMaster --> UC09[Enviar notificação por Gmail]
+    ScrumMasterAssistente --> UC09
     ScrumMaster --> UC10[Configurar lembrete]
+    ScrumMasterAssistente --> UC10
     Scheduler --> UC11[Executar lembrete]
     ScrumMaster --> UC12[Configurar integração]
+    ScrumMasterAssistente --> UC12
     ScrumMaster --> UC13[Enviar notificação por Telegram]
+    ScrumMasterAssistente --> UC13
+    Scheduler --> UC13
     Telegram --> UC13
     ScrumMaster --> UC14[Gerenciar permissões por frente]
+    ScrumMasterAssistente --> UC14
 
     UC02 -.->|include| UC01
     UC03 -.->|include| UC15[Validar autorização]
@@ -138,7 +148,7 @@ flowchart LR
 
 ### UC03 — Atualizar item no fluxo
 
-- **Ator:** membro da equipe ou Scrum Master.
+- **Ator:** membro da equipe ou Scrum Master/Scrum Master Assistente.
 - **Pré-condição:** item pertence ao projeto e o usuário possui autorização.
 - **Fluxo principal:** usuário solicita movimentação; sistema valida política e WIP; grava novo estado e histórico; frontend confirma o resultado.
 - **Fluxo alternativo:** limite ou política impedem a movimentação; sistema rejeita ou solicita confirmação conforme configuração.
@@ -146,8 +156,8 @@ flowchart LR
 
 ### UC05 — Gerenciar Product Backlog
 
-- **Ator:** Product Owner.
-- **Pré-condição:** usuário possui a responsabilidade de Product Owner.
+- **Ator:** Coordenador (Product Owner atual).
+- **Pré-condição:** usuário é um coordenador que exerce o Product Owner no período atual.
 - **Fluxo principal:** criar, editar, priorizar e consultar itens.
 - **Fluxo alternativo:** dados inválidos ou usuário sem permissão impedem a operação.
 - **Pós-condição:** Product Backlog permanece ordenado e auditável.
@@ -162,31 +172,31 @@ flowchart LR
 
 ### UC09 — Enviar notificação por Gmail
 
-- **Ator:** Scrum Master.
-- **Pré-condição:** conexão Gmail ativa e destinatários permitidos.
+- **Ator:** Scrum Master ou Scrum Master Assistente.
+- **Pré-condição:** conexão Gmail ativa e destinatários permitidos; usuário Scrum Master ou Scrum Master Assistente.
 - **Fluxo principal:** usuário redige, revisa e confirma; sistema envia, registra status e audita a operação.
 - **Fluxo alternativo:** falha ou ausência de conexão gera estado pendente/falha e permite nova tentativa controlada.
 - **Pós-condição:** mensagem enviada ou registrada como não enviada.
 
 ### UC13 — Enviar notificação por Telegram
 
-- **Ator:** Scrum Master, Telegram ou Sistema.
-- **Pré-condição:** grupo do Telegram configurado pelo Scrum Master e evento de notificação habilitado.
-- **Fluxo principal:** sistema gera mensagem a partir de evento (item movido, bloqueio, Sprint, entrega); gateway envia ao grupo via bot; sistema registra resultado e auditoria.
-- **Fluxo alternativo:** grupo ausente mantém a mensagem pendente; falha externa registra falha recuperável sem afetar dados locais.
+- **Ator:** Scrum Master/Scrum Master Assistente, Telegram, Agendador ou Sistema.
+- **Pré-condição:** chat "PETBSI notificações" e bot configurados pelo Scrum Master/Scrum Master Assistente e evento ou lembrete de prazo habilitado.
+- **Fluxo principal:** sistema gera mensagem a partir de evento (item movido, bloqueio, Sprint, entrega) ou de prazo próximo de tarefa no formato "A tarefa X falta Y dias para o prazo final."; gateway envia ao chat "PETBSI notificações" via bot; sistema registra resultado e auditoria.
+- **Fluxo alternativo:** chat ausente mantém a mensagem pendente; falha externa registra falha recuperável sem afetar dados locais.
 - **Pós-condição:** mensagem enviada ou operação registrada como não enviada.
 
 ### UC14 — Gerenciar permissões por frente
 
-- **Ator:** Scrum Master.
-- **Pré-condição:** Scrum Master autenticado.
-- **Fluxo principal:** Scrum Master delimita permissões de acesso e edição de cada membro em cada frente; sistema valida, persiste e registra auditoria.
+- **Ator:** Scrum Master ou Scrum Master Assistente.
+- **Pré-condição:** Scrum Master/Scrum Master Assistente autenticado.
+- **Fluxo principal:** Scrum Master/Scrum Master Assistente delimita permissões de acesso e edição de cada membro em cada frente; sistema valida, persiste e registra auditoria.
 - **Fluxo alternativo:** membro inexistente ou permissão inválida é rejeitado.
 - **Pós-condição:** cada membro só vê e edita as frentes permitidas.
 
 ### UC15 — Sincronizar Calendar
 
-- **Ator:** Scrum Master ou agendador.
+- **Ator:** Scrum Master/Scrum Master Assistente ou agendador.
 - **Pré-condição:** Calendar habilitado e calendário de destino definido.
 - **Fluxo principal:** sistema cria ou atualiza evento e registra o identificador externo.
 - **Fluxo alternativo:** integração desabilitada ou indisponível; agenda interna permanece funcional.

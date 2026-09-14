@@ -57,9 +57,11 @@ Testes de unidade devem ser rápidos e independentes. Testes externos reais deve
 | D10 | `CalendarEvent` | permanece válido no modo somente local |
 | D11 | `EmailAddress` | rejeita formato inválido |
 | D12 | `DateRange` | rejeita período invertido |
-| D13 | `TelegramMessage` | impede envio sem grupo configurado pelo Scrum Master |
+| D13 | `TelegramMessage` | impede envio sem chat "PETBSI notificações" configurado pelo Scrum Master/Scrum Master Assistente |
 | D14 | `TelegramMessage` | preserva vínculo com o evento ao registrar falha |
 | D15 | `ProjectMembership` | membro sem permissão de edição não pode mover item da frente |
+| D16 | `TelegramMessage` | gera lembrete de prazo apenas para tarefa com `Deadline` definido |
+| D17 | `TelegramMessage` | formata "A tarefa X falta Y dias para o prazo final." e "vence hoje" quando o prazo é o dia corrente |
 
 ## 5. Testes de casos de uso
 
@@ -77,8 +79,8 @@ Testes de unidade devem ser rápidos e independentes. Testes externos reais deve
 | A10 | UC10 Configurar lembrete | data válida, feriado, destinatário inválido |
 | A11 | UC11 Sincronizar Calendar | criar, atualizar, desabilitado, falha e retry |
 | A12 | UC12 Configurar integração | conectar, escopo recusado, revogar, configuração inválida |
-| A13 | UC15 Enviar notificação Telegram | grupo configurado, grupo ausente, envio aceito, falha externa, idempotência |
-| A14 | UC16 Gerenciar permissões por frente | conceder acesso, conceder edição, revogar, membro inexistente, papel incorreto (não Scrum Master) |
+| A13 | UC15 Enviar notificação Telegram | chat "PETBSI notificações" configurado, chat ausente, envio aceito, falha externa, idempotência, lembrete de prazo e tarefa sem prazo |
+| A14 | UC16 Gerenciar permissões por frente | conceder acesso, conceder edição, revogar, membro inexistente, papel incorreto (não Scrum Master/Scrum Master Assistente) |
 
 ## 6. Testes de requisitos funcionais
 
@@ -86,15 +88,15 @@ Testes de unidade devem ser rápidos e independentes. Testes externos reais deve
 |---|---|
 | RF01 | usuário autorizado entra e usuário sem vínculo é bloqueado |
 | RF02 | visão geral exibe Sprint, metas, prazos, WIP, bloqueios e entregas |
-| RF03 | Product Owner cria, edita e ordena item |
+| RF03 | Coordenador (Product Owner) cria, edita e ordena item |
 | RF04-RF05 | equipe seleciona item e registra metas sem confundir backlogs |
 | RF06-RF08 | usuário move item e gerencia bloqueio com histórico |
 | RF09-RF11 | filtros relacionam frente, Sprint, responsável, entrega e histórico |
 | RF12-RF13 | arquivo é enviado ao folder configurado e apenas metadados ficam no banco |
 | RF14-RF16 | Gmail envia mensagem e mostra status confirmado ou falho |
 | RF17-RF20 | lembretes, reuniões e Calendar funcionam com integração opcional |
-| RF21-RF23 | Telegram envia notificação ao grupo e mostra status confirmado, pendente ou falho |
-| RF24 | Scrum Master delimita permissões de acesso/edição por frente e membros respeitam o limite |
+| RF21-RF23 | Telegram notifica eventos e lembrete de prazo no chat "PETBSI notificações" e mostra status confirmado, pendente ou falho |
+| RF24 | Scrum Master/Scrum Master Assistente delimita permissões de acesso/edição por frente e membros respeitam o limite |
 
 ## 7. Testes de requisitos não funcionais
 
@@ -133,11 +135,12 @@ Testes de unidade devem ser rápidos e independentes. Testes externos reais deve
 
 ### Telegram
 
-- envio usa grupo/chat configurado pelo Scrum Master no servidor.
+- envio usa o chat "PETBSI notificações" configurado pelo Scrum Master/Scrum Master Assistente no servidor.
+- lembrete de prazo segue o formato "A tarefa X falta Y dias para o prazo final." e nenhum lembrete é gerado para tarefa sem `Deadline`.
 - resposta contém identificador da mensagem e status.
 - falha não pode gerar status concluído falso.
 - retry não deve duplicar mensagem quando a chave de idempotência for reutilizada.
-- grupo ausente mantém a mensagem pendente sem afetar os dados locais.
+- chat ausente mantém a mensagem pendente sem afetar os dados locais.
 
 ## 9. Testes de frontend
 
@@ -149,28 +152,28 @@ Testes de unidade devem ser rápidos e independentes. Testes externos reais deve
 | Fluxo | movimentação, WIP, rollback visual e bloqueio |
 | Arquivos | progresso, sucesso, falha, retry e link Drive |
 | Notificações | prévia, confirmação, erro e status de envio (Gmail) |
-| Telegram | status de envio, pendência e configuração pelo Scrum Master |
-| Permissões | menu restrito ao Scrum Master e limites por frente aplicados |
+| Telegram | status de envio, pendência, lembrete de prazo e configuração do chat "PETBSI notificações" pelo Scrum Master/Scrum Master Assistente |
+| Permissões | menu restrito ao Scrum Master/Scrum Master Assistente e limites por frente aplicados |
 | Agenda | terça, quarta, feriado, integração habilitada/desabilitada |
 | Responsividade | desktop, tela menor e navegação por teclado |
 
 ## 10. Testes E2E prioritários
 
 1. Usuário autorizado realiza login e consulta visão geral.
-2. Product Owner cria item, ordena backlog e visualiza todos os planos das frentes.
+2. Coordenador (Product Owner) cria item, ordena backlog e visualiza todos os planos das frentes.
 3. Membro move item no quadro respeitando WIP e a permissão da frente.
 4. Membro registra bloqueio e o resolve.
 5. Membro envia arquivo para Drive de teste.
-6. Scrum Master envia notificação Gmail e mensagem Telegram de teste.
-7. Scrum Master limita a permissão de um membro em uma frente e o membro perde a capacidade de edição.
-8. Scrum Master cria evento interno e sincroniza Calendar de teste.
+6. Scrum Master/Scrum Master Assistente envia notificação Gmail e mensagem Telegram de teste, incluindo lembrete de prazo no chat "PETBSI notificações".
+7. Scrum Master/Scrum Master Assistente limita a permissão de um membro em uma frente e o membro perde a capacidade de edição.
+8. Scrum Master/Scrum Master Assistente cria evento interno e sincroniza Calendar de teste.
 9. Serviço Google ou Telegram falha e o sistema mantém os dados locais.
 
 ## 11. Dados e ambientes
 
 - **Unitário:** objetos em memória e dados sintéticos.
 - **Aplicação:** repositories e gateways fake.
-- **Integração:** banco PostgreSQL de teste, contas Google de desenvolvimento e grupo/bot Telegram de desenvolvimento.
+- **Integração:** banco PostgreSQL de teste, contas Google de desenvolvimento e chat/bot Telegram de desenvolvimento ("PETBSI notificações").
 - **E2E:** ambiente isolado, contas autorizadas e arquivos não sensíveis.
 - **Produção:** nenhum teste destrutivo sem janela e autorização explícitas.
 
@@ -204,7 +207,7 @@ Testes de unidade devem ser rápidos e independentes. Testes externos reais deve
 | RF12-RF13 | UC08 | A08, contrato Drive, E2E05 |
 | RF14-RF16 | UC09 | A09, contrato Gmail, E2E06 |
 | RF17-RF20 | UC10-UC11 | A10-A11, contrato Calendar, E2E08 |
-| RF21-RF23 | UC15 | D13-D14, A13, contrato Telegram, E2E09 |
+| RF21-RF23 | UC15 | D13-D17, A13, contrato Telegram, E2E09 |
 | RF24 | UC16 | D15, A14, E2E07 |
 | RNF01-RNF03 | UC01, UC08, UC09, UC12, UC15, UC16 | segurança e autorização |
 | RNF04-RNF05 | UC08, UC09, UC11, UC15 | falhas, retry e idempotência |

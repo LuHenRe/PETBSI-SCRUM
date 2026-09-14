@@ -105,7 +105,7 @@ stateDiagram-v2
 ```mermaid
 stateDiagram-v2
     [*] --> Pendente
-    Pendente --> Enviando : iniciarEnvio [Telegram configurado]
+    Pendente --> Enviando : iniciarEnvio [chat "PETBSI notificações" configurado]
     Enviando --> Enviada : gatewayAceitou
     Enviando --> Falha : gatewayRecusou
     Falha --> Pendente : solicitarRetry [chave idempotente]
@@ -116,9 +116,10 @@ stateDiagram-v2
 
 ### Regras
 
-- A mensagem é gerada a partir de um evento do projeto (item movido, bloqueio, Sprint, entrega).
-- A configuração do grupo e do bot é feita pelo Scrum Master.
-- `Falha` mantém o vínculo com o evento original e não corrompe os dados locais.
+- A mensagem é gerada a partir de um evento do projeto (item movido, bloqueio, Sprint, entrega) ou de lembrete de prazo de tarefa com `kind` `DEADLINE_REMINDER` ("A tarefa X falta Y dias para o prazo final."), disparado pelo Agendador a partir do `Deadline`.
+- A configuração do chat "PETBSI notificações" e do bot é feita pelo Scrum Master/Scrum Master Assistente.
+- Tarefa sem prazo definido não gera lembrete de prazo.
+- `Falha` mantém o vínculo com o evento ou prazo original e não corrompe os dados locais.
 - Retry respeita a chave de idempotência.
 
 ## 6. Estado do `CalendarEvent`
@@ -163,23 +164,23 @@ stateDiagram-v2
     Revogada --> [*]
 ```
 
-Tokens e segredos não aparecem como atributos do domínio. O estado representa somente a conexão e suas capacidades autorizadas. A configuração da conexão, inclusive do Telegram, é responsabilidade do Scrum Master.
+Tokens e segredos não aparecem como atributos do domínio. O estado representa somente a conexão e suas capacidades autorizadas. A configuração da conexão, inclusive do Telegram, é responsabilidade do Scrum Master/Scrum Master Assistente.
 
 ## 8. Matriz de responsabilidade
 
 | Transição | Responsável autorizado |
 |---|---|
-| Selecionar item para Sprint | Developers com apoio do Product Owner |
-| Mover item no fluxo | Membro responsável na frente com permissão ou Scrum Master |
-| Resolver bloqueio | Membro responsável ou Scrum Master, conforme política |
+| Selecionar item para Sprint | Developers com apoio do Coordenador (Product Owner) |
+| Mover item no fluxo | Membro responsável na frente com permissão ou Scrum Master/Scrum Master Assistente |
+| Resolver bloqueio | Membro responsável ou Scrum Master/Scrum Master Assistente, conforme política |
 | Encerrar Sprint | Scrum Team conforme processo validado |
-| Ordenar Product Backlog | Product Owner |
-| Consultar todos os planos (frentes) | Product Owner (e Scrum Master conforme permissão) |
-| Enviar Gmail | Scrum Master |
-| Enviar mensagem ao grupo Telegram | Sistema (eventos automáticos) ou Scrum Master |
-| Sincronizar Calendar | Scrum Master ou agendador autorizado |
-| Delimitar permissões de acesso/edição dos membros por frente | Scrum Master |
-| Conectar/revogar integrações (Google e Telegram) | Scrum Master |
+| Ordenar Product Backlog | Coordenador (Product Owner) |
+| Consultar todos os planos (frentes) | Coordenador (Product Owner) (e Scrum Master/Scrum Master Assistente conforme permissão) |
+| Enviar Gmail | Scrum Master/Scrum Master Assistente |
+| Enviar mensagem ao chat "PETBSI notificações" | Sistema (eventos ou lembretes de prazo) ou Scrum Master/Scrum Master Assistente |
+| Sincronizar Calendar | Scrum Master/Scrum Master Assistente ou agendador autorizado |
+| Delimitar permissões de acesso/edição dos membros por frente | Scrum Master/Scrum Master Assistente |
+| Conectar/revogar integrações (Google e Telegram) | Scrum Master/Scrum Master Assistente |
 
 ## 9. Eventos de domínio sugeridos
 

@@ -26,10 +26,10 @@ Definir as entidades, value objects, agregados e relacionamentos centrais do dom
 | `WorkItemStateChange` | Registrar mudança de estado | Sim |
 | `Blocker` | Representar impedimento e resolução | Sim |
 | `Delivery` | Representar resultado verificável | Sim |
-| `Deadline` | Representar prazo acadêmico ou operacional | Sim |
+| `Deadline` | Representar prazo acadêmico, operacional ou de tarefa | Sim |
 | `Attachment` | Vincular arquivo externo ao domínio | Sim |
 | `Notification` | Representar solicitação e resultado de envio (Gmail) | Sim |
-| `TelegramMessage` | Representar notificação enviada ao grupo do Telegram | Sim |
+| `TelegramMessage` | Representar notificação ou lembrete de prazo enviado ao chat "PETBSI notificações" do Telegram | Sim |
 | `CalendarEvent` | Representar evento local e sincronização externa | Sim |
 | `IntegrationConnection` | Representar estado de conexão de provedor | Sim |
 | `AuditEvent` | Registrar operação relevante | Sim |
@@ -38,7 +38,7 @@ Definir as entidades, value objects, agregados e relacionamentos centrais do dom
 
 | Tipo | Uso |
 |---|---|
-| `ProjectRole` | `MEMBER`, `SCRUM_MASTER`, `PRODUCT_OWNER` |
+| `ProjectRole` | `MEMBER`, `SCRUM_MASTER`, `SCRUM_MASTER_ASSISTANT`, `COORDINATOR`, `PRODUCT_OWNER`; o título "Visitante" deriva de um membro sem permissão de edição |
 | `BacklogPriority` | Ordenação do Product Backlog |
 | `WorkItemStatus` | Estado atual do item no fluxo |
 | `WorkflowPolicy` | Critérios de entrada, saída e movimentação |
@@ -47,6 +47,7 @@ Definir as entidades, value objects, agregados e relacionamentos centrais do dom
 | `ExternalFileReference` | Provedor, identificador e URL do arquivo |
 | `NotificationStatus` | `PENDING`, `SENT`, `FAILED`, `CANCELLED` |
 | `TelegramMessageStatus` | `PENDING`, `SENT`, `FAILED`, `CANCELLED` |
+| `TelegramMessageKind` | `EVENT`, `DEADLINE_REMINDER` |
 | `SyncStatus` | `DISABLED`, `PENDING`, `SYNCED`, `FAILED`, `REVOKED` |
 | `MeetingType` | Reunião de terça, reunião principal de quarta ou outro evento |
 | `DateRange` | Período da Sprint ou do evento |
@@ -182,9 +183,15 @@ classDiagram
     class TelegramMessage {
         <<entity>>
         +UUID id
-        +String groupName
+        +String chatName
+        +TelegramMessageKind kind
         +TelegramMessageStatus status
         +send()
+    }
+    class TelegramMessageKind {
+        <<enumeration>>
+        EVENT
+        DEADLINE_REMINDER
     }
     class CalendarEvent {
         <<entity>>
@@ -250,7 +257,7 @@ classDiagram
 - **Composição:** `Project` compõe metas, frentes, vínculos e Sprints; `Sprint` compõe itens selecionados; `BacklogItem` compõe bloqueios e mudanças de estado.
 - **Agregação:** `Project` agrega pessoas e duplas, pois elas podem existir fora deste projeto; `Sprint` agrega entregas, pois uma entrega pode ser consultada no histórico.
 - **Associação:** itens relacionam-se a frentes, colunas, entregas e arquivos sem assumir posse exclusiva em todos os casos.
-- **Herança de atores:** no diagrama de casos de uso, `Membro` especializa o usuário autenticado; `Scrum Master` e `Product Owner` especializam `Membro`. Não é necessário duplicar pessoas no banco por papel; a permissão por frente deriva do vínculo de `ProjectMembership`.
+- **Herança de atores:** no diagrama de casos de uso, `Membro` especializa o usuário autenticado; `Scrum Master`, `Scrum Master Assistente` e `Coordenador` especializam `Membro`. Não é necessário duplicar pessoas no banco por papel; a permissão por frente deriva do vínculo de `ProjectMembership`. O `Product Owner` é uma responsabilidade exercida por um coordenador por vez, com alternância análoga à do Scrum Master.
 
 ## 6. Persistência
 
@@ -272,7 +279,7 @@ classDiagram
 | `Attachment` | `attachments` | `id` | apenas metadados Google |
 | `Notification` | `notifications` | `id` | status e auditoria |
 | `NotificationRecipient` | `notification_recipients` | `(notification_id, person_id)` | destinatários |
-| `TelegramMessage` | `telegram_messages` | `id` | grupo e status do envio |
+| `TelegramMessage` | `telegram_messages` | `id` | chat "PETBSI notificações", kind e status do envio |
 | `CalendarEvent` | `calendar_events` | `id` | vínculo externo opcional |
 | `IntegrationConnection` | `integration_connections` | `id` | nunca guardar token puro |
 | `AuditEvent` | `audit_events` | `id` | trilha de operações |

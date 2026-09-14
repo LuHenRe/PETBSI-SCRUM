@@ -24,9 +24,9 @@ Os nomes do código devem preservar os termos usados pela equipe e pelos documen
 - Bloqueio;
 - Fluxo;
 - WIP;
-- Scrum Master;
-- Product Owner;
-- Membro (Developer);
+- Scrum Master e Scrum Master Assistente;
+- Coordenador (Product Owner);
+- Membro (Developer) com título padrão "Membro" e exibição "Visitante" quando sem permissão de edição;
 - Integração;
 - Anexo;
 - Notificação;
@@ -44,7 +44,7 @@ Não usar termos genéricos como `Manager`, `Helper` ou `Processor` para esconde
 | Planejamento Scrum | Product Backlog, Sprints e seleção de itens | `BacklogItem`, `Sprint`, `SprintItem` |
 | Fluxo Kanban | colunas, WIP, bloqueios e mudanças de estado | `WorkflowColumn`, `WorkItemStateChange`, `Blocker` |
 | Entregas e Histórico | resultados verificáveis, prazos e auditoria | `Delivery`, `Deadline`, `AuditEvent` |
-| Integrações | arquivos, notificações (Gmail), mensagens do grupo, agenda e conexões externas | `Attachment`, `Notification`, `TelegramMessage`, `CalendarEvent`, `IntegrationConnection` |
+| Integrações | arquivos, notificações (Gmail), mensagens do chat "PETBSI notificações", agenda e conexões externas | `Attachment`, `Notification`, `TelegramMessage`, `CalendarEvent`, `IntegrationConnection` |
 
 Os contextos compartilham o identificador do projeto, mas não devem acessar diretamente o estado interno dos agregados uns dos outros.
 
@@ -52,12 +52,12 @@ Os contextos compartilham o identificador do projeto, mas não devem acessar dir
 
 | Aggregate Root | Invariantes essenciais | Repository |
 |---|---|---|
-| `Project` | máximo de um Product Owner ativo; frentes pertencem ao projeto | `ProjectRepository` |
+| `Project` | máximo de um coordenador exercendo o Product Owner; frentes pertencem ao projeto | `ProjectRepository` |
 | `Sprint` | Meta da Sprint definida antes de iniciar; seleção pertence à Sprint | `SprintRepository` |
 | `BacklogItem` | transição permitida; WIP respeitado; bloqueio consistente | `BacklogItemRepository` |
 | `Delivery` | entrega possui contexto, estado e vínculos válidos | `DeliveryRepository` |
 | `Notification` | destinatários permitidos; status e idempotência consistentes | `NotificationRepository` |
-| `TelegramMessage` | grupo configurado pelo Scrum Master; status e idempotência consistentes; falha preserva dados locais | `TelegramMessageRepository` |
+| `TelegramMessage` | chat "PETBSI notificações" configurado pelo Scrum Master/Scrum Master Assistente; lembrete de prazo gerado pelo Agendador somente para tarefa com `Deadline` definido, formato "A tarefa X falta Y dias para o prazo final."; status e idempotência consistentes; falha preserva dados locais | `TelegramMessageRepository` |
 | `CalendarEvent` | evento local válido sem Google; sincronização rastreável | `CalendarEventRepository` |
 
 ### Regras de acesso
@@ -79,7 +79,7 @@ Value objects devem ser imutáveis e comparados por valor:
 - `WorkItemStatus` representa estado permitido;
 - `BacklogPriority` representa ordenação;
 - `DocumentReference` (ExternalFileReference) representa referência externa sem expor token;
-- `SyncStatus`, `NotificationStatus` e `TelegramMessageStatus` representam ciclos controlados.
+- `SyncStatus`, `NotificationStatus`, `TelegramMessageStatus` e `TelegramMessageKind` representam ciclos e tipos de mensagens controlados;
 
 ## 6. Camadas da Clean Architecture
 
