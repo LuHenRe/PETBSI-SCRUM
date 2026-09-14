@@ -22,8 +22,35 @@
   --radius-sm: 8px;
   --shadow: 0 1px 3px rgb(15 23 42 / 0.08), 0 1px 2px rgb(15 23 42 / 0.04);
   --shadow-md: 0 8px 24px rgb(15 23 42 / 0.12);
+  --topbar-bg: rgb(244 246 251 / 0.9);
   --sidebar: 248px;
   --font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b1220;
+  --surface: #111a2c;
+  --surface-2: #16203a;
+  --border: #22304f;
+  --border-strong: #32456e;
+  --text: #e7edf7;
+  --text-soft: #aab8cd;
+  --muted: #7e90ab;
+  --primary: #6366f1;
+  --primary-strong: #4f46e5;
+  --primary-soft: #222b52;
+  --success: #34d399;
+  --success-soft: #0c2b22;
+  --danger: #f87171;
+  --danger-soft: #3b1520;
+  --warning: #fbbf24;
+  --warning-soft: #32260b;
+  --info: #60a5fa;
+  --info-soft: #122447;
+  --shadow: 0 1px 3px rgb(0 0 0 / 0.45), 0 1px 2px rgb(0 0 0 / 0.35);
+  --shadow-md: 0 8px 24px rgb(0 0 0 / 0.5);
+  --topbar-bg: rgb(11 18 32 / 0.85);
 }
 
 * {
@@ -231,6 +258,14 @@ h3 {
 
 .btn-danger:hover {
   background: #fee2e2;
+}
+
+html[data-theme="dark"] .btn-danger {
+  border-color: #7f1d1d;
+}
+
+html[data-theme="dark"] .btn-danger:hover {
+  background: #4c1620;
 }
 
 .btn-sm {
@@ -556,7 +591,7 @@ h3 {
   position: sticky;
   top: 0;
   z-index: 30;
-  background: rgb(244 246 251 / 0.9);
+  background: var(--topbar-bg);
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--border);
   padding: 12px 24px;
@@ -914,6 +949,11 @@ h3 {
     var(--bg);
 }
 
+html[data-theme="dark"] .login-page {
+  background: radial-gradient(1200px 600px at 70% -10%, #1e2650, transparent),
+    var(--bg);
+}
+
 .login-card {
   width: min(430px, 100%);
   padding: 28px;
@@ -943,6 +983,41 @@ h3 {
 .person-option:hover {
   border-color: var(--primary);
   background: var(--primary-soft);
+}
+
+/* ─── Alternância de tema ────────────────────────────────────────────────── */
+
+.theme-toggle {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 90;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.theme-toggle:hover {
+  color: var(--text);
+  border-color: var(--muted);
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+.theme-toggle svg {
+  width: 18px;
+  height: 18px;
 }
 
 /* ─── Detalhe do item ─────────────────────────────────────────────────────── */
