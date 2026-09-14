@@ -156,6 +156,7 @@ Testes de unidade devem ser rápidos e independentes. Testes externos reais deve
 | Permissões | menu restrito ao Scrum Master/Scrum Master Assistente e limites por frente aplicados |
 | Agenda | terça, quarta, feriado, integração habilitada/desabilitada |
 | Responsividade | desktop, tela menor e navegação por teclado |
+| Tema | alternância claro/escuro disponível no login e nas telas autenticadas, persistência da preferência e contraste dos componentes em ambos os temas |
 
 ## 10. Testes E2E prioritários
 
@@ -211,7 +212,7 @@ Testes de unidade devem ser rápidos e independentes. Testes externos reais deve
 | RF24 | UC16 | D15, A14, E2E07 |
 | RNF01-RNF03 | UC01, UC08, UC09, UC12, UC15, UC16 | segurança e autorização |
 | RNF04-RNF05 | UC08, UC09, UC11, UC15 | falhas, retry e idempotência |
-| RNF06-RNF10 | todos os fluxos | desempenho, acessibilidade, arquitetura e auditoria |
+| RNF06-RNF11 | todos os fluxos | desempenho, tema, acessibilidade, arquitetura e auditoria |
 
 ## 14. Referências
 

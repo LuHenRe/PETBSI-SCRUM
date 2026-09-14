@@ -86,6 +86,7 @@ As permissões devem ser verificadas no servidor em toda operação de escrita e
 | RNF11 | Auditoria | Mudanças de permissão, envio, upload, exclusão de vínculo e alteração de fluxo devem gerar evento de auditoria. |
 | RNF12 | Manutenibilidade | Regras de domínio e casos de uso não devem depender de componentes React, ORM ou SDK Google. |
 | RNF13 | Portabilidade | A integração Google deve ser encapsulada atrás de interfaces para permitir troca de provedor ou implementação fake em testes. |
+| RNF14 | Acessibilidade/Usabilidade | O frontend deve oferecer alternância entre tema claro e escuro, disponível em todas as telas, inclusive na tela de login, persistindo a preferência do usuário. |
 
 ## 6. Escopo do Frontend
 
@@ -129,6 +130,8 @@ Projeto
 Toda tela que depender de dados locais ou externos deve possuir estados de carregamento, vazio, sucesso, erro recuperável, sem autorização e acesso negado. Operações demoradas devem mostrar progresso e impedir duplicação acidental do comando.
 
 O frontend deverá usar atualização otimista somente para alterações locais reversíveis. Upload, envio de e-mail e criação de evento devem confirmar o resultado no servidor antes de apresentar a operação como concluída.
+
+Todas as telas, incluindo a tela de login, devem oferecer um controle de alternância entre tema claro e escuro (RNF14). A preferência deve ser persistida no navegador e aplicada antes da primeira pintura para evitar mudança brusca de aparência, respeitando o tema do sistema como padrão quando o usuário ainda não escolheu.
 
 ## 7. Integrações Google
 
