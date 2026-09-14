@@ -69,8 +69,8 @@ A documentação inicial está estruturada até o plano de testes. Ainda não ex
 
 As principais decisões pendentes são:
 
-- composição final das duplas e papéis;
-- Product Owner;
+- composição final das duplas e papéis (Scrum Master/Scrum Master Assistente, Coordenador/Product Owner);
+- Product Owner (exercido por um coordenador por vez);
 - duração das Sprints;
 - fluxo real e limites de WIP;
 - autenticação;

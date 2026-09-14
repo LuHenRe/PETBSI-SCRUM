@@ -11,11 +11,11 @@ Representar os fluxos de negócio com decisões, alternativas e responsabilidade
 
 ## 2. Atividade — Planejar Sprint
 
-**Raias:** Product Owner, Developers, Sistema.
+**Raias:** Coordenador (Product Owner), Developers, Sistema.
 
 ```mermaid
 flowchart TD
-    Start((Início)) --> PO1[Product Owner comunica prioridade e contexto]
+    Start((Início)) --> PO1[Coordenador (Product Owner) comunica prioridade e contexto]
     PO1 --> Dev1[Developers inspecionam itens do Product Backlog]
     Dev1 --> Decision1{Item compreendido?}
     Decision1 -- Não --> Refine[Esclarecer e refinar item]
@@ -32,7 +32,7 @@ flowchart TD
 
 ## 3. Atividade — Atualizar item no fluxo Kanban
 
-**Raias:** Membro/Scrum Master, Frontend, Servidor, Banco.
+**Raias:** Membro/Scrum Master ou Assistente, Frontend, Servidor, Banco.
 
 ```mermaid
 flowchart TD
@@ -86,11 +86,11 @@ flowchart TD
 
 ## 5. Atividade — Enviar notificação por Gmail
 
-**Raias:** Scrum Master, Frontend, Servidor, Gmail.
+**Raias:** Scrum Master/Scrum Master Assistente, Frontend, Servidor, Gmail.
 
 ```mermaid
 flowchart TD
-    Start((Início)) --> Compose[Scrum Master seleciona destinatários e redige mensagem]
+    Start((Início)) --> Compose[Scrum Master/Scrum Master Assistente seleciona destinatários e redige mensagem]
     Compose --> Preview[Frontend apresenta prévia]
     Preview --> Decision1{Confirmar envio?}
     Decision1 -- Não --> Cancel[Descartar ou salvar rascunho]
@@ -113,11 +113,11 @@ flowchart TD
 
 ## 6. Atividade — Sincronizar evento com Google Calendar
 
-**Raias:** Agendador/Scrum Master, Servidor, Agenda local, Google Calendar.
+**Raias:** Agendador/Scrum Master ou Assistente, Servidor, Agenda local, Google Calendar.
 
 ```mermaid
 flowchart TD
-    Start((Início)) --> Trigger[Agendador ou coordenador solicita sincronização]
+    Start((Início)) --> Trigger[Agendador ou Scrum Master/Scrum Master Assistente solicita sincronização]
     Trigger --> Load[Servidor carrega evento local]
     Load --> Decision1{Calendar habilitado?}
     Decision1 -- Não --> Local[Manter evento somente na agenda interna]
@@ -141,12 +141,16 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start((Início)) --> Event[Evento do projeto: item movido, bloqueio, Sprint iniciada/encerrada ou entrega]
-    Event --> Validate[Servidor valida evento e permissão de envio]
-    Validate --> Decision1{Telegram configurado pelo Scrum Master?}
+    Event --> DecideKind{É lembrete de prazo?}
+    DecideKind -- Sim --> Reminder[Gerar "A tarefa X falta Y dias para o prazo final." a partir do Deadline não nulo]
+    DecideKind -- Não --> Keep[Manter mensagem do evento]
+    Reminder --> Validate[Servidor valida lembrete, evento e permissão de envio]
+    Keep --> Validate
+    Validate --> Decision1{chat "PETBSI notificações" configurado pelo Scrum Master/Scrum Master Assistente?}
     Decision1 -- Não --> Pending[Manter telegram_message pendente]
     Pending --> End1((Pendente))
     Decision1 -- Sim --> Create[Registrar TelegramMessage pendente]
-    Create --> Send[Enviar mensagem ao grupo pelo bot]
+    Create --> Send[Enviar mensagem ao chat "PETBSI notificações" pelo bot]
     Send --> Decision2{Telegram aceitou?}
     Decision2 -- Não --> Failed[Registrar falha recuperável e auditoria]
     Failed --> End2((Falha recuperável))
@@ -163,7 +167,7 @@ flowchart TD
 | Drive | tipo/tamanho, autorização, conexão e resultado externo |
 | Gmail | destinatários, confirmação, conexão, idempotência e resultado |
 | Calendar | habilitação, autorização, sincronização, falha e retry |
-| Telegram | habilitação/configuração, permissão, conexão, idempotência e resultado |
+| Telegram | habilitação/configuração do chat "PETBSI notificações", permissão, lembrete de prazo com formato "A tarefa X falta Y dias...", conexão, idempotência e resultado |
 
 ## 9. Referências
 

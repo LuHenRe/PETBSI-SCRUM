@@ -260,9 +260,9 @@ erDiagram
 - Uma pessoa pode participar de mais de um projeto futuramente.
 - O e-mail não é chave primária.
 - O vínculo define papel, frente, dupla e período de validade.
-- O vínculo também define a permissão de acesso e edição do membro na frente; tal permissão é delimitada pelo Scrum Master.
-- Deve existir no máximo um Product Owner ativo por projeto.
-- O Scrum Master atual deve ser identificável sem eliminar o histórico de alternâncias.
+- O vínculo também define a permissão de acesso e edição do membro na frente; tal permissão é delimitada pelo Scrum Master/Scrum Master Assistente. O papel `role` assume `MEMBER`, `SCRUM_MASTER`, `SCRUM_MASTER_ASSISTANT`, `COORDINATOR` ou `PRODUCT_OWNER`; o título de exibição "Visitante" deriva de um membro sem permissão de edição.
+- Deve existir no máximo um coordenador exercendo o Product Owner por projeto.
+- O Scrum Master/Scrum Master Assistente atual deve ser identificável sem eliminar o histórico de alternâncias.
 - A dupla de Gestão Ágil não substitui a accountability individual do Scrum Master.
 
 ### `sprints`, `backlog_items` e `sprint_items`
@@ -297,11 +297,13 @@ erDiagram
 
 ### `telegram_messages`
 
-- Representa notificação enviada ao grupo do projeto via bot do Telegram.
-- `chat_id` referencia o grupo configurado pelo Scrum Master e não deve ser tratado como atributo público.
+- Representa notificação ou lembrete de prazo enviado ao chat "PETBSI notificações" via bot do Telegram.
+- `kind` distingue `EVENT` (item movido, bloqueio, Sprint, entrega) de `DEADLINE_REMINDER` ("A tarefa X falta Y dias para o prazo final.").
+- `chat_id` referencia o chat "PETBSI notificações" configurado pelo Scrum Master/Scrum Master Assistente e não deve ser tratado como atributo público.
+- Lembretes de prazo são gerados a partir do `Deadline` de uma tarefa com prazo definido; tarefa sem prazo não gera lembrete.
 - A chave de idempotência evita duplicidade de envio nas mesmas condições.
-- Falha de envio altera `status`, mas não invalida dados locais vinculados ao evento que originou a mensagem.
-- Configurações do bot (token, grupo, permissões de envio) ficam fora das tabelas de domínio e fora do navegador.
+- Falha de envio altera `status`, mas não invalida dados locais vinculados ao evento ou prazo que originou a mensagem.
+- Configurações do bot (token, chat, permissões de envio) ficam fora das tabelas de domínio e fora do navegador.
 
 ### `calendar_events`
 
@@ -374,7 +376,7 @@ Seeds iniciais sugeridos:
 
 1. Gerar mensagem a partir de evento do projeto.
 2. Criar `telegram_message` pendente com chave de idempotência.
-3. Verificar grupo/bot configurados pelo Scrum Master.
+3. Verificar grupo/bot configurados pelo Scrum Master/Scrum Master Assistente.
 4. Enviar pelo gateway do Telegram.
 5. Atualizar resultado e auditoria; falha permanece recuperável e não afeta os dados locais.
 

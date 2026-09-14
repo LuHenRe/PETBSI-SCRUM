@@ -12,9 +12,9 @@ O projeto utiliza **Scrum como estrutura principal** e o **Método Kanban como c
 
 ## 2. Contexto
 
-A equipe possui oito pessoas organizadas em quatro duplas, com diferentes frentes e funções, mas integradas em um único Scrum Team. Uma das duplas atua como apoio de Gestão Ágil. A responsabilidade formal de Scrum Master é exercida por uma pessoa por vez e pode alternar entre os integrantes da dupla.
+A equipe possui oito pessoas organizadas em quatro duplas, com diferentes frentes e funções, mas integradas em um único Scrum Team. Uma das duplas atua como apoio de Gestão Ágil. A responsabilidade formal de Scrum Master é exercida por uma pessoa por vez e alterna entre o Scrum Master e o Scrum Master Assistente, ambos com permissões de Administrador Técnico.
 
-O sistema possui três papéis: **Membro**, **Product Owner** e **Scrum Master**. O Product Owner vê todos os planos das quatro frentes e conduz o Product Backlog. O Scrum Master possui a maior permissão, cuidando da transparência, do fluxo, das configurações técnicas (integrações) e da delimitação de permissões de acesso/edição por frente. Os membros apenas veem ou alteram as frentes para as quais possuem permissão.
+O sistema possui os papéis **Membro**, **Scrum Master**, **Scrum Master Assistente** e **Coordenador**. Todos os membros recebem o título padrão **Membro** e são exibidos como **Visitante** quando não possuem permissão de edição. Os **coordenadores** possuem o título **Coordenador**, veem todos os planos das quatro frentes e atuam como **Product Owner** (um deles, por vez). O Scrum Master e o Scrum Master Assistente possuem as maiores permissões técnicas, cuidando da transparência, do fluxo, das configurações técnicas (integrações) e da delimitação de permissões de acesso/edição por frente. Os membros apenas veem ou alteram as frentes para as quais possuem permissão.
 
 ## 3. Frentes de trabalho
 
@@ -32,7 +32,7 @@ As frentes são agrupamentos de trabalho e não representam Scrum Teams independ
 A aplicação deverá preservar:
 
 - um único Scrum Team;
-- Product Owner, Scrum Master e Developers;
+- Product Owner (exercido por um coordenador por vez), Scrum Master e Scrum Master Assistente, e Developers;
 - Product Backlog e Sprint Backlog distintos;
 - Sprints, Meta do Produto e Meta da Sprint;
 - Sprint Planning, Daily Scrum, Sprint Review e Sprint Retrospective;
@@ -66,9 +66,9 @@ A quarta-feira possui maior importância operacional, mas não constitui um novo
 
 | Público | Valor esperado |
 |---|---|
-| Membros | Clareza sobre prioridades, responsabilidades, bloqueios e entregas nas frentes em que atuam |
-| Product Owner | Visão de todos os planos das frentes, priorização do Product Backlog e metas |
-| Scrum Master | Transparência, facilitação, inspeção, melhoria do fluxo, configuração de integrações e gestão de permissões |
+| Membros | Clareza sobre prioridades, responsabilidades, bloqueios e entregas nas frentes em que atuam; título "Membro" ou "Visitante" conforme a permissão de edição |
+| Coordenador (Product Owner) | Visão de todos os planos das frentes, priorização do Product Backlog e metas |
+| Scrum Master e Scrum Master Assistente | Transparência, facilitação, inspeção, melhoria do fluxo, configuração de integrações e gestão de permissões |
 
 ## 7. Escopo do MVP
 
@@ -83,7 +83,7 @@ O MVP contempla:
 - participantes, duplas e responsabilidades;
 - upload de arquivos para diretório Google Drive existente;
 - notificações por Gmail;
-- notificações automáticas para o grupo do projeto no Telegram, como canal de comunicação entre os membros;
+- notificações automáticas e lembretes de prazo de tarefas para o chat "PETBSI notificações" no Telegram, como canal de comunicação entre os membros;
 - agenda interna e integração opcional com Google Calendar.
 
 ## 8. Fora do escopo inicial
@@ -116,7 +116,7 @@ O produto será considerado conceitualmente adequado se:
 2. mostrar o que está planejado, em progresso, bloqueado e concluído;
 3. preservar os conceitos fundamentais de Scrum;
 4. melhorar a visualização e o fluxo sem substituir Scrum;
-5. apoiar o Product Owner, o Scrum Master e os membros nas respectivas responsabilidades;
+5. apoiar o Coordenador (Product Owner), o Scrum Master/Scrum Master Assistente e os membros nas respectivas responsabilidades;
 6. gerar histórico útil para acompanhamento e prestação de contas;
 7. reduzir dependência de informações dispersas;
 8. respeitar os limites e responsabilidades definidos pela equipe.
@@ -124,14 +124,14 @@ O produto será considerado conceitualmente adequado se:
 ## 11. Decisões pendentes
 
 - composição exata das duplas;
-- pessoa responsável como Product Owner;
+- pessoa responsável como Product Owner (um coordenador por vez);
 - duração das Sprints;
 - fluxo real, políticas e limites de WIP;
 - definição exata do Produto e da Meta do Produto;
 - provedor de autenticação;
 - conta Google, pasta Drive, remetente Gmail e calendário;
 - escopos OAuth e políticas de retenção;
-- grupo do Telegram, bot e configuração de notificações automáticas.
+- chat "PETBSI notificações" no Telegram, bot e configuração de notificações automáticas e lembretes de prazo.
 
 ## 12. Referências
 

@@ -39,7 +39,7 @@ Essa separação será traduzida posteriormente para as camadas de Clean Archite
 | UC10 Configurar lembrete | `ReminderForm`, `AgendaPage` | `ConfigureReminderUseCase` | `Deadline`, `CalendarEvent`, `Person`, `CalendarRepository` |
 | UC11 Sincronizar Calendar | `CalendarSyncRoute`, `SchedulerAdapter` | `SyncCalendarEventUseCase` | `CalendarEvent`, `Deadline`, `Sprint`, `CalendarGateway`, `CalendarEventRepository`, `AuditPort` |
 | UC12 Configurar integração | `IntegrationSettingsPage`, `OAuthCallbackRoute` | `ManageIntegrationConnectionUseCase` | `IntegrationConnection`, `AuthGateway`, `FileStorageGateway`, `EmailGateway`, `TelegramGateway`, `CalendarGateway`, `AuditPort` |
-| UC15 Enviar notificação por Telegram | `TelegramNotifyRoute`, `EventNotificationAdapter` | `SendTelegramMessageUseCase` | `TelegramMessage`, `Project`, `TelegramGateway`, `TelegramMessageRepository`, `AuditPort` |
+| UC15 Enviar notificação por Telegram | `TelegramNotifyRoute`, `EventNotificationAdapter`, `DeadlineReminderAdapter` | `SendTelegramMessageUseCase` | `TelegramMessage`, `Project`, `Deadline`, `BacklogItem`, `TelegramGateway`, `TelegramMessageRepository`, `AuditPort` |
 | UC16 Gerenciar permissões por frente | `FrontPermissionsPage` | `ManageFrontPermissionsUseCase` | `ProjectMembership`, `WorkFront`, `Project`, `AuditPort` |
 
 ## 4. Diagrama de robustez geral
@@ -68,7 +68,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    Membro((Membro / Scrum Master)) --> Board[WorkflowBoard «boundary»]
+    Membro((Membro / Scrum Master ou Assistente)) --> Board[WorkflowBoard «boundary»]
     Board --> Move[MoveBacklogItemUseCase «control»]
     Move --> Item[BacklogItem «entity»]
     Move --> Column[WorkflowColumn «entity»]
@@ -96,7 +96,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    ScrumMaster((Scrum Master)) --> Composer[NotificationComposer «boundary»]
+    ScrumMaster((Scrum Master/Scrum Master Assistente)) --> Composer[NotificationComposer «boundary»]
     Composer --> Send[SendNotificationUseCase «control»]
     Send --> Notification[Notification «entity»]
     Send --> Recipient[NotificationRecipient «entity»]
@@ -113,10 +113,12 @@ flowchart LR
     Sistema((Sistema / Agendador)) --> Route[TelegramNotifyRoute «boundary»]
     Route --> Send[SendTelegramMessageUseCase «control»]
     Send --> Message[TelegramMessage «entity»]
+    Send --> Deadline[Deadline «entity»]
+    Send --> Item[BacklogItem «entity»]
     Send --> Project[Project «entity»]
     Send --> TelegramGW[[TelegramGateway «port»]]
     TelegramGW -. implementado por .-> Bot[TelegramBotGateway «adapter»]
-    Bot --> Telegram[(Telegram Bot API)]
+    Bot --> Telegram[(Telegram Bot API / chat PETBSI notificações)]
 ```
 
 ## 6. Responsabilidades e limites
