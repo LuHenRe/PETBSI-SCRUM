@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useReducer, useState } from "react";
+import { useState } from "react";
 import { Lock, Settings } from "lucide-react";
-import { setColumnWip, useAppState } from "@/lib/store";
-import { apiClient } from "@/lib/api-client";
-import type { ProjectMembership } from "@/domain/project/project-membership";
+import { setColumnWip, setMembershipEdit, useAppState } from "@/lib/store";
 import { Badge, Card, Field, Select } from "@/components/ui";
 import { ROLE_LABEL, isCoordinator, isTechAdmin } from "@/lib/labels";
 
@@ -16,27 +14,7 @@ const FERIADOS = [
 
 export default function ConfiguracoesPage() {
   const state = useAppState();
-  const [, force] = useReducer((x: number) => x + 1, 0);
-  useEffect(() => apiClient.subscribe(() => force()), []);
-  const version = apiClient.getVersion();
   const [savedWip, setSavedWip] = useState<string | null>(null);
-  // RF24/RN10: permissões por frente vêm do domínio (auditoria append-only).
-  // WIP continua local (apresentação); edição de permissão exige SM via apiClient.
-  const [domainMemberships, setDomainMemberships] = useState<ProjectMembership[]>([]);
-  const [permError, setPermError] = useState<string | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    apiClient
-      .getDeps()
-      .memberships.listAll()
-      .then((all) => {
-        if (!cancelled) setDomainMemberships(all);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [version]);
 
   return (
     <div>
@@ -108,13 +86,8 @@ export default function ConfiguracoesPage() {
             title="Permissões por frente"
             action={<Lock size={15} className="text-muted" aria-label="Restrito a administradores" />}
           >
-            {permError && (
-              <div className="alert alert-danger mb-2" role="alert">
-                {permError}
-              </div>
-            )}
             <div className="list">
-              {domainMemberships.map((m) => {
+              {state.memberships.map((m) => {
                 const person = state.people.find((p) => p.id === m.personId);
                 const front = state.fronts.find((f) => f.id === m.frontId);
                 const locked = isTechAdmin(m.role) || isCoordinator(m.role);
@@ -131,15 +104,7 @@ export default function ConfiguracoesPage() {
                         style={{ width: "auto" }}
                         value={m.canEdit ? "edit" : "read"}
                         aria-label={`Permissão de ${person?.name} em ${front?.name}`}
-                        onChange={(e) => {
-                          const next = e.target.value === "edit";
-                          setPermError(null);
-                          apiClient
-                            .setCanEdit(m.id, next)
-                            .catch((err: unknown) =>
-                              setPermError(err instanceof Error ? err.message : "Erro ao atualizar permissão")
-                            );
-                        }}
+                        onChange={(e) => setMembershipEdit(m.id, e.target.value === "edit")}
                       >
                         <option value="edit">Pode editar</option>
                         <option value="read">Apenas leitura</option>

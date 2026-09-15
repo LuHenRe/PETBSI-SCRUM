@@ -1,29 +1,56 @@
 "use client";
 
-import { Ban, AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import { useState } from "react";
+import { AlertTriangle, Ban, CheckCircle2, Info } from "lucide-react";
+import {
+  moveBacklogItem, openBlocker, resolveBlocker, sendTelegram, useAppState,
+} from "@/lib/store";
 import { Button, Card, Modal, TextArea } from "@/components/ui";
 import { KanbanCard } from "@/components/shared";
-import { useWorkflowBoard } from "@/hooks/use-workflow-board";
-import { useCanWrite } from "@/hooks/use-can-write";
-import type { WorkItemStatus } from "@/domain/shared/work-item-status";
+import { STATUS_LABEL } from "@/lib/labels";
+import type { WorkItemStatus } from "@/lib/types";
 
 export default function FluxoPage() {
-  const {
-    items,
-    columns,
-    stateForCard,
-    dragId,
-    setDragId,
-    wipWarning,
-    blockItemId,
-    setBlockItemId,
-    blockReason,
-    setBlockReason,
-    handleMove,
-    saveBlocker,
-    resolveBlockerFromState,
-  } = useWorkflowBoard();
-  const { canWrite } = useCanWrite();
+  const state = useAppState();
+  const actorId = state.currentUserId ?? "";
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [wipWarning, setWipWarning] = useState<string | null>(null);
+  const [blockItemId, setBlockItemId] = useState<string | null>(null);
+  const [blockReason, setBlockReason] = useState("");
+
+  const countIn = (status: WorkItemStatus) =>
+    state.backlogItems.filter((i) => i.status === status).length;
+
+  const handleMove = (itemId: string, toStatus: WorkItemStatus) => {
+    const item = state.backlogItems.find((i) => i.id === itemId);
+    if (!item || item.status === toStatus) return;
+    const target = state.columns.find((c) => c.status === toStatus);
+    if (target?.wipLimit != null) {
+      const currentCount = countIn(toStatus);
+      const alreadyHere = item.status === toStatus;
+      const nextCount = alreadyHere ? currentCount : currentCount + 1;
+      if (nextCount > target.wipLimit) {
+        setWipWarning(
+          `Limite de WIP de "${target.name}" é ${target.wipLimit} e seria ultrapassado (${nextCount}). Mova outro item antes.`
+        );
+        return;
+      }
+    }
+    setWipWarning(null);
+    moveBacklogItem(itemId, toStatus, actorId);
+    sendTelegram(
+      "EVENT",
+      `Item "${item.title}" movido para ${STATUS_LABEL[toStatus]}.`
+    );
+  };
+
+  const saveBlocker = () => {
+    if (blockItemId && blockReason.trim()) {
+      openBlocker(blockItemId, blockReason.trim(), actorId);
+    }
+    setBlockItemId(null);
+    setBlockReason("");
+  };
 
   return (
     <div>
@@ -46,9 +73,9 @@ export default function FluxoPage() {
       )}
 
       <div className="board" role="region" aria-label="Quadro Kanban">
-        {columns.map((column) => {
-          const colItems = items.filter((i) => (i.status as string) === (column.status as string));
-          const over = column.wipLimit != null && colItems.length > column.wipLimit;
+        {state.columns.map((column) => {
+          const items = state.backlogItems.filter((i) => i.status === column.status);
+          const over = column.wipLimit != null && items.length > column.wipLimit;
           return (
             <section
               key={column.id}
@@ -57,7 +84,7 @@ export default function FluxoPage() {
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => {
                 if (dragId) {
-                  void handleMove(dragId, column.status as WorkItemStatus);
+                  handleMove(dragId, column.status);
                   setDragId(null);
                 }
               }}
@@ -66,53 +93,51 @@ export default function FluxoPage() {
                 <span className="board-col-title">
                   <span className={`dot ${over ? "dot-danger" : "dot-muted"}`} aria-hidden />
                   {column.name}
-                  <span className="text-muted" style={{ fontWeight: 500 }}>{colItems.length}</span>
+                  <span className="text-muted" style={{ fontWeight: 500 }}>{items.length}</span>
                 </span>
                 {column.wipLimit != null && (
                   <span className={`wip ${over ? "wip-over" : ""}`}>
-                    {colItems.length}/{column.wipLimit}
+                    {items.length}/{column.wipLimit}
                   </span>
                 )}
               </div>
               <div className="board-col-body">
-                {colItems.length === 0 && (
+                {items.length === 0 && (
                   <div className="board-empty">Nenhum item</div>
                 )}
-                {colItems.map((item) => (
+                {items.map((item) => (
                   <div key={item.id} className="flex" style={{ flexDirection: "column", gap: 6 }}>
-                    <div draggable={canWrite} onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; setDragId(item.id); }}>
-                      <KanbanCard item={item} state={stateForCard} />
+                    <div draggable onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; setDragId(item.id); }}>
+                      <KanbanCard item={item} state={state} />
                     </div>
-                    {canWrite && (
-                      <div className="flex gap-2">
-                        {(column.status as string) === "blocked" && (
-                          <Button size="sm" variant="danger" style={{ flex: 1 }} onClick={() => void resolveBlockerFromState(item.id)}>
-                            <CheckCircle2 size={13} /> Resolver
-                          </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          style={{ flex: 1 }}
-                          onClick={() => { setBlockItemId(item.id); setBlockReason(""); }}
-                        >
-                          <AlertTriangle size={13} /> Bloquear
+                    <div className="flex gap-2">
+                      {column.status === "blocked" && (
+                        <Button size="sm" variant="danger" style={{ flex: 1 }} onClick={() => resolveBlockerFromState(item.id, actorId)}>
+                          <CheckCircle2 size={13} /> Resolver
                         </Button>
-                        <select
-                          className="select"
-                          style={{ width: "auto", padding: "3px 6px", fontSize: 12 }}
-                          aria-label={`Mover ${item.title}`}
-                          value={item.status}
-                          onChange={(e) => void handleMove(item.id, e.target.value as WorkItemStatus)}
-                        >
-                          {columns.map((c) => (
-                            <option key={c.id} value={c.status} disabled={(c.status as string) === (item.status as string)}>
-                              {c.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        style={{ flex: 1 }}
+                        onClick={() => { setBlockItemId(item.id); setBlockReason(""); }}
+                      >
+                        <AlertTriangle size={13} /> Bloquear
+                      </Button>
+                      <select
+                        className="select"
+                        style={{ width: "auto", padding: "3px 6px", fontSize: 12 }}
+                        aria-label={`Mover ${item.title}`}
+                        value={item.status}
+                        onChange={(e) => handleMove(item.id, e.target.value as WorkItemStatus)}
+                      >
+                        {state.columns.map((c) => (
+                          <option key={c.id} value={c.status} disabled={c.status === item.status}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -135,7 +160,7 @@ export default function FluxoPage() {
         footer={
           <>
             <Button variant="ghost" onClick={() => setBlockItemId(null)}>Cancelar</Button>
-            <Button variant="primary" onClick={() => void saveBlocker()}>Registrar</Button>
+            <Button variant="primary" onClick={saveBlocker}>Registrar</Button>
           </>
         }
       >
@@ -148,4 +173,9 @@ export default function FluxoPage() {
       </Modal>
     </div>
   );
+
+  function resolveBlockerFromState(itemId: string, by: string) {
+    const blocker = state.blockers.find((b) => b.itemId === itemId && !b.resolvedAt);
+    if (blocker) resolveBlocker(blocker.id, by);
+  }
 }

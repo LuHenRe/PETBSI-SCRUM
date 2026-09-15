@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Field, Modal, Select, TextArea, TextInput } from "@/components/ui";
-import { apiClient } from "@/lib/api-client";
+import { useAppState } from "@/lib/store";
 import type { BacklogItem, BacklogItemType, BacklogPriority } from "@/lib/types";
 import { TYPE_LABEL, PRIORITY_LABEL, ROLE_LABEL } from "@/lib/labels";
 
@@ -22,23 +22,18 @@ interface Props {
   open: boolean;
   initial: ItemDraft | null;
   onClose: () => void;
-  onSave: (draft: ItemDraft) => Promise<void> | void;
+  onSave: (draft: ItemDraft) => void;
 }
 
 export function ItemFormModal({ open, initial, onClose, onSave }: Props) {
-  const fronts = useMemo(() => apiClient.listFronts(), [open]);
-  const sprints = useMemo(() => apiClient.listSprints(), [open]);
-  const people = useMemo(() => apiClient.listPeople(), [open]);
-  const memberships = useMemo(() => apiClient.listMembershipsLegacy(), [open]);
+  const state = useAppState();
   const [draft, setDraft] = useState<ItemDraft>(() => empty(initial));
   const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (open) {
       setDraft(empty(initial));
       setError(null);
-      setSaving(false);
     }
   }, [open, initial]);
 
@@ -53,7 +48,7 @@ export function ItemFormModal({ open, initial, onClose, onSave }: Props) {
         : [...d.assigneeIds, personId],
     }));
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (draft.title.trim().length < 3) {
       setError("Informe um título com pelo menos 3 caracteres.");
       return;
@@ -62,17 +57,8 @@ export function ItemFormModal({ open, initial, onClose, onSave }: Props) {
       setError("Selecione a frente de trabalho.");
       return;
     }
-    // Erros de domínio (sem permissão, validação do use-case) viram alert.
-    try {
-      setError(null);
-      setSaving(true);
-      await onSave(draft);
-      onClose();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro ao salvar item");
-    } finally {
-      setSaving(false);
-    }
+    onSave(draft);
+    onClose();
   };
 
   return (
@@ -83,7 +69,7 @@ export function ItemFormModal({ open, initial, onClose, onSave }: Props) {
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" onClick={() => void handleSave()} disabled={saving}>{initial ? "Salvar alterações" : "Criar item"}</Button>
+          <Button variant="primary" onClick={handleSave}>{initial ? "Salvar alterações" : "Criar item"}</Button>
         </>
       }
     >
@@ -101,7 +87,7 @@ export function ItemFormModal({ open, initial, onClose, onSave }: Props) {
         <Field label="Frente">
           <Select value={draft.frontId} onChange={(e) => set("frontId", e.target.value)}>
             <option value="">Selecione...</option>
-            {fronts.map((f) => (
+            {state.fronts.map((f) => (
               <option key={f.id} value={f.id}>{f.name}</option>
             ))}
           </Select>
@@ -130,7 +116,7 @@ export function ItemFormModal({ open, initial, onClose, onSave }: Props) {
         <Field label="Sprint" hint="Opcional. Itens sem Sprint permanecem no Product Backlog.">
           <Select value={draft.sprintId ?? ""} onChange={(e) => set("sprintId", e.target.value || null)}>
             <option value="">Sem Sprint</option>
-            {sprints.filter((s) => s.status !== "closed").map((s) => (
+            {state.sprints.filter((s) => s.status !== "closed").map((s) => (
               <option key={s.id} value={s.id}>{s.name} — {s.status === "active" ? "ativa" : "planejada"}</option>
             ))}
           </Select>
@@ -142,8 +128,8 @@ export function ItemFormModal({ open, initial, onClose, onSave }: Props) {
 
       <Field label="Responsáveis">
         <div className="list mt-1">
-          {people.map((person) => {
-            const membership = memberships.find((m) => m.personId === person.id);
+          {state.people.map((person) => {
+            const membership = state.memberships.find((m) => m.personId === person.id);
             const checked = draft.assigneeIds.includes(person.id);
             return (
               <label key={person.id} className="flex items-center gap-2" style={{ fontSize: 13 }}>

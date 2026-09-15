@@ -1,38 +1,41 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowDown, ArrowUp, ListOrdered, Pencil, Plus, Search } from "lucide-react";
+import { createBacklogItem, reorderBacklogItem, updateBacklogItem, useAppState } from "@/lib/store";
 import { Button, Card, EmptyState, Select, TextInput } from "@/components/ui";
 import { Assignees, DeadlinePill, FrontBar, PriorityBadge, StatusBadge, TypeBadge, ValueBadge } from "@/components/shared";
 import { ItemFormModal, type ItemDraft } from "@/components/item-form";
-import { useBacklog } from "@/hooks/use-backlog";
-import { useCanWrite } from "@/hooks/use-can-write";
-import type { WorkItemStatus } from "@/domain/shared/work-item-status";
+import type { WorkItemStatus } from "@/lib/types";
 
 export default function BacklogPage() {
-  const {
-    frontFilter,
-    setFrontFilter,
-    statusFilter,
-    setStatusFilter,
-    search,
-    setSearch,
-    modalOpen,
-    setModalOpen,
-    editing,
-    setEditing,
-    saveError,
-    setSaveError,
-    fronts,
-    columns,
-    sprints,
-    stateForShared,
-    editingItem,
-    items,
-    handleSave,
-    reorder,
-  } = useBacklog();
-  const { canWrite } = useCanWrite();
+  const state = useAppState();
+  const [frontFilter, setFrontFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | WorkItemStatus>("all");
+  const [search, setSearch] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<string | null>(null);
+
+  const editingItem = editing ? state.backlogItems.find((i) => i.id === editing) ?? null : null;
+
+  const items = useMemo(() => {
+    return state.backlogItems.filter((item) => {
+      if (frontFilter !== "all" && item.frontId !== frontFilter) return false;
+      if (statusFilter !== "all" && item.status !== statusFilter) return false;
+      if (search && !item.title.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    });
+  }, [state.backlogItems, frontFilter, statusFilter, search]);
+
+  const handleSave = (draft: ItemDraft) => {
+    if (editing) {
+      updateBacklogItem(editing, draft);
+    } else {
+      createBacklogItem(draft);
+    }
+    setEditing(null);
+  };
 
   return (
     <div>
@@ -41,19 +44,11 @@ export default function BacklogPage() {
           <h1>Product Backlog</h1>
           <p className="text-muted mt-1">Itens ordenáveis por prioridade, com tipo, valor, frente e estado.</p>
         </div>
-        {canWrite && (
-          <Button variant="primary" onClick={() => { setEditing(null); setSaveError(null); setModalOpen(true); }}>
-            <Plus size={16} />
-            Novo item
-          </Button>
-        )}
+        <Button variant="primary" onClick={() => { setEditing(null); setModalOpen(true); }}>
+          <Plus size={16} />
+          Novo item
+        </Button>
       </div>
-
-      {saveError && (
-        <div className="alert alert-danger mb-4" role="alert">
-          {saveError}
-        </div>
-      )}
 
       <Card className="mb-4">
         <div className="flex items-center gap-3 wrap">
@@ -70,15 +65,15 @@ export default function BacklogPage() {
           <div style={{ width: 220 }}>
             <Select value={frontFilter} onChange={(e) => setFrontFilter(e.target.value)} aria-label="Filtrar por frente">
               <option value="all">Todas as frentes</option>
-              {fronts.map((f) => (
+              {state.fronts.map((f) => (
                 <option key={f.id} value={f.id}>{f.name}</option>
               ))}
             </Select>
           </div>
           <div style={{ width: 200 }}>
-            <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as WorkItemStatus)} aria-label="Filtrar por estado">
+            <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as "all" | WorkItemStatus)} aria-label="Filtrar por estado">
               <option value="all">Todos os estados</option>
-              {columns.map((c) => (
+              {state.columns.map((c) => (
                 <option key={c.id} value={c.status}>{c.name}</option>
               ))}
             </Select>
@@ -93,11 +88,9 @@ export default function BacklogPage() {
             title="Nenhum item encontrado"
             description="Ajuste os filtros ou crie um novo item no Product Backlog."
             action={
-              canWrite ? (
-                <Button variant="primary" onClick={() => { setEditing(null); setSaveError(null); setModalOpen(true); }}>
-                  <Plus size={16} /> Criar item
-                </Button>
-              ) : undefined
+              <Button variant="primary" onClick={() => { setEditing(null); setModalOpen(true); }}>
+                <Plus size={16} /> Criar item
+              </Button>
             }
           />
         </Card>
@@ -122,53 +115,51 @@ export default function BacklogPage() {
               <tbody>
                 {items.map((item, index) => (
                   <tr key={item.id}>
-                    <td><FrontBar frontId={item.frontId} state={stateForShared} /></td>
+                    <td><FrontBar frontId={item.frontId} state={state} /></td>
                     <td>
                       <Link href={`/itens/${item.id}`} style={{ fontWeight: 600 }}>{item.title}</Link>
                       {item.sprintId && (
-                        <div className="text-xs text-muted">{sprints.find((s) => s.id === item.sprintId)?.name}</div>
+                        <div className="text-xs text-muted">{state.sprints.find((s) => s.id === item.sprintId)?.name}</div>
                       )}
                     </td>
                     <td>
-                      <span className="text-sm">{fronts.find((f) => f.id === item.frontId)?.name}</span>
+                      <span className="text-sm">{state.fronts.find((f) => f.id === item.frontId)?.name}</span>
                     </td>
                     <td><TypeBadge type={item.type} /></td>
                     <td><PriorityBadge priority={item.priority} /></td>
                     <td><ValueBadge value={item.value} /></td>
                     <td><StatusBadge status={item.status} /></td>
                     <td><DeadlinePill deadline={item.deadline} /></td>
-                    <td><Assignees item={item} state={stateForShared} /></td>
+                    <td><Assignees item={item} state={state} /></td>
                     <td>
-                      {canWrite && (
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            aria-label="Mover para cima"
-                            disabled={index === 0}
-                            onClick={() => reorder(item.id, -1)}
-                          >
-                            <ArrowUp size={14} />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            aria-label="Mover para baixo"
-                            disabled={index === items.length - 1}
-                            onClick={() => reorder(item.id, 1)}
-                          >
-                            <ArrowDown size={14} />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            aria-label="Editar item"
-                            onClick={() => { setEditing(item.id); setSaveError(null); setModalOpen(true); }}
-                          >
-                            <Pencil size={14} />
-                          </Button>
-                        </div>
-                      )}
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          aria-label="Mover para cima"
+                          disabled={index === 0}
+                          onClick={() => reorderBacklogItem(item.id, -1)}
+                        >
+                          <ArrowUp size={14} />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          aria-label="Mover para baixo"
+                          disabled={index === items.length - 1}
+                          onClick={() => reorderBacklogItem(item.id, 1)}
+                        >
+                          <ArrowDown size={14} />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          aria-label="Editar item"
+                          onClick={() => { setEditing(item.id); setModalOpen(true); }}
+                        >
+                          <Pencil size={14} />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

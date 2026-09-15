@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { AlertTriangle, CalendarDays, ExternalLink, FileText, Pencil, Upload } from "lucide-react";
@@ -8,10 +8,6 @@ import {
   itemById, openBlocker, resolveBlocker, moveBacklogItem, sendTelegram,
   updateBacklogItem, uploadAttachment, useAppState, frontById,
 } from "@/lib/store";
-import { apiClient } from "@/lib/api-client";
-import { useCanWrite } from "@/hooks/use-can-write";
-import type { AuditEvent } from "@/application/ports/repositories";
-import type { WorkItemStateChange as DomainStateChange } from "@/domain/workflow/work-item-state-change";
 import { formatDate } from "@/lib/seed";
 import { STATUS_LABEL } from "@/lib/labels";
 import { Avatar, Badge, Button, Card, EmptyState, Modal, Select, TextArea } from "@/components/ui";
@@ -25,7 +21,6 @@ export default function ItemDetailPage() {
   const state = useAppState();
   const actorId = state.currentUserId ?? "";
   const item = itemById(state, itemId);
-  const { canWrite } = useCanWrite();
 
   const [editing, setEditing] = useState(false);
   const [blockOpen, setBlockOpen] = useState(false);
@@ -36,44 +31,6 @@ export default function ItemDetailPage() {
   const history = useMemo(() => state.stateChanges.filter((h) => h.itemId === itemId), [state.stateChanges, itemId]);
   const blockers = state.blockers.filter((b) => b.itemId === itemId);
   const attachments = state.attachments.filter((a) => a.kind === "item" && a.refId === itemId);
-
-  // RF10: timeline do domínio (stateChanges append-only + auditoria),
-  // sem apagar o histórico legado acima. Fonte de verdade: getStateChanges()+audit.
-  const [domainChanges, setDomainChanges] = useState<DomainStateChange[]>([]);
-  const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const domainItem = await apiClient.getDeps().backlog.load(itemId);
-        if (!cancelled) setDomainChanges(domainItem ? [...domainItem.getStateChanges()] : []);
-        const events = await apiClient.listAudit(itemId);
-        if (!cancelled) setAuditEvents(events);
-      } catch {
-        // Mantém a timeline legada em caso de falha do domínio.
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [itemId]);
-  const auditTimeline = useMemo(() => {
-    const moves = domainChanges.map((c) => ({
-      key: `s-${c.id}`,
-      at: c.at,
-      actor: c.actorId,
-      action: c.reason === "edited" ? "Edição" : "Movimentação",
-      route: `${c.from ?? "—"} → ${c.to}`,
-    }));
-    const audits = auditEvents.map((e, idx) => ({
-      key: `a-${e.action}-${e.at}-${idx}`,
-      at: e.at,
-      actor: e.actorId,
-      action: e.action,
-      route: "",
-    }));
-    return [...moves, ...audits].sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
-  }, [domainChanges, auditEvents]);
 
   if (!item) {
     return (
@@ -130,11 +87,9 @@ export default function ItemDetailPage() {
             <FrontTag front={front} />
           </div>
         </div>
-        {canWrite && (
-          <Button variant="secondary" onClick={() => setEditing(true)}>
-            <Pencil size={15} /> Editar
-          </Button>
-        )}
+        <Button variant="secondary" onClick={() => setEditing(true)}>
+          <Pencil size={15} /> Editar
+        </Button>
       </div>
 
       <div className="detail-grid">
@@ -154,25 +109,6 @@ export default function ItemDetailPage() {
                     <span className="text-muted">
                       {h.fromStatus ? `(a partir de ${STATUS_LABEL[h.fromStatus]})` : ""} em {formatDate(h.changedAt)} por{" "}
                       {state.people.find((p) => p.id === h.changedBy)?.name ?? "sistema"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-
-          <Card title="Auditoria (domínio)">
-            {auditTimeline.length === 0 ? (
-              <p className="text-muted text-sm">Nenhum evento de auditoria para este item.</p>
-            ) : (
-              <div className="history">
-                {auditTimeline.map((e) => (
-                  <div key={e.key} className="history-item">
-                    <strong>{e.action}</strong>{" "}
-                    {e.route && <span className="text-muted">({e.route})</span>}{" "}
-                    <span className="text-muted">
-                      em {formatDate(e.at.slice(0, 10))} por{" "}
-                      {state.people.find((p) => p.id === e.actor)?.name ?? e.actor}
                     </span>
                   </div>
                 ))}
@@ -259,19 +195,15 @@ export default function ItemDetailPage() {
           </Card>
 
           <Card title="Ações">
-            {canWrite ? (
-              <div className="flex" style={{ flexDirection: "column", gap: 10 }}>
-                <FieldMover itemId={item.id} current={item.status} state={state} onMove={(s) => {
-                  moveBacklogItem(item.id, s, actorId);
-                  sendTelegram("EVENT", `Item "${item.title}" movido para ${STATUS_LABEL[s]}.`);
-                }} />
-                <Button variant="danger" onClick={() => setBlockOpen(true)}>
-                  <AlertTriangle size={15} /> Bloquear item
-                </Button>
-              </div>
-            ) : (
-              <p className="text-muted text-sm">Acesso de leitura (Visitante).</p>
-            )}
+            <div className="flex" style={{ flexDirection: "column", gap: 10 }}>
+              <FieldMover itemId={item.id} current={item.status} state={state} onMove={(s) => {
+                moveBacklogItem(item.id, s, actorId);
+                sendTelegram("EVENT", `Item "${item.title}" movido para ${STATUS_LABEL[s]}.`);
+              }} />
+              <Button variant="danger" onClick={() => setBlockOpen(true)}>
+                <AlertTriangle size={15} /> Bloquear item
+              </Button>
+            </div>
           </Card>
         </div>
       </div>
@@ -293,7 +225,7 @@ export default function ItemDetailPage() {
                       {b.resolvedAt ? ` · Resolvido em ${formatDate(b.resolvedAt)} por ${state.people.find((p) => p.id === b.resolvedBy)?.name}` : ""}
                     </div>
                   </div>
-                  {active && canWrite && (
+                  {active && (
                     <Button size="sm" variant="secondary" onClick={() => resolveBlocker(b.id, actorId)}>
                       Resolver
                     </Button>

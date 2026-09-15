@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Calendar, FolderOpen, Mail, MessageSquareText, Plug } from "lucide-react";
+import { sendTelegram, useAppState } from "@/lib/store";
 import { Badge, Button, Card } from "@/components/ui";
 
 function IntegrationCard({
@@ -47,6 +48,7 @@ function IntegrationCard({
 }
 
 export default function IntegracoesPage() {
+  const state = useAppState();
   const [drive, setDrive] = useState(true);
   const [gmail, setGmail] = useState(true);
   const [calendar, setCalendar] = useState(false);
@@ -111,9 +113,7 @@ export default function IntegracoesPage() {
               size="sm"
               variant="ghost"
               onClick={() => {
-                // Demonstração: em produção o envio passa por
-                // SendTelegramMessageUseCase → TelegramGateway no servidor.
-                // Aqui apenas simulamos o feedback local, sem tocar no store.
+                sendTelegram("EVENT", "Teste de conexão do bot no chat PETBSI notificações.");
                 setTestSent(true);
                 window.setTimeout(() => setTestSent(false), 3000);
               }}

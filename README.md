@@ -8,9 +8,9 @@ O produto utiliza **Scrum como estrutura principal de organização** e o **Mét
 
 O projeto atende uma única equipe acadêmica formada por **8 pessoas**, organizadas em quatro duplas com diferentes frentes e funções, mas atuando em um único projeto e em um único Scrum Team.
 
-Uma das duplas atuará como apoio de **Gestão Ágil e Scrum Master** para os demais membros, apoiando transparência, inspeção, adaptação, facilitação dos eventos e melhoria do fluxo. A responsabilidade formal de Scrum Master será exercida por uma pessoa por vez, podendo alternar entre a dupla. Essa atuação não transforma a dupla em gerente responsável por distribuir tarefas. Os **coordenadores** são superiores de todos os membros e acompanham o andamento, as entregas, os prazos e os resultados do projeto.
+Uma das duplas atuará como apoio de **Gestão Ágil e Scrum Master** para os demais membros, apoiando transparência, inspeção, adaptação, facilitação dos eventos e melhoria do fluxo. A responsabilidade formal de Scrum Master é exercida por uma pessoa por vez e alterna entre o **Scrum Master** e o **Scrum Master Assistente** da dupla, ambos com permissões de **Administrador Técnico** (configurações técnicas, integrações e delimitação de permissões). Essa atuação não transforma a dupla em gerente responsável por distribuir tarefas. Os **coordenadores** são superiores de todos os membros, acompanham o andamento, as entregas, os prazos e os resultados do projeto e **atuam como Product Owner**: todos possuem o título de Coordenador e um deles, por vez, exerce o Product Owner, com possibilidade de alternância análoga à do Scrum Master.
 
-As responsabilidades organizacionais, as frentes de trabalho e os papéis Scrum serão representados separadamente no sistema. A composição exata de cada dupla, suas funções e a responsabilidade de Product Owner ainda deverão ser validadas.
+As responsabilidades organizacionais, as frentes de trabalho e os papéis Scrum serão representados separadamente no sistema. Todos os membros recebem o título padrão **Membro** e são exibidos como **Visitante** quando não possuem permissão de edição nas frentes a que têm acesso. A composição exata de cada dupla e suas funções ainda deverão ser validadas.
 
 ## Frentes do Projeto
 
@@ -30,7 +30,7 @@ As frentes são formas de organizar e visualizar o trabalho. Elas não represent
 Scrum organiza o trabalho por meio de:
 
 - um único Scrum Team;
-- Product Owner, Scrum Master e Developers, com apoio operacional da dupla de Gestão Ágil;
+- Product Owner, Scrum Master e Developers, com apoio operacional da dupla de Gestão Ágil (Scrum Master e Scrum Master Assistente); o Product Owner é exercido por um coordenador por vez;
 - Product Backlog;
 - Sprints e Meta da Sprint;
 - Sprint Backlog;
@@ -77,7 +77,7 @@ O MVP deverá permitir:
 - aplicar políticas e limites de WIP quando definidos;
 - consultar entregas concluídas e histórico por Sprint, período e frente;
 - visualizar participantes, duplas, responsabilidades e coordenação;
-- apoiar professores e coordenadores no acompanhamento e na preparação de relatórios.
+- apoiar coordenadores (que atuam como Product Owner) e Scrum Masters no acompanhamento e na preparação de relatórios.
 
 O sistema deverá gerar histórico a partir do trabalho cotidiano, evitando registros burocráticos sem valor operacional.
 
@@ -137,9 +137,20 @@ O projeto será bem-sucedido se conseguir:
 ## Próximas Etapas
 
 1. Validar a [especificação técnica de frontend, banco e integrações](docs/especificacao-tecnica.md).
-2. Validar com a equipe a composição das duplas, papéis, fluxo real, limites de WIP e políticas de trabalho.
+2. Validar com a equipe a composição das duplas, os papéis (Scrum Master/Scrum Master Assistente, Coordenador/Product Owner), o fluxo real, os limites de WIP e as políticas de trabalho.
 3. Revisar o [backlog inicial](docs/backlog/backlog.md) e selecionar os itens da primeira Sprint.
 4. Iniciar a implementação com testes das regras de domínio e dos casos de uso.
+
+## Frontend de Demonstração (Atual)
+
+Existe hoje uma implementação **frontend-only** em Next.js (App Router + TypeScript), sem banco, sem autenticação real e sem integrações Google:
+
+- **Rodar localmente:** `npm install` e `npm run dev` (abrir `http://localhost:3000`).
+- **Dados:** os dados de demonstração (4 frentes, 8 pessoas em 4 duplas, Product Backlog, Sprint, Kanban, agenda e notificações) ficam no `localStorage`; o botão **"Reiniciar demonstração"** na tela de login restaura o seed.
+- **Telas:** `/login`, visão geral, `/backlog`, `/sprint`, `/fluxo` (Kanban com WIP e drag-and-drop), `/itens/[id]`, `/frentes`, `/entregas`, `/arquivos`, `/notificacoes`, `/agenda`, `/pessoas`, `/configuracoes` e `/configuracoes/integracoes`.
+- **Tema:** botão de alternância claro/escuro disponível em todas as telas, incluindo o login; a preferência é salva no navegador e o tema do sistema é usado como padrão.
+- **Organização:** `app/` (rotas), `src/components/` (UI e shell), `src/lib/` (tipos de domínio, seed e store client).
+- **Limite da fase:** as regras de negócio permanecem simuladas no frontend; banco, servidor, OAuth e as integrações reais (Drive, Gmail, Calendar, Telegram) ficam para as próximas fases, conforme a [especificação técnica](docs/especificacao-tecnica.md).
 
 ## Referências do Projeto
 

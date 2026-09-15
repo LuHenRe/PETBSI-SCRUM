@@ -1,44 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useReducer, useState } from "react";
 import { useRouter } from "next/navigation";
 import { GraduationCap, RefreshCw } from "lucide-react";
-import { apiClient } from "@/lib/api-client";
-import type { ProjectMembership } from "@/domain/project/project-membership";
+import { resetStore, useAppState, login } from "@/lib/store";
 import { ROLE_LABEL } from "@/lib/labels";
 import { Avatar, Badge, Button } from "@/components/ui";
 
 export default function LoginPage() {
-  const [, force] = useReducer((x: number) => x + 1, 0);
-  useEffect(() => apiClient.subscribe(() => force()), []);
-  const version = apiClient.getVersion();
+  const state = useAppState();
   const router = useRouter();
 
-  const people = useMemo(() => apiClient.listPeople(), [version]);
-  const [domainMemberships, setDomainMemberships] = useState<ProjectMembership[]>([]);
-
-  // Resolve ProjectMembership via adapter memory, sem store legado.
-  useEffect(() => {
-    let cancelled = false;
-    apiClient
-      .getDeps()
-      .memberships.listAll()
-      .then((all) => {
-        if (!cancelled) setDomainMemberships(all);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [version]);
-
   const handleSelect = (personId: string) => {
-    apiClient.setCurrentUserId(personId);
+    login(personId);
     router.replace("/");
-  };
-
-  const handleReset = () => {
-    apiClient.reset();
   };
 
   return (
@@ -59,10 +33,9 @@ export default function LoginPage() {
         </p>
 
         <div className="person-picker mt-3" role="group" aria-label="Selecionar pessoa">
-          {people.map((person) => {
-            const membership = domainMemberships.find((m) => m.personId === person.id);
+          {state.people.map((person) => {
+            const membership = state.memberships.find((m) => m.personId === person.id);
             const role = membership?.role ?? "MEMBER";
-            const label = membership && !membership.canEdit ? "Visitante" : ROLE_LABEL[role as keyof typeof ROLE_LABEL];
             return (
               <button key={person.id} className="person-option" onClick={() => handleSelect(person.id)}>
                 <Avatar person={person} size="lg" />
@@ -70,7 +43,7 @@ export default function LoginPage() {
                   <div style={{ fontWeight: 600 }}>{person.name}</div>
                   <div className="text-xs text-muted">{person.email}</div>
                 </div>
-                <Badge tone="muted">{label}</Badge>
+                <Badge tone="muted">{ROLE_LABEL[role]}</Badge>
               </button>
             );
           })}
@@ -79,13 +52,13 @@ export default function LoginPage() {
         <div className="flex justify-between items-center mt-4">
           <button
             className="btn btn-ghost btn-sm"
-            onClick={handleReset}
+            onClick={resetStore}
             title="Recarregar os dados de demonstração"
           >
             <RefreshCw size={14} />
             Reiniciar demonstração
           </button>
-          <Button variant="primary" onClick={() => people[0] && handleSelect(people[0].id)}>
+          <Button variant="primary" onClick={() => handleSelect(state.people[0].id)}>
             Entrar como coordenador (Product Owner)
           </Button>
         </div>

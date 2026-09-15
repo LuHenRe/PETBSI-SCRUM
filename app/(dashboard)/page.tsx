@@ -1,34 +1,61 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, CalendarClock, CheckCircle2, Flag, MessageSquareText, Target } from "lucide-react";
-import { useProjectOverview } from "@/hooks/use-project-overview";
+import { useAppState, frontById, itemById, personById, sprintById } from "@/lib/store";
 import { formatDate } from "@/lib/seed";
+import type { WorkItemStatus } from "@/lib/types";
 import { Badge, Card, EmptyState, Select } from "@/components/ui";
-import { DeadlinePill, FrontTag, StatusBadge, Assignees } from "@/components/shared";
+import { DeadlinePill, FrontTag, StatusBadge, TypeBadge, Assignees } from "@/components/shared";
 
 export default function OverviewPage() {
-  const {
-    frontFilter,
-    setFrontFilter,
-    statics,
-    frontsAll,
-    fronts,
-    activeSprint,
-    activeSprintLegacy,
-    sprintProgress,
-    counts,
-    upcomingDeadlines,
-    openBlockers,
-    upcomingEvents,
-    byFront,
-    stateForShared,
-    presentationItems,
-  } = useProjectOverview();
+  const state = useAppState();
+  const [frontFilter, setFrontFilter] = useState<string>("all");
 
-  const frontByIdLocal = (id: string | null) => frontsAll.find((f) => f.id === id) ?? null;
-  const itemByIdLocal = (id: string) =>
-    presentationItems.find((i) => i.id === id) ?? null;
+  const activeSprint = state.sprints.find((s) => s.status === "active");
+
+  const activeItems = activeSprint ? state.backlogItems.filter((i) => activeSprint.itemIds.includes(i.id)) : [];
+
+  const counts = useMemo(() => {
+    const base = state.backlogItems;
+    const items = frontFilter === "all" ? base : base.filter((i) => i.frontId === frontFilter);
+    return {
+      total: items.length,
+      inProgress: items.filter((i) => i.status === "in_progress").length,
+      blocked: items.filter((i) => i.status === "blocked").length,
+      done: items.filter((i) => i.status === "done").length,
+      open: items.filter((i) => i.status !== "done").length,
+    };
+  }, [state.backlogItems, frontFilter]);
+
+  const sprintProgress = activeItems.length
+    ? Math.round((activeItems.filter((i) => i.status === "done").length / activeItems.length) * 100)
+    : 0;
+
+  const upcomingDeadlines = useMemo(
+    () =>
+      state.backlogItems
+        .filter((i) => i.deadline && i.status !== "done" && (frontFilter === "all" || i.frontId === frontFilter))
+        .sort((a, b) => (a.deadline! < b.deadline! ? -1 : 1))
+        .slice(0, 5),
+    [state.backlogItems, frontFilter]
+  );
+
+  const openBlockers = state.blockers.filter((b) => !b.resolvedAt);
+
+  const upcomingEvents = state.events
+    .filter((e) => e.date >= "2026-09-13")
+    .slice()
+    .sort((a, b) => (a.date < b.date ? -1 : 1))
+    .slice(0, 4);
+
+  const byFront = state.fronts.map((front) => {
+    const items = state.backlogItems.filter((i) => i.frontId === front.id);
+    const b = items.filter((i) => i.status !== "done").length;
+    const d = items.filter((i) => i.status === "done").length;
+    return { front, b, d, total: items.length };
+  });
 
   return (
     <div>
@@ -40,7 +67,7 @@ export default function OverviewPage() {
         <div style={{ minWidth: 220 }}>
           <Select aria-label="Filtrar por frente" value={frontFilter} onChange={(e) => setFrontFilter(e.target.value)}>
             <option value="all">Todas as frentes</option>
-            {fronts.map((f) => (
+            {state.fronts.map((f) => (
               <option key={f.id} value={f.id}>{f.name}</option>
             ))}
           </Select>
@@ -58,9 +85,7 @@ export default function OverviewPage() {
               <div className="flex justify-between wrap items-center mb-1">
                 <strong>{activeSprint.name}</strong>
                 <span className="text-xs text-muted">
-                  {activeSprintLegacy
-                    ? `${formatDate(activeSprintLegacy.startDate)} a ${formatDate(activeSprintLegacy.endDate)}`
-                    : ""}
+                  {formatDate(activeSprint.startDate)} a {formatDate(activeSprint.endDate)}
                 </span>
               </div>
               <p className="text-soft text-sm">{activeSprint.goal}</p>
@@ -101,7 +126,7 @@ export default function OverviewPage() {
       <div className="widget-grid">
         <div className="flex" style={{ flexDirection: "column", gap: 16 }}>
           <Card title="Avanço por frente">
-            {byFront.map(({ front, d, total }) => {
+            {byFront.map(({ front, b, d, total }) => {
               const pct = total ? Math.round((d / total) * 100) : 0;
               return (
                 <div key={front.id} className="mb-3">
@@ -127,12 +152,12 @@ export default function OverviewPage() {
               <div className="list">
                 {upcomingDeadlines.map((item) => (
                   <Link key={item.id} href={`/itens/${item.id}`} className="card row-item" style={{ textDecoration: "none" }}>
-                    <FrontTag front={frontByIdLocal(item.frontId)} />
+                    <FrontTag front={frontById(state, item.frontId)} />
                     <div className="flex-1" style={{ minWidth: 0 }}>
                       <div className="text-sm" style={{ fontWeight: 600 }}>{item.title}</div>
                       <div className="row-meta mt-1">
                         <StatusBadge status={item.status} />
-                        <Assignees item={item} state={stateForShared} />
+                        <Assignees item={item} state={state} />
                       </div>
                     </div>
                     <DeadlinePill deadline={item.deadline} />
@@ -148,7 +173,7 @@ export default function OverviewPage() {
             ) : (
               <div className="list">
                 {openBlockers.map((blocker) => {
-                  const item = itemByIdLocal(blocker.itemId);
+                  const item = itemById(state, blocker.itemId);
                   return (
                     <Link key={blocker.id} href={`/itens/${blocker.itemId}`} className="card row-item" style={{ textDecoration: "none" }}>
                       <AlertTriangle size={17} style={{ color: "var(--danger)", flex: "none" }} aria-hidden />
@@ -156,7 +181,7 @@ export default function OverviewPage() {
                         <div className="text-sm" style={{ fontWeight: 600 }}>{item?.title ?? "Item removido"}</div>
                         <div className="text-xs text-muted">{blocker.description}</div>
                       </div>
-                      <span className="text-xs text-muted">Aberto em {formatDate(blocker.openedAt ?? "")}</span>
+                      <span className="text-xs text-muted">Aberto em {formatDate(blocker.openedAt)}</span>
                     </Link>
                   );
                 })}
@@ -191,7 +216,7 @@ export default function OverviewPage() {
               <Badge tone="ok" dot>Conectado</Badge>
             </div>
             <div className="list">
-              {statics.telegramMessages.slice(0, 4).map((m) => (
+              {state.telegramMessages.slice(0, 4).map((m) => (
                 <div key={m.id} className="card row-item">
                   <div className="flex-1">
                     <div className="text-sm">{m.body}</div>
@@ -205,9 +230,9 @@ export default function OverviewPage() {
 
           <Card title="Entregas">
             <div className="list">
-              {statics.deliveries.map((delivery) => (
+              {state.deliveries.map((delivery) => (
                 <div key={delivery.id} className="card row-item">
-                  <Flag size={16} style={{ color: frontByIdLocal(delivery.frontId)?.color ?? "var(--muted)", flex: "none" }} aria-hidden />
+                  <Flag size={16} style={{ color: frontById(state, delivery.frontId)?.color ?? "var(--muted)", flex: "none" }} aria-hidden />
                   <div className="flex-1" style={{ minWidth: 0 }}>
                     <div className="text-sm" style={{ fontWeight: 600 }}>{delivery.title}</div>
                     <div className="text-xs text-muted">{delivery.sprintName} · {delivery.itemIds.length} itens</div>

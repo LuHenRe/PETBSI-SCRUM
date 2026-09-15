@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import Link from "next/link";
 import { Package } from "lucide-react";
 import { frontById, useAppState } from "@/lib/store";
@@ -14,17 +13,6 @@ export default function EntregasPage() {
     em_andamento: state.deliveries.filter((d) => d.status === "em_andamento").length,
     planejada: state.deliveries.filter((d) => d.status === "planejada").length,
   };
-  // RF09-RF11: histórico agrupado por Sprint e frente (entrega + itens +
-  // movimentações registradas, sem apagar nenhum registro).
-  const historyBySprint = useMemo(() => {
-    const groups = new Map<string, typeof state.deliveries>();
-    for (const d of state.deliveries) {
-      const list = groups.get(d.sprintName) ?? [];
-      list.push(d);
-      groups.set(d.sprintName, list);
-    }
-    return [...groups.entries()];
-  }, [state.deliveries]);
 
   return (
     <div>
@@ -88,37 +76,6 @@ export default function EntregasPage() {
           </div>
         </Card>
       )}
-
-      <Card title="Histórico por Sprint e frente" className="mt-4">
-        {historyBySprint.length === 0 ? (
-          <p className="text-muted text-sm">Nenhum histórico registrado.</p>
-        ) : (
-          <div className="list">
-            {historyBySprint.map(([sprintName, list]) => {
-              const itemIds = new Set(list.flatMap((d) => d.itemIds));
-              const moves = state.stateChanges.filter((h) => itemIds.has(h.itemId));
-              const fronts = [...new Set(list.map((d) => frontById(state, d.frontId)?.name ?? d.frontId))];
-              return (
-                <div key={sprintName} className="card row-item">
-                  <div className="flex-1" style={{ minWidth: 0 }}>
-                    <div className="text-sm" style={{ fontWeight: 600 }}>{sprintName}</div>
-                    <div className="text-xs text-muted">
-                      {list.length} entrega(s) · {itemIds.size} item(ns) · {moves.length} movimentação(ões) · {fronts.join(", ")}
-                    </div>
-                    <div className="flex gap-1 wrap mt-1">
-                      {list.map((d) => (
-                        <Badge key={d.id} tone={d.status === "entregue" ? "ok" : d.status === "em_andamento" ? "warn" : "muted"}>
-                          {d.title}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </Card>
     </div>
   );
 }

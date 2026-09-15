@@ -5,11 +5,8 @@ import type { BacklogItem, BacklogItemType, BacklogPriority, Front, Person, Work
 import { PRIORITY_LABEL, PRIORITY_TONE, STATUS_LABEL, TYPE_LABEL, VALUE_LABEL } from "@/lib/labels";
 import { deadlineLabel, deadlineTone } from "@/lib/seed";
 import { Badge, AvatarStack } from "@/components/ui";
+import { frontById } from "@/lib/store";
 import type { AppState } from "@/lib/types";
-
-function frontById(state: AppState, id: string | null) {
-  return state.fronts.find((f) => f.id === id) ?? null;
-}
 
 export function StatusBadge({ status }: { status: WorkItemStatus }) {
   const tone =

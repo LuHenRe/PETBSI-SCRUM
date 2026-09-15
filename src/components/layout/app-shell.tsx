@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -17,10 +17,10 @@ import {
   Target,
   Users,
 } from "lucide-react";
-import { apiClient } from "@/lib/api-client";
-import type { ProjectMembership } from "@/domain/project/project-membership";
-import { ROLE_LABEL } from "@/lib/labels";
+import { useAppState, logout, personById } from "@/lib/store";
+import { ROLE_LABEL, isCoordinator, isTechAdmin } from "@/lib/labels";
 import { Avatar, Badge, Button } from "@/components/ui";
+import { frontById } from "@/lib/store";
 
 const NAV = [
   {
@@ -51,8 +51,6 @@ const NAV = [
   },
 ];
 
-const WRITE_LINKS = new Set(["/backlog", "/sprint", "/fluxo"]);
-
 const TITLES: Record<string, string> = {
   "/": "Visão geral",
   "/backlog": "Product Backlog",
@@ -70,51 +68,20 @@ const TITLES: Record<string, string> = {
 };
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const [, force] = useReducer((x: number) => x + 1, 0);
-  useEffect(() => apiClient.subscribe(() => force()), []);
-
+  const state = useAppState();
   const pathname = usePathname();
   const router = useRouter();
-  const version = apiClient.getVersion();
 
-  const currentUserId = apiClient.getCurrentUserId();
-  const people = useMemo(() => apiClient.listPeople(), [version]);
-  const fronts = useMemo(() => apiClient.listFronts(), [version]);
-  const [domainMemberships, setDomainMemberships] = useState<ProjectMembership[]>([]);
-
-  // Resolve membership via adapter memory, sem store legado.
-  useEffect(() => {
-    let cancelled = false;
-    apiClient
-      .getDeps()
-      .memberships.listAll()
-      .then((all) => {
-        if (!cancelled) setDomainMemberships(all);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [version, currentUserId]);
-
-  const user = people.find((p) => p.id === currentUserId) ?? null;
-  const mine = domainMemberships.filter((m) => m.personId === currentUserId);
-  const membership = mine[0] ?? null;
+  const user = personById(state, state.currentUserId);
+  const membership = state.memberships.find((m) => m.personId === state.currentUserId);
   const role = membership?.role ?? null;
-  const isVisitante = mine.length > 0 && mine.every((m) => !m.canEdit);
-  const roleLabel = membership
-    ? !membership.canEdit
-      ? "Visitante"
-      : role
-        ? ROLE_LABEL[role as keyof typeof ROLE_LABEL]
-        : null
-    : null;
+  const roleLabel = role ? ROLE_LABEL[role] : null;
 
   useEffect(() => {
-    if (!currentUserId) {
+    if (!state.currentUserId) {
       router.replace("/login");
     }
-  }, [currentUserId, router]);
+  }, [state.currentUserId, router]);
 
   const title = useMemo(() => {
     if (pathname.startsWith("/itens/")) return "Detalhe do item";
@@ -123,7 +90,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return TITLES[pathname] ?? "PETBSI Scrum";
   }, [pathname]);
 
-  if (!currentUserId || !user) {
+  if (!state.currentUserId || !user) {
     return (
       <div className="page-loading" role="status">
         <span className="spinner" aria-hidden />
@@ -132,23 +99,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const admin = mine.some((m) => m.isTechAdmin());
-  const coordinator = mine.some((m) => m.isCoordinator());
-
-  const filteredNav = NAV.map((section) => ({
-    ...section,
-    items: section.items.filter((item) => {
-      if (isVisitante && WRITE_LINKS.has(item.href)) return false;
-      return true;
-    }),
-  })).filter((s) => s.items.length > 0);
-
-  const frontName = fronts.find((f) => f.id === (membership?.frontId ?? null))?.name ?? "";
-
-  const handleLogout = () => {
-    apiClient.setCurrentUserId(null);
-    router.replace("/login");
-  };
+  const admin = isTechAdmin(role ?? "MEMBER");
+  const coordinator = isCoordinator(role ?? "MEMBER");
 
   return (
     <div className="shell">
@@ -161,7 +113,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="sidebar-nav" aria-label="Seções">
-          {filteredNav.map((section) => (
+          {NAV.map((section) => (
             <div key={section.group}>
               <div className="sidebar-group">{section.group}</div>
               {section.items.map((item) => {
@@ -200,12 +152,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <div style={{ fontWeight: 600, fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {user.name}
               </div>
-              <div className="text-xs text-muted">{frontName}</div>
+              <div className="text-xs text-muted">{frontById(state, membership?.frontId ?? null)?.name ?? ""}</div>
             </div>
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleLogout}
+              onClick={logout}
               aria-label="Sair"
             >
               <LogOut size={15} />
@@ -219,7 +171,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="topbar-title">{title}</div>
           <div className="topbar-spacer" />
           {roleLabel && (
-            <Badge tone={isVisitante ? "muted" : admin ? "warn" : coordinator ? "info" : "muted"}>{roleLabel}</Badge>
+            <Badge tone={admin ? "warn" : coordinator ? "info" : "muted"}>{roleLabel}</Badge>
           )}
           <Avatar person={user} />
         </header>
