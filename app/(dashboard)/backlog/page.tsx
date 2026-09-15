@@ -97,19 +97,19 @@ export default function BacklogPage() {
       ) : (
         <Card>
           <div className="table-wrap">
-            <table className="table">
+            <table className="table" style={{ minWidth: 960 }}>
               <thead>
                 <tr>
                   <th style={{ width: 6 }}></th>
-                  <th>Item</th>
-                  <th>Frente</th>
-                  <th>Tipo</th>
-                  <th>Prioridade</th>
-                  <th>Valor</th>
-                  <th>Estado</th>
-                  <th>Prazo</th>
-                  <th>Responsáveis</th>
-                  <th style={{ width: 90 }}>Ações</th>
+                  <th style={{ minWidth: 200 }}>Item</th>
+                  <th style={{ minWidth: 140 }}>Frente</th>
+                  <th style={{ minWidth: 90 }}>Tipo</th>
+                  <th style={{ minWidth: 90 }}>Prioridade</th>
+                  <th style={{ minWidth: 70 }}>Valor</th>
+                  <th style={{ minWidth: 110 }}>Estado</th>
+                  <th style={{ minWidth: 150 }}>Prazo</th>
+                  <th style={{ minWidth: 110 }}>Responsáveis</th>
+                  <th style={{ width: 90, textAlign: "right" }}>Ações</th>
                 </tr>
               </thead>
               <tbody>

@@ -54,14 +54,14 @@ export default function SprintPage() {
 
   return (
     <div>
-      <div className="mb-4">
+      <div className="mb-6">
         <h1>Sprint atual — {active.name}</h1>
         <p className="text-muted mt-1">
           {formatDate(active.startDate)} a {formatDate(active.endDate)}
         </p>
       </div>
 
-      <Card className="mb-4">
+      <Card className="mb-6">
         <div className="card-title">
           <h2>Meta da Sprint</h2>
           {!editingGoal && (
@@ -106,8 +106,8 @@ export default function SprintPage() {
               )}
               {activeItems.map((item) => (
                 <Link key={item.id} href={`/itens/${item.id}`} className="card row-item" style={{ textDecoration: "none" }}>
-                  <FrontTag front={frontById(state, item.frontId)} />
-                  <div className="flex-1" style={{ minWidth: 0 }}>
+                  <FrontTag front={frontById(state, item.frontId)} truncate />
+                  <div className="flex-1" style={{ minWidth: 180 }}>
                     <div className="text-sm" style={{ fontWeight: 600 }}>{item.title}</div>
                     <div className="row-meta mt-1">
                       <TypeBadge type={item.type} />
@@ -115,7 +115,9 @@ export default function SprintPage() {
                       <Assignees item={item} state={state} />
                     </div>
                   </div>
-                  <DeadlinePill deadline={item.deadline} />
+                  <div style={{ flexShrink: 0 }}>
+                    <DeadlinePill deadline={item.deadline} />
+                  </div>
                 </Link>
               ))}
             </div>
@@ -130,13 +132,15 @@ export default function SprintPage() {
                     <Badge tone={sprint.status === "planned" ? "info" : "muted"} dot>
                       {sprint.status === "planned" ? "Planejada" : "Encerrada"}
                     </Badge>
-                    <div className="flex-1" style={{ minWidth: 0 }}>
+                    <div className="flex-1" style={{ minWidth: 160 }}>
                       <div className="text-sm" style={{ fontWeight: 600 }}>{sprint.name}</div>
                       <div className="text-xs text-muted">
                         {formatDate(sprint.startDate)} a {formatDate(sprint.endDate)} · {items.length} itens
                       </div>
                     </div>
-                    <span className="text-xs text-muted">{sprint.goal}</span>
+                    <span className="text-xs text-muted" style={{ maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {sprint.goal}
+                    </span>
                   </div>
                 );
               })}

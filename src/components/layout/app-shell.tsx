@@ -21,6 +21,7 @@ import { useAppState, logout, personById } from "@/lib/store";
 import { ROLE_LABEL, isCoordinator, isTechAdmin } from "@/lib/labels";
 import { Avatar, Badge, Button } from "@/components/ui";
 import { frontById } from "@/lib/store";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV = [
   {
@@ -170,6 +171,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <header className="topbar">
           <div className="topbar-title">{title}</div>
           <div className="topbar-spacer" />
+          <ThemeToggle />
           {roleLabel && (
             <Badge tone={admin ? "warn" : coordinator ? "info" : "muted"}>{roleLabel}</Badge>
           )}

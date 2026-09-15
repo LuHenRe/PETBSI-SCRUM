@@ -83,7 +83,7 @@ export function ItemFormModal({ open, initial, onClose, onSave }: Props) {
         <TextArea value={draft.description} onChange={(e) => set("description", e.target.value)} placeholder="Objetivo e critérios de pronto do item." />
       </Field>
 
-      <div className="overview-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 }}>
         <Field label="Frente">
           <Select value={draft.frontId} onChange={(e) => set("frontId", e.target.value)}>
             <option value="">Selecione...</option>

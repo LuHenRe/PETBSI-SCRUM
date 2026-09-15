@@ -55,12 +55,18 @@ export interface Front {
   color: string;
 }
 
+export interface FrontPermission {
+  frontId: string;
+  canView: boolean;
+  canEdit: boolean;
+}
+
 export interface ProjectMembership {
   id: string;
   personId: string;
-  frontId: string;
+  primaryFrontId: string | null;
   role: ProjectRole;
-  canEdit: boolean;
+  frontPermissions: FrontPermission[];
 }
 
 export interface BacklogItem {
@@ -170,6 +176,14 @@ export interface TelegramMessage {
   createdAt: string;
 }
 
+export interface RoleRotationConfig {
+  intervalDays: number;
+  startDayOfWeek: number;
+  startDate: string;
+  activeScrumMasterId: string | null;
+  activeProductOwnerId: string | null;
+}
+
 export interface AppState {
   currentUserId: string | null;
   people: Person[];
@@ -186,4 +200,5 @@ export interface AppState {
   notifications: Notification[];
   events: CalendarEvent[];
   telegramMessages: TelegramMessage[];
+  rotationConfig: RoleRotationConfig;
 }

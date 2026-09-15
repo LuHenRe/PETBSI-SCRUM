@@ -29,7 +29,7 @@ export default function FrentesPage() {
           const blockers = items.filter((i) => i.status === "blocked").length;
 
           return (
-            <Link key={front.id} href={`/frentes/${front.id}`} className="card" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+            <Link key={front.id} href={`/frentes/${front.id}`} className="card" style={{ textDecoration: "none", color: "inherit", display: "flex", flexDirection: "column", height: "100%" }}>
               <div className="card-body">
                 <div className="flex items-center justify-between">
                   <span className="badge" style={{ background: `${front.color}14`, color: front.color }}>
@@ -45,7 +45,7 @@ export default function FrentesPage() {
                   {blockers > 0 && <Badge tone="danger">{blockers} bloqueado(s)</Badge>}
                   <Badge tone="muted">{deliveries.length} entrega(s)</Badge>
                 </div>
-                <div className="flex items-center justify-between mt-3">
+                <div className="flex items-center justify-between mt-3" style={{ marginTop: "auto", paddingTop: 16 }}>
                   <span className="avatar-stack">
                     {members.map((m) => (
                       <Avatar key={m.id} person={m} />
