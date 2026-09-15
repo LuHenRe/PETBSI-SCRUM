@@ -18,7 +18,8 @@ Definir as entidades, value objects, agregados e relacionamentos centrais do dom
 | `WorkFront` | Representar uma das quatro frentes | Sim |
 | `Person` | Identificar participante do projeto | Sim |
 | `Pair` | Representar uma dupla de trabalho | Sim |
-| `ProjectMembership` | Relacionar pessoa, projeto, frente, dupla e papel | Sim |
+| `ProjectMembership` | Relacionar pessoa ao projeto, definindo seu Cargo Global, Frente Primária e permissões granulares por frente | Sim |
+| `RoleRotationConfig` | Configurar o revezamento automático de Scrum Master e Product Owner | Sim |
 | `Sprint` | Representar período, Meta da Sprint e estado | Sim |
 | `BacklogItem` | Representar item do Product Backlog | Sim |
 | `SprintItem` | Representar a seleção de item para uma Sprint | Sim |
@@ -108,7 +109,16 @@ classDiagram
         <<entity>>
         +UUID id
         +ProjectRole role
-        +DateRange validity
+        +UUID primaryFrontId
+        +List~FrontPermission~ frontPermissions
+    }
+    class RoleRotationConfig {
+        <<value object>>
+        +int intervalDays
+        +int startDayOfWeek
+        +Date startDate
+        +UUID activeScrumMasterId
+        +UUID activeProductOwnerId
     }
     class Sprint {
         <<entity>>
@@ -267,7 +277,7 @@ classDiagram
 | `ProductGoal` | `product_goals` | `id` | FK para projeto |
 | `WorkFront` | `work_fronts` | `id` | quatro registros iniciais |
 | `Person` | `people` | `id` | e-mail não é PK |
-| `ProjectMembership` | `project_memberships` | `id` | papel, frente e dupla |
+| `ProjectMembership` | `project_memberships` | `id` | cargo global, frente primária e permissões |
 | `Pair` | `pairs` | `id` | dupla pode ter histórico |
 | `Sprint` | `sprints` | `id` | período e estado |
 | `BacklogItem` | `backlog_items` | `id` | Product Backlog |

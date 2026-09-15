@@ -223,7 +223,7 @@ Cada evento sincronizado deve guardar o `external_event_id`, calendário de dest
 | `ProductGoal` | Registrar a Meta do Produto |
 | `WorkFront` | Representar as quatro frentes |
 | `Person` | Identificar participante ou coordenador |
-| `ProjectMembership` | Associar pessoa, projeto, frente, dupla e papel |
+| `ProjectMembership` | Associar pessoa, definindo seu Cargo Global e Frentes permitidas |
 | `Pair` | Representar uma dupla de trabalho |
 | `Sprint` | Registrar período, objetivo e estado da Sprint |
 | `BacklogItem` | Representar item do Product Backlog |
