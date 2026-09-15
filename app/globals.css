@@ -68,7 +68,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -201,7 +201,7 @@ h3 {
   gap: 8px;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  padding: 8px 14px;
+  padding: 9px 16px;
   font: inherit;
   font-weight: 600;
   font-size: 14px;
@@ -277,12 +277,12 @@ html[data-theme="dark"] .btn-primary:hover {
 }
 
 .btn-sm {
-  padding: 5px 10px;
+  padding: 6px 12px;
   font-size: 13px;
 }
 
 .btn-lg {
-  padding: 10px 18px;
+  padding: 12px 22px;
   font-size: 15px;
 }
 
@@ -296,7 +296,7 @@ html[data-theme="dark"] .btn-primary:hover {
 }
 
 .card-header {
-  padding: 16px 18px 0;
+  padding: 18px 22px 0;
 }
 
 .card-title {
@@ -307,11 +307,11 @@ html[data-theme="dark"] .btn-primary:hover {
 }
 
 .card-body {
-  padding: 16px 18px;
+  padding: 20px 22px;
 }
 
 .card-footer {
-  padding: 12px 18px;
+  padding: 16px 22px;
   border-top: 1px solid var(--border);
   display: flex;
   gap: 10px;
@@ -324,9 +324,9 @@ html[data-theme="dark"] .btn-primary:hover {
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   border-radius: 999px;
-  padding: 2px 9px;
+  padding: 3px 11px;
   font-size: 12px;
   font-weight: 600;
   line-height: 1.5;
@@ -389,7 +389,7 @@ html[data-theme="dark"] .btn-primary:hover {
 .field {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
 .label {
@@ -403,7 +403,7 @@ html[data-theme="dark"] .btn-primary:hover {
 .select {
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  padding: 8px 11px;
+  padding: 10px 12px;
   font: inherit;
   color: var(--text);
   background: var(--surface);
@@ -477,13 +477,13 @@ html[data-theme="dark"] .btn-primary:hover {
   letter-spacing: 0.04em;
   color: var(--muted);
   font-weight: 600;
-  padding: 10px 12px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 
 .table td {
-  padding: 11px 12px;
+  padding: 13px 16px;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
 }
@@ -512,7 +512,7 @@ html[data-theme="dark"] .btn-primary:hover {
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  padding: 16px 12px;
+  padding: 18px 14px;
   overflow-y: auto;
 }
 
@@ -520,7 +520,7 @@ html[data-theme="dark"] .btn-primary:hover {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 10px 16px;
+  padding: 6px 12px 18px;
   font-weight: 800;
   font-size: 15px;
   letter-spacing: -0.01em;
@@ -552,12 +552,12 @@ html[data-theme="dark"] .btn-primary:hover {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
+  padding: 9px 12px;
   border-radius: var(--radius-sm);
   color: var(--text-soft);
   font-weight: 500;
   text-decoration: none;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 }
 
 .nav-link svg {
@@ -602,7 +602,7 @@ html[data-theme="dark"] .btn-primary:hover {
   background: var(--topbar-bg);
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--border);
-  padding: 12px 24px;
+  padding: 14px 28px;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -618,7 +618,7 @@ html[data-theme="dark"] .btn-primary:hover {
 }
 
 .page {
-  padding: 22px 24px 40px;
+  padding: 28px 28px 48px;
   max-width: 1240px;
   width: 100%;
   margin: 0 auto;
@@ -628,12 +628,12 @@ html[data-theme="dark"] .btn-primary:hover {
 
 .overview-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
 }
 
 .stat {
-  padding: 16px 18px;
+  padding: 20px 22px;
 }
 
 .stat-label {
@@ -660,7 +660,7 @@ html[data-theme="dark"] .btn-primary:hover {
 .widget-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 16px;
+  gap: 20px;
 }
 
 @media (max-width: 980px) {
@@ -672,7 +672,7 @@ html[data-theme="dark"] .btn-primary:hover {
 .kv {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 6px 16px;
+  gap: 10px 20px;
   align-items: baseline;
 }
 
@@ -689,7 +689,7 @@ html[data-theme="dark"] .btn-primary:hover {
 /* ─── Progresso ───────────────────────────────────────────────────────────── */
 
 .progress {
-  height: 8px;
+  height: 10px;
   border-radius: 999px;
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -712,14 +712,14 @@ html[data-theme="dark"] .btn-primary:hover {
 .list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .row-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 14px;
+  padding: 14px 16px;
 }
 
 .front-bar {
@@ -732,7 +732,7 @@ html[data-theme="dark"] .btn-primary:hover {
 .row-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -747,9 +747,9 @@ html[data-theme="dark"] .btn-primary:hover {
 
 .board {
   display: flex;
-  gap: 14px;
+  gap: 18px;
   overflow-x: auto;
-  padding-bottom: 8px;
+  padding-bottom: 10px;
   align-items: flex-start;
 }
 
@@ -765,7 +765,7 @@ html[data-theme="dark"] .btn-primary:hover {
 }
 
 .board-col-header {
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -793,11 +793,11 @@ html[data-theme="dark"] .btn-primary:hover {
 }
 
 .board-col-body {
-  padding: 10px;
+  padding: 12px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   min-height: 60px;
 }
 
@@ -805,7 +805,7 @@ html[data-theme="dark"] .btn-primary:hover {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 10px 12px;
+  padding: 12px 14px;
   box-shadow: var(--shadow);
   text-decoration: none;
   color: var(--text);
@@ -831,7 +831,7 @@ html[data-theme="dark"] .btn-primary:hover {
 }
 
 .mini-card-meta {
-  margin-top: 8px;
+  margin-top: 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -852,7 +852,7 @@ html[data-theme="dark"] .btn-primary:hover {
 /* ─── Estados vazios e carregamento ───────────────────────────────────────── */
 
 .empty-state {
-  padding: 34px 20px;
+  padding: 40px 24px;
   text-align: center;
   color: var(--muted);
 }
@@ -923,7 +923,7 @@ html[data-theme="dark"] .btn-primary:hover {
 }
 
 .modal-header {
-  padding: 16px 18px;
+  padding: 18px 22px;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -932,14 +932,14 @@ html[data-theme="dark"] .btn-primary:hover {
 }
 
 .modal-body {
-  padding: 18px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .modal-footer {
-  padding: 14px 18px;
+  padding: 16px 22px;
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: flex-end;
@@ -964,20 +964,20 @@ html[data-theme="dark"] .login-page {
 
 .login-card {
   width: min(430px, 100%);
-  padding: 28px;
+  padding: 32px;
 }
 
 .person-picker {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .person-option {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface);
@@ -1033,7 +1033,7 @@ html[data-theme="dark"] .login-page {
 .detail-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 16px;
+  gap: 20px;
 }
 
 @media (max-width: 980px) {
@@ -1048,13 +1048,13 @@ html[data-theme="dark"] .login-page {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--muted);
-  margin: 18px 0 8px;
+  margin: 22px 0 10px;
 }
 
 .history {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   padding-left: 16px;
   border-left: 2px solid var(--border);
 }
@@ -1081,14 +1081,14 @@ html[data-theme="dark"] .login-page {
 .agenda-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 
 .agenda-item {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 14px;
+  gap: 16px;
+  padding: 14px 16px;
 }
 
 .agenda-date {
@@ -1180,11 +1180,11 @@ html[data-theme="dark"] .login-page {
   }
 
   .page {
-    padding: 16px 14px 32px;
+    padding: 18px 16px 36px;
   }
 
   .topbar {
-    padding: 10px 14px;
+    padding: 12px 16px;
   }
 
   .overview-grid {
