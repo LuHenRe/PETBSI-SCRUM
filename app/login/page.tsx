@@ -5,6 +5,7 @@ import { GraduationCap, RefreshCw } from "lucide-react";
 import { resetStore, useAppState, login } from "@/lib/store";
 import { ROLE_LABEL } from "@/lib/labels";
 import { Avatar, Badge, Button } from "@/components/ui";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function LoginPage() {
   const state = useAppState();
@@ -17,6 +18,9 @@ export default function LoginPage() {
 
   return (
     <main className="login-page">
+      <div style={{ position: "absolute", top: 20, right: 20 }}>
+        <ThemeToggle />
+      </div>
       <section className="card login-card">
         <div className="flex items-center gap-3 mb-2">
           <span className="mark" aria-hidden style={{ width: 44, height: 44, borderRadius: 12, background: "#4338ca", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>

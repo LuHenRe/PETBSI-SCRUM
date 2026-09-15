@@ -32,15 +32,15 @@ export default function EntregasPage() {
       ) : (
         <Card>
           <div className="table-wrap">
-            <table className="table">
+            <table className="table" style={{ minWidth: 850 }}>
               <thead>
                 <tr>
-                  <th>Entrega</th>
-                  <th>Frente</th>
-                  <th>Sprint</th>
-                  <th>Itens</th>
-                  <th>Estado</th>
-                  <th>Concluída em</th>
+                  <th style={{ minWidth: 180 }}>Entrega</th>
+                  <th style={{ minWidth: 140 }}>Frente</th>
+                  <th style={{ minWidth: 100 }}>Sprint</th>
+                  <th style={{ minWidth: 220, maxWidth: 300 }}>Itens</th>
+                  <th style={{ minWidth: 110 }}>Estado</th>
+                  <th style={{ minWidth: 110 }}>Concluída em</th>
                 </tr>
               </thead>
               <tbody>
@@ -55,12 +55,21 @@ export default function EntregasPage() {
                     </td>
                     <td>{delivery.sprintName}</td>
                     <td>
-                      <div className="flex gap-1 wrap">
-                        {delivery.itemIds.map((itemId) => (
-                          <Link key={itemId} href={`/itens/${itemId}`} className="badge badge-info">
-                            {state.backlogItems.find((i) => i.id === itemId)?.title ?? itemId}
-                          </Link>
-                        ))}
+                      <div className="flex gap-1 wrap" style={{ maxWidth: 300 }}>
+                        {delivery.itemIds.map((itemId) => {
+                          const item = state.backlogItems.find((i) => i.id === itemId);
+                          return (
+                            <Link
+                              key={itemId}
+                              href={`/itens/${itemId}`}
+                              className="badge badge-info"
+                              style={{ maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }}
+                              title={item?.title ?? itemId}
+                            >
+                              {item?.title ?? itemId}
+                            </Link>
+                          );
+                        })}
                       </div>
                     </td>
                     <td>

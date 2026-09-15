@@ -163,7 +163,7 @@ export default function ItemDetailPage() {
               <dt>Sprint</dt>
               <dd>{sprint ? `${sprint.name} (${sprint.status})` : "Product Backlog"}</dd>
               <dt>Prazo</dt>
-              <dd className="flex items-center gap-2">
+              <dd className="flex items-center gap-2 wrap">
                 <CalendarDays size={14} aria-hidden />
                 {item.deadline ? formatDate(item.deadline) : "Sem prazo"}
                 <DeadlinePill deadline={item.deadline} />

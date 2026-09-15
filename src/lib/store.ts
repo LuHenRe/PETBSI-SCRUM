@@ -30,8 +30,10 @@ function subscribe(listener: () => void) {
   };
 }
 
+const initialServerState = createSeedState();
+
 export function useAppState(): AppState {
-  return useSyncExternalStore(subscribe, () => state, () => state);
+  return useSyncExternalStore(subscribe, () => state, () => initialServerState);
 }
 
 export function getState(): AppState {
@@ -233,12 +235,46 @@ export function setColumnWip(columnId: string, wipLimit: number | null) {
   });
 }
 
-export function setMembershipEdit(membershipId: string, canEdit: boolean) {
+export function setFrontPermission(personId: string, frontId: string, canView: boolean, canEdit: boolean) {
+  set({
+    ...state,
+    memberships: state.memberships.map((m) => {
+      if (m.personId !== personId) return m;
+      const existing = m.frontPermissions.find(p => p.frontId === frontId);
+      let newPermissions;
+      if (existing) {
+        newPermissions = m.frontPermissions.map(p => 
+          p.frontId === frontId ? { ...p, canView, canEdit } : p
+        );
+      } else {
+        newPermissions = [...m.frontPermissions, { frontId, canView, canEdit }];
+      }
+      return { ...m, frontPermissions: newPermissions };
+    }),
+  });
+}
+
+export function changePersonRole(personId: string, newRole: AppState["memberships"][0]["role"]) {
   set({
     ...state,
     memberships: state.memberships.map((m) =>
-      m.id === membershipId ? { ...m, canEdit } : m
+      m.personId === personId ? { ...m, role: newRole } : m
     ),
+  });
+}
+
+export function removePerson(personId: string) {
+  set({
+    ...state,
+    people: state.people.filter(p => p.id !== personId),
+    memberships: state.memberships.filter(m => m.personId !== personId),
+  });
+}
+
+export function updateRotationConfig(patch: Partial<AppState["rotationConfig"]>) {
+  set({
+    ...state,
+    rotationConfig: { ...state.rotationConfig, ...patch },
   });
 }
 

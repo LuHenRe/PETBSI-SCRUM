@@ -152,15 +152,17 @@ export default function OverviewPage() {
               <div className="list">
                 {upcomingDeadlines.map((item) => (
                   <Link key={item.id} href={`/itens/${item.id}`} className="card row-item" style={{ textDecoration: "none" }}>
-                    <FrontTag front={frontById(state, item.frontId)} />
-                    <div className="flex-1" style={{ minWidth: 0 }}>
+                    <FrontTag front={frontById(state, item.frontId)} truncate />
+                    <div className="flex-1" style={{ minWidth: 180 }}>
                       <div className="text-sm" style={{ fontWeight: 600 }}>{item.title}</div>
                       <div className="row-meta mt-1">
                         <StatusBadge status={item.status} />
                         <Assignees item={item} state={state} />
                       </div>
                     </div>
-                    <DeadlinePill deadline={item.deadline} />
+                    <div style={{ flexShrink: 0 }}>
+                      <DeadlinePill deadline={item.deadline} />
+                    </div>
                   </Link>
                 ))}
               </div>

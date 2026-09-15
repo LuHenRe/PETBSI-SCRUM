@@ -1,7 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { StoreHydrator } from "@/components/store-hydrator";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 export const metadata: Metadata = {
   title: "PETBSI Scrum — Gestão Ágil do Projeto",
@@ -24,7 +23,6 @@ export default function RootLayout({
       <body>
         <StoreHydrator />
         {children}
-        <ThemeToggle />
       </body>
     </html>
   );

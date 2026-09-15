@@ -20,6 +20,7 @@ export default function NotificacoesPage() {
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
   const selectAll = () => setSelected(state.people.map((p) => p.id));
+  const deselectAll = () => setSelected([]);
 
   const handleSend = async () => {
     if (!subject.trim() || !body.trim() || selected.length === 0) return;
@@ -61,9 +62,14 @@ export default function NotificacoesPage() {
               <div className="flex" style={{ flexDirection: "column", gap: 12 }}>
                 <Field label="Destinatários" hint={`${selected.length} pessoa(s) selecionada(s)`}>
                   <div className="list">
-                    <button className="btn btn-ghost btn-sm" style={{ alignSelf: "flex-start" }} onClick={selectAll}>
-                      Selecionar todos
-                    </button>
+                    <div className="flex gap-2" style={{ alignSelf: "flex-start" }}>
+                      <button className="btn btn-ghost btn-sm" onClick={selectAll}>
+                        Selecionar todos
+                      </button>
+                      <button className="btn btn-ghost btn-sm" onClick={deselectAll} disabled={selected.length === 0}>
+                        Desmarcar todos
+                      </button>
+                    </div>
                     {state.people.map((person) => {
                       const membership = state.memberships.find((m) => m.personId === person.id);
                       return (

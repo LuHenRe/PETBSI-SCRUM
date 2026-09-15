@@ -110,33 +110,46 @@ export default function FluxoPage() {
                     <div draggable onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; setDragId(item.id); }}>
                       <KanbanCard item={item} state={state} />
                     </div>
-                    <div className="flex gap-2">
-                      {column.status === "blocked" && (
-                        <Button size="sm" variant="danger" style={{ flex: 1 }} onClick={() => resolveBlockerFromState(item.id, actorId)}>
-                          <CheckCircle2 size={13} /> Resolver
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        style={{ flex: 1 }}
-                        onClick={() => { setBlockItemId(item.id); setBlockReason(""); }}
-                      >
-                        <AlertTriangle size={13} /> Bloquear
-                      </Button>
-                      <select
-                        className="select"
-                        style={{ width: "auto", padding: "3px 6px", fontSize: 12 }}
-                        aria-label={`Mover ${item.title}`}
-                        value={item.status}
-                        onChange={(e) => handleMove(item.id, e.target.value as WorkItemStatus)}
-                      >
-                        {state.columns.map((c) => (
-                          <option key={c.id} value={c.status} disabled={c.status === item.status}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
+                    <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "6px 8px" }}>
+                      <div className="flex items-center gap-2">
+                        <select
+                          className="select"
+                          style={{ flex: 1, minWidth: 0, padding: "4px 8px", fontSize: 12, height: 28 }}
+                          aria-label={`Mover ${item.title}`}
+                          value={item.status}
+                          onChange={(e) => handleMove(item.id, e.target.value as WorkItemStatus)}
+                        >
+                          {state.columns.map((c) => (
+                            <option key={c.id} value={c.status} disabled={c.status === item.status}>
+                              Mover: {c.name}
+                            </option>
+                          ))}
+                        </select>
+                        {column.status === "blocked" ? (
+                          <Button
+                            size="sm"
+                            variant="danger"
+                            style={{ padding: "4px 8px", fontSize: 12, height: 28, flex: "none" }}
+                            onClick={() => {
+                              const b = state.blockers.find((blk) => blk.itemId === item.id && !blk.resolvedAt);
+                              if (b) resolveBlocker(b.id, actorId);
+                            }}
+                            title="Resolver bloqueio"
+                          >
+                            <CheckCircle2 size={13} /> Resolver
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            style={{ padding: "4px 8px", fontSize: 12, height: 28, flex: "none" }}
+                            onClick={() => { setBlockItemId(item.id); setBlockReason(""); }}
+                            title="Registrar bloqueio"
+                          >
+                            <AlertTriangle size={13} /> Bloquear
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

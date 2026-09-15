@@ -10,7 +10,12 @@ function currentTheme(): "dark" | "light" {
   return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
 }
 
-export function ThemeToggle() {
+interface ThemeToggleProps {
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+export function ThemeToggle({ className = "", style }: ThemeToggleProps) {
   const [theme, setTheme] = useState<"dark" | "light">("light");
 
   useEffect(() => {
@@ -37,12 +42,13 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className="theme-toggle"
+      className={`theme-toggle ${className}`}
+      style={style}
       onClick={toggle}
       aria-label={dark ? "Ativar modo claro" : "Ativar modo escuro"}
       title={dark ? "Ativar modo claro" : "Ativar modo escuro"}
     >
-      {dark ? <Sun aria-hidden /> : <Moon aria-hidden />}
+      {dark ? <Sun size={17} aria-hidden /> : <Moon size={17} aria-hidden />}
     </button>
   );
 }

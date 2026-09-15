@@ -35,18 +35,19 @@ export function ValueBadge({ value }: { value: BacklogItem["value"] }) {
   return <Badge tone={tone}>{VALUE_LABEL[value]}</Badge>;
 }
 
-export function FrontTag({ front }: { front: Front | null | undefined }) {
+export function FrontTag({ front, truncate }: { front: Front | null | undefined; truncate?: boolean }) {
   if (!front) return null;
   return (
     <span
-      className="badge"
+      className={`badge ${truncate ? "badge-truncate" : ""}`}
+      title={front.name}
       style={{
         background: `${front.color}14`,
         color: front.color,
       }}
     >
       <span className="dot" style={{ background: front.color }} aria-hidden />
-      {front.name}
+      <span>{front.name}</span>
     </span>
   );
 }
@@ -78,7 +79,7 @@ export function KanbanCard({ item, state }: { item: BacklogItem; state: AppState
   return (
     <a className="mini-card" href={`/itens/${item.id}`}>
       <div className="mini-card-top">
-        <span className="mini-card-title">{item.title}</span>
+        <span className="mini-card-title" style={{ flex: 1, minWidth: 0 }}>{item.title}</span>
         <span className="dot" style={{ background: front?.color ?? "#cbd5e1", flex: "none" }} aria-hidden />
       </div>
       <div className="mini-card-meta">
@@ -86,7 +87,7 @@ export function KanbanCard({ item, state }: { item: BacklogItem; state: AppState
         <Assignees item={item} state={state} />
       </div>
       {item.deadline && (
-        <div className="mt-1">
+        <div className="mt-2 flex">
           <DeadlinePill deadline={item.deadline} />
         </div>
       )}

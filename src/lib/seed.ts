@@ -6,7 +6,7 @@ export const TODAY = "2026-09-13";
 
 export function createSeedState(): AppState {
   return {
-    currentUserId: null,
+    currentUserId: "p1",
     people: [
       { id: "p1", name: "Ana Ribeiro", email: "ana.ribeiro@petbsi.edu.br", initials: "AR" },
       { id: "p2", name: "Bruno Sales", email: "bruno.sales@petbsi.edu.br", initials: "BS" },
@@ -50,15 +50,14 @@ export function createSeedState(): AppState {
       },
     ],
     memberships: [
-      { id: "m1", personId: "p1", frontId: "f4", role: "PRODUCT_OWNER", canEdit: true },
-      { id: "m2", personId: "p2", frontId: "f4", role: "COORDINATOR", canEdit: true },
-      { id: "m3", personId: "p3", frontId: "f4", role: "SCRUM_MASTER", canEdit: true },
-      { id: "m4", personId: "p4", frontId: "f4", role: "SCRUM_MASTER_ASSISTANT", canEdit: true },
-      { id: "m5", personId: "p5", frontId: "f1", role: "MEMBER", canEdit: true },
-      { id: "m6", personId: "p6", frontId: "f1", role: "MEMBER", canEdit: true },
-      { id: "m7", personId: "p6", frontId: "f3", role: "MEMBER", canEdit: false },
-      { id: "m8", personId: "p7", frontId: "f2", role: "MEMBER", canEdit: true },
-      { id: "m9", personId: "p8", frontId: "f3", role: "MEMBER", canEdit: true },
+      { id: "m1", personId: "p1", primaryFrontId: "f4", role: "PRODUCT_OWNER", frontPermissions: [] },
+      { id: "m2", personId: "p2", primaryFrontId: "f4", role: "COORDINATOR", frontPermissions: [] },
+      { id: "m3", personId: "p3", primaryFrontId: "f4", role: "SCRUM_MASTER", frontPermissions: [] },
+      { id: "m4", personId: "p4", primaryFrontId: "f4", role: "SCRUM_MASTER_ASSISTANT", frontPermissions: [] },
+      { id: "m5", personId: "p5", primaryFrontId: "f1", role: "MEMBER", frontPermissions: [] },
+      { id: "m6", personId: "p6", primaryFrontId: "f1", role: "MEMBER", frontPermissions: [{ frontId: "f3", canView: true, canEdit: false }] },
+      { id: "m8", personId: "p7", primaryFrontId: "f2", role: "MEMBER", frontPermissions: [] },
+      { id: "m9", personId: "p8", primaryFrontId: "f3", role: "MEMBER", frontPermissions: [] },
     ],
     backlogItems: [
       { id: "i1", title: "Diagrama de casos de uso do sistema", type: "documento", description: "Diagrama UML cobrindo os atores Coordenador, Scrum Master, Membro, Google, Telegram e Agendador.", frontId: "f4", status: "done", priority: "alta", value: "PQ", sprintId: "s1", assigneeIds: ["p1", "p2"], deadline: "2026-08-28", createdAt: "2026-08-17" },
@@ -131,6 +130,13 @@ export function createSeedState(): AppState {
       { id: "t1", chatName: "PETBSI notificações", kind: "DEADLINE_REMINDER", body: "A tarefa Quadro Kanban com limites de WIP falta 5 dias para o prazo final.", status: "sent", createdAt: "2026-09-13T08:00:00Z" },
       { id: "t2", chatName: "PETBSI notificações", kind: "EVENT", body: "Item 'Product Backlog ordenável' movido para Em andamento.", status: "sent", createdAt: "2026-09-11T19:05:00Z" },
     ],
+    rotationConfig: {
+      intervalDays: 7,
+      startDayOfWeek: 2, // Tuesday
+      startDate: "2026-09-08", // a Tuesday
+      activeScrumMasterId: null,
+      activeProductOwnerId: null,
+    },
   };
 }
 
@@ -141,6 +147,26 @@ export function loadState(): AppState {
     if (!raw) return createSeedState();
     const parsed = JSON.parse(raw) as AppState;
     if (!parsed || !Array.isArray(parsed.backlogItems)) return createSeedState();
+
+    // Migrations
+    if (!parsed.rotationConfig) {
+      parsed.rotationConfig = {
+        intervalDays: 7,
+        startDayOfWeek: 2,
+        startDate: "2026-09-08",
+        activeScrumMasterId: null,
+        activeProductOwnerId: null,
+      };
+    }
+
+    if (parsed.memberships) {
+      parsed.memberships = parsed.memberships.map((m: any) => ({
+        ...m,
+        primaryFrontId: m.primaryFrontId !== undefined ? m.primaryFrontId : (m.frontId ?? null),
+        frontPermissions: m.frontPermissions || [],
+      }));
+    }
+
     return parsed;
   } catch {
     return createSeedState();
