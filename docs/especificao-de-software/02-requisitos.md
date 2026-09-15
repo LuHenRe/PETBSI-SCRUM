@@ -69,6 +69,7 @@ A06, A07 e A08 são atores de sistema, não papéis de usuário.
 | RNF08 | Acessibilidade | Telas principais devem ser navegáveis por teclado, ter foco visível, contraste adequado e rótulos acessíveis. |
 | RNF09 | Manutenibilidade | Domínio e casos de uso não podem depender de React, Next.js, ORM ou SDK Google. |
 | RNF10 | Auditoria | Alterações de permissão, fluxo, upload, envio e sincronização devem gerar evento auditável. |
+| RNF11 | Acessibilidade | O sistema deve oferecer alternância entre tema claro e escuro em todas as telas, incluindo a tela de login, persistindo a preferência do usuário entre sessões. |
 
 ## 5. Regras de negócio
 
@@ -102,7 +103,7 @@ A06, A07 e A08 são atores de sistema, não papéis de usuário.
 | RF21-RF23, RN14 | Casos de Uso, sequência e atividades da integração Telegram (eventos e lembretes de prazo) |
 | RF24, RN10 | Casos de Uso de permissões por frente |
 | RF17-RF20, RN07 | Casos de Uso e estados de agenda |
-| RNF06-RNF09 | Arquitetura, frontend e plano de testes |
+| RNF06-RNF11 | Arquitetura, frontend, tema e plano de testes |
 
 ## 7. Critérios gerais de aceitação
 

@@ -148,6 +148,7 @@ Existe hoje uma implementação **frontend-only** em Next.js (App Router + TypeS
 - **Rodar localmente:** `npm install` e `npm run dev` (abrir `http://localhost:3000`).
 - **Dados:** os dados de demonstração (4 frentes, 8 pessoas em 4 duplas, Product Backlog, Sprint, Kanban, agenda e notificações) ficam no `localStorage`; o botão **"Reiniciar demonstração"** na tela de login restaura o seed.
 - **Telas:** `/login`, visão geral, `/backlog`, `/sprint`, `/fluxo` (Kanban com WIP e drag-and-drop), `/itens/[id]`, `/frentes`, `/entregas`, `/arquivos`, `/notificacoes`, `/agenda`, `/pessoas`, `/configuracoes` e `/configuracoes/integracoes`.
+- **Tema:** botão de alternância claro/escuro disponível em todas as telas, incluindo o login; a preferência é salva no navegador e o tema do sistema é usado como padrão.
 - **Organização:** `app/` (rotas), `src/components/` (UI e shell), `src/lib/` (tipos de domínio, seed e store client).
 - **Limite da fase:** as regras de negócio permanecem simuladas no frontend; banco, servidor, OAuth e as integrações reais (Drive, Gmail, Calendar, Telegram) ficam para as próximas fases, conforme a [especificação técnica](docs/especificacao-tecnica.md).
 
