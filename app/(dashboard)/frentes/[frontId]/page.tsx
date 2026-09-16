@@ -23,12 +23,15 @@ export default function FrontDetailPage() {
 
   const items = state.backlogItems.filter((i) => i.frontId === front.id);
   const members = state.memberships
-    .filter((m) => m.frontId === front.id)
-    .map((m) => ({
-      member: state.people.find((p) => p.id === m.personId) ?? null,
-      role: m.role,
-      canEdit: m.canEdit,
-    }))
+    .filter((m) => m.primaryFrontId === front.id || m.frontPermissions.some((fp) => fp.frontId === front.id && (fp.canView || fp.canEdit)))
+    .map((m) => {
+      const p = m.frontPermissions.find((fp) => fp.frontId === front.id);
+      return {
+        member: state.people.find((person) => person.id === m.personId) ?? null,
+        role: m.role,
+        canEdit: p ? p.canEdit : false,
+      };
+    })
     .filter((x): x is { member: NonNullable<typeof x.member>; role: typeof x.role; canEdit: boolean } => !!x.member);
   const deliveries = state.deliveries.filter((d) => d.frontId === front.id);
 
