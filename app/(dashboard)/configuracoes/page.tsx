@@ -281,7 +281,7 @@ export default function ConfiguracoesPage() {
                     else if (!isAdmin) editReason = "Apenas admins podem alterar";
 
                     return (
-                      <Card key={f.id} className="p-4" style={{ position: "relative" }}>
+                      <div key={f.id} className="card p-4" style={{ position: "relative" }}>
                         {f.id === m.primaryFrontId && (
                           <div style={{ position: "absolute", top: -8, right: -8 }}>
                             <Badge tone="info">Frente Primária</Badge>
@@ -316,7 +316,7 @@ export default function ConfiguracoesPage() {
                           />
                         </div>
                         {editReason && editDisabled && <div className="text-xs text-muted mt-1 text-right">{editReason}</div>}
-                      </Card>
+                      </div>
                     );
                   })}
                 </div>
