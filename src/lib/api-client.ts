@@ -14,7 +14,7 @@ import { moveBacklogItem } from "@/application/workflow/move-backlog-item";
 import { createBacklogItem, saveBacklogItem } from "@/application/backlog/manage-backlog-item";
 import { openBlockerForItem, resolveBlockerForItem } from "@/application/workflow/manage-blocker";
 import { getProjectOverview, type ProjectOverview } from "@/application/overview/get-project-overview";
-import { setFrontPermission } from "@/application/backlog/manage-front-permissions";
+import { setFrontPermission as setFrontPermissionAction } from "@/application/backlog/manage-front-permissions";
 import { DomainError } from "@/domain/shared/domain-error";
 import type { WorkItemStatus } from "@/domain/shared/work-item-status";
 import type { BacklogPriority } from "@/domain/shared/backlog-priority";
@@ -33,7 +33,7 @@ async function resolveMembershipForFront(frontId: string, actorId: string, deps:
   const all = await deps.memberships.listAll();
   const mine = all.filter((m) => m.personId === actorId);
   if (mine.length === 0) throw new DomainError("Vínculo do usuário não encontrado");
-  const direct = mine.find((m) => m.frontId === frontId);
+  const direct = mine.find((m) => m.primaryFrontId === frontId || m.frontPermissions.some((fp) => fp.frontId === frontId));
   if (direct) return direct;
   const sm = mine.find((m) => m.isTechAdmin());
   if (sm) return sm;
@@ -59,7 +59,7 @@ export interface ApiClient {
   resolveBlocker(itemId: string, blockerId: string, opts?: { now?: Clock; actorId?: string }): Promise<Blocker>;
   getOverview(filters?: { allowedFrontIds?: readonly string[] }, opts?: { actorId?: string }): Promise<ProjectOverview>;
   getAllowedFrontIds(opts?: { actorId?: string }): Promise<string[]>;
-  setCanEdit(membershipId: string, canEdit: boolean, opts?: { now?: Clock; actorId?: string }): Promise<ProjectMembership>;
+  setFrontPermission(membershipId: string, frontId: string, canView: boolean, canEdit: boolean, opts?: { now?: Clock; actorId?: string }): Promise<ProjectMembership>;
   listAudit(itemId?: string): Promise<AuditEvent[]>;
   listPresentationItems(): LegacyBacklogItem[]; listPresentationBlockers(): LegacyBlocker[];
   listFronts(): Front[]; listPeople(): Person[]; listColumns(): LegacyColumn[];
@@ -153,10 +153,17 @@ export function createApiClient(): ApiClient {
       const mine = (await deps.memberships.listAll()).filter((m) => m.personId === actorId);
       if (mine.length === 0) return [];
       if (mine.some((m) => m.isTechAdmin() || m.isCoordinator())) return store.listFronts().map((f) => f.id);
-      return [...new Set(mine.map((m) => m.frontId))];
+      const allFrontIds = new Set<string>();
+      for (const m of mine) {
+        if (m.primaryFrontId) allFrontIds.add(m.primaryFrontId);
+        for (const fp of m.frontPermissions) {
+          if (fp.canView || fp.canEdit) allFrontIds.add(fp.frontId);
+        }
+      }
+      return Array.from(allFrontIds);
     },
-    async setCanEdit(membershipId, canEdit, opts) {
-      const updated = await setFrontPermission(membershipId, canEdit, await resolveAnyMembership(opts?.actorId ?? currentUserId ?? "", deps), { memberships: deps.memberships, audit: deps.audit, now: opts?.now ?? defaultClock() });
+    async setFrontPermission(membershipId, frontId, canView, canEdit, opts) {
+      const updated = await setFrontPermissionAction(membershipId, frontId, canView, canEdit, await resolveAnyMembership(opts?.actorId ?? currentUserId ?? "", deps), { memberships: deps.memberships, audit: deps.audit, now: opts?.now ?? defaultClock() });
       notify();
       return updated;
     },
@@ -199,4 +206,4 @@ export function moveItem(...a: Parameters<ApiClient["moveItem"]>): ReturnType<Ap
 export function createItem(...a: Parameters<ApiClient["createItem"]>): ReturnType<ApiClient["createItem"]> { return getApiClient().createItem(...a); }
 export function saveItem(...a: Parameters<ApiClient["saveItem"]>): ReturnType<ApiClient["saveItem"]> { return getApiClient().saveItem(...a); }
 export function getOverview(...a: Parameters<ApiClient["getOverview"]>): ReturnType<ApiClient["getOverview"]> { return getApiClient().getOverview(...a); }
-export function setCanEdit(...a: Parameters<ApiClient["setCanEdit"]>): ReturnType<ApiClient["setCanEdit"]> { return getApiClient().setCanEdit(...a); }
+export function setFrontPermission(...a: Parameters<ApiClient["setFrontPermission"]>): ReturnType<ApiClient["setFrontPermission"]> { return getApiClient().setFrontPermission(...a); }

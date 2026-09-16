@@ -25,9 +25,7 @@ export class ProjectMembership {
     // Object.freeze removed intentionally for consistency
   }
 
-  get canEdit(): boolean {
-    return this._canEdit;
-  }
+
 
   get displayTitle(): string {
     return PROJECT_ROLE_LABEL[this.role] ?? "Membro";
