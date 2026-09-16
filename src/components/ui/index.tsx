@@ -47,11 +47,12 @@ interface CardProps {
   footer?: ReactNode;
   children: ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export function Card({ title, action, footer, children, className = "" }: CardProps) {
+export function Card({ title, action, footer, children, className = "", style }: CardProps) {
   return (
-    <div className={`card ${className}`}>
+    <div className={`card ${className}`} style={style}>
       {(title || action) && (
         <div className="card-header">
           <div className="card-title">
