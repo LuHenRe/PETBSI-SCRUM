@@ -33,6 +33,6 @@ export function useCanWrite() {
     };
   }, [version, currentUserId]);
 
-  const isVisitante = mine.length > 0 && mine.every((m) => !m.canEdit);
+  const isVisitante = mine.length > 0 && mine.every((m) => !m.isTechAdmin() && !m.isCoordinator() && !m.frontPermissions.some((fp) => fp.canEdit));
   return { isVisitante, canWrite: !isVisitante };
 }
