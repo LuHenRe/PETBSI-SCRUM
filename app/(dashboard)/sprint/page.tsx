@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, Flag, Pencil, Target } from "lucide-react";
 import { closeSprint, updateSprintGoal, useAppState } from "@/lib/store";
 import { formatDate } from "@/lib/seed";
-import { Badge, Button, Card, EmptyState, TextArea } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, Select, TextArea } from "@/components/ui";
 import { Assignees, DeadlinePill, FrontTag, StatusBadge, TypeBadge } from "@/components/shared";
 import { frontById } from "@/lib/store";
 
@@ -21,44 +21,64 @@ export default function SprintPage() {
   const state = useAppState();
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalDraft, setGoalDraft] = useState("");
+  const [selectedSprintId, setSelectedSprintId] = useState<string | null>(null);
 
-  const active = state.sprints.find((s) => s.status === "active");
-  const others = state.sprints.filter((s) => s.status !== "active");
+  const activeSprint = state.sprints.find((s) => s.status === "active");
+  const viewingSprint = selectedSprintId
+    ? state.sprints.find((s) => s.id === selectedSprintId)
+    : activeSprint || state.sprints[0];
 
-  const activeItems = active ? state.backlogItems.filter((i) => active.itemIds.includes(i.id)) : [];
+  const others = state.sprints.filter((s) => s.id !== viewingSprint?.id);
+
+  const activeItems = viewingSprint ? state.backlogItems.filter((i) => viewingSprint.itemIds.includes(i.id)) : [];
   const doneCount = activeItems.filter((i) => i.status === "done").length;
   const progress = activeItems.length ? Math.round((doneCount / activeItems.length) * 100) : 0;
 
   const beginGoalEdit = () => {
-    if (!active) return;
-    setGoalDraft(active.goal);
+    if (!viewingSprint) return;
+    setGoalDraft(viewingSprint.goal);
     setEditingGoal(true);
   };
 
   const saveGoal = () => {
-    if (active && goalDraft.trim()) updateSprintGoal(active.id, goalDraft.trim());
+    if (viewingSprint && goalDraft.trim()) updateSprintGoal(viewingSprint.id, goalDraft.trim());
     setEditingGoal(false);
   };
 
-  if (!active) {
+  if (!viewingSprint) {
     return (
       <Card>
         <EmptyState
           icon={<Target />}
-          title="Nenhuma Sprint ativa"
-          description="Não há Sprint em andamento neste momento."
+          title="Nenhuma Sprint encontrada"
+          description="Não há Sprints no sistema."
         />
       </Card>
     );
   }
 
+  const isViewingActive = activeSprint && viewingSprint.id === activeSprint.id;
+
   return (
     <div>
-      <div className="mb-6">
-        <h1>Sprint atual — {active.name}</h1>
-        <p className="text-muted mt-1">
-          {formatDate(active.startDate)} a {formatDate(active.endDate)}
-        </p>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1>{isViewingActive ? "Sprint atual — " : ""}{viewingSprint.name}</h1>
+          <p className="text-muted mt-1">
+            {formatDate(viewingSprint.startDate)} a {formatDate(viewingSprint.endDate)}
+          </p>
+        </div>
+        <Select 
+          value={viewingSprint.id} 
+          onChange={(e) => setSelectedSprintId(e.target.value)}
+          style={{ width: "auto", minWidth: "220px" }}
+        >
+          {state.sprints.map(s => (
+            <option key={s.id} value={s.id}>
+              {s.name} {s.status === "active" ? "(Atual)" : s.status === "planned" ? "(Planejada)" : "(Encerrada)"}
+            </option>
+          ))}
+        </Select>
       </div>
 
       <Card className="mb-6">
@@ -79,7 +99,7 @@ export default function SprintPage() {
             </div>
           </div>
         ) : (
-          <p className="mt-3 text-soft">{active.goal}</p>
+          <p className="mt-3 text-soft">{viewingSprint.goal}</p>
         )}
         <div className="mt-4 flex items-center gap-3">
           <div className="progress flex-1">
@@ -168,10 +188,17 @@ export default function SprintPage() {
               <Link href="/backlog" className="btn btn-secondary w-full">
                 Planejar / adaptar itens
               </Link>
-              <Button variant="danger" className="w-full" onClick={() => closeSprint(active.id)}>
-                Encerrar {active.name}
-              </Button>
-              <p className="text-xs text-muted">Encerrar a Sprint encerra o acompanhamento ativo na demonstração.</p>
+              {isViewingActive && (
+                <>
+                  <Button variant="danger" className="w-full mt-2" onClick={() => closeSprint(activeSprint.id)}>
+                    Encerrar {activeSprint.name}
+                  </Button>
+                  <p className="text-xs text-muted">Encerrar a Sprint encerra o acompanhamento ativo na demonstração.</p>
+                </>
+              )}
+              {!isViewingActive && (
+                 <p className="text-xs text-muted mt-2">Ações de encerramento disponíveis apenas na sprint ativa.</p>
+              )}
             </div>
           </Card>
         </div>

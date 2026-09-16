@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Lock, Settings, Trash2, Shield, Eye, Edit2 } from "lucide-react";
 import { setColumnWip, setFrontPermission, changePersonRole, removePerson, updateRotationConfig, useAppState } from "@/lib/store";
-import { Badge, Button, Card, Select } from "@/components/ui";
+import { Badge, Button, Card, Select, Modal } from "@/components/ui";
 import { ROLE_LABEL, isCoordinator, isTechAdmin } from "@/lib/labels";
 import type { ProjectRole } from "@/lib/types";
 
@@ -27,6 +27,7 @@ export default function ConfiguracoesPage() {
   const state = useAppState();
   const [savedMsg, setSavedMsg] = useState<string | null>(null);
   const [managingPermissionsFor, setManagingPermissionsFor] = useState<string | null>(null);
+  const [personToRemoveId, setPersonToRemoveId] = useState<string | null>(null);
 
   const currentUser = state.people.find(p => p.id === state.currentUserId);
   const currentUserRole = state.memberships.find(m => m.personId === state.currentUserId)?.role;
@@ -89,85 +90,83 @@ export default function ConfiguracoesPage() {
 
         <div className="flex" style={{ flexDirection: "column", gap: 24 }}>
           <Card title="Revezamento de Papéis (SM e PO)">
-            <div className="card-body">
-              <p className="text-sm text-muted mb-4">
-                O Scrum Master e o Product Owner são rotacionados automaticamente entre os administradores e coordenadores.
-              </p>
-              
-              <div className="flex" style={{ flexDirection: "column", gap: 12 }}>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold">Intervalo (dias)</span>
-                  <input 
-                    type="number" 
-                    className="input" 
-                    style={{ width: 120 }} 
-                    value={state.rotationConfig.intervalDays}
-                    onChange={(e) => {
-                      updateRotationConfig({ intervalDays: Number(e.target.value) || 7 });
-                      notify("Intervalo de revezamento atualizado");
-                    }}
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold">Dia da troca</span>
-                  <Select 
-                    style={{ width: 160 }}
-                    value={String(state.rotationConfig.startDayOfWeek)}
-                    onChange={(e) => {
-                      updateRotationConfig({ startDayOfWeek: Number(e.target.value) });
-                      notify("Dia de troca atualizado");
-                    }}
-                  >
-                    {WEEK_DAYS.map(day => (
-                      <option key={day.value} value={day.value}>{day.label}</option>
-                    ))}
-                  </Select>
-                </div>
-                
-                <div className="flex items-center justify-between mt-2 pt-2" style={{ borderTop: "1px solid var(--border)" }}>
-                  <span className="text-sm font-semibold">PO Ativo (Forçar)</span>
-                  <Select 
-                    style={{ width: 200 }}
-                    value={state.rotationConfig.activeProductOwnerId ?? ""}
-                    onChange={(e) => {
-                      updateRotationConfig({ activeProductOwnerId: e.target.value || null });
-                      notify("Product Owner forçado manualmente");
-                    }}
-                  >
-                    <option value="">(Automático)</option>
-                    {state.memberships.filter(m => m.role === "COORDINATOR" || m.role === "PRODUCT_OWNER").map(m => {
-                      const p = state.people.find(p => p.id === m.personId);
-                      return <option key={m.personId} value={m.personId}>{p?.name}</option>;
-                    })}
-                  </Select>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold">SM Ativo (Forçar)</span>
-                  <Select 
-                    style={{ width: 200 }}
-                    value={state.rotationConfig.activeScrumMasterId ?? ""}
-                    onChange={(e) => {
-                      updateRotationConfig({ activeScrumMasterId: e.target.value || null });
-                      notify("Scrum Master forçado manualmente");
-                    }}
-                  >
-                    <option value="">(Automático)</option>
-                    {state.memberships.filter(m => m.role === "SCRUM_MASTER" || m.role === "SCRUM_MASTER_ASSISTANT").map(m => {
-                      const p = state.people.find(p => p.id === m.personId);
-                      return <option key={m.personId} value={m.personId}>{p?.name}</option>;
-                    })}
-                  </Select>
-                </div>
+            <p className="text-sm text-muted mb-4">
+              O Scrum Master e o Product Owner são rotacionados automaticamente entre os administradores e coordenadores.
+            </p>
+
+            <div className="flex" style={{ flexDirection: "column", gap: 12 }}>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold">Intervalo (dias)</span>
+                <input
+                  type="number"
+                  className="input"
+                  style={{ width: 120 }}
+                  value={state.rotationConfig.intervalDays}
+                  onChange={(e) => {
+                    updateRotationConfig({ intervalDays: Number(e.target.value) || 7 });
+                    notify("Intervalo de revezamento atualizado");
+                  }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold">Dia da troca</span>
+                <Select
+                  style={{ width: 160 }}
+                  value={String(state.rotationConfig.startDayOfWeek)}
+                  onChange={(e) => {
+                    updateRotationConfig({ startDayOfWeek: Number(e.target.value) });
+                    notify("Dia de troca atualizado");
+                  }}
+                >
+                  {WEEK_DAYS.map(day => (
+                    <option key={day.value} value={day.value}>{day.label}</option>
+                  ))}
+                </Select>
+              </div>
+
+              <div className="flex items-center justify-between" style={{ borderTop: "1px solid var(--border)", paddingTop: 20, marginTop: 0 }}>
+                <span className="text-sm font-semibold">PO Ativo (Forçar)</span>
+                <Select
+                  style={{ width: 200 }}
+                  value={state.rotationConfig.activeProductOwnerId ?? ""}
+                  onChange={(e) => {
+                    updateRotationConfig({ activeProductOwnerId: e.target.value || null });
+                    notify("Product Owner forçado manualmente");
+                  }}
+                >
+                  <option value="">(Automático)</option>
+                  {state.memberships.filter(m => m.role === "COORDINATOR" || m.role === "PRODUCT_OWNER").map(m => {
+                    const p = state.people.find(p => p.id === m.personId);
+                    return <option key={m.personId} value={m.personId}>{p?.name}</option>;
+                  })}
+                </Select>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold">SM Ativo (Forçar)</span>
+                <Select
+                  style={{ width: 200 }}
+                  value={state.rotationConfig.activeScrumMasterId ?? ""}
+                  onChange={(e) => {
+                    updateRotationConfig({ activeScrumMasterId: e.target.value || null });
+                    notify("Scrum Master forçado manualmente");
+                  }}
+                >
+                  <option value="">(Automático)</option>
+                  {state.memberships.filter(m => m.role === "SCRUM_MASTER" || m.role === "SCRUM_MASTER_ASSISTANT").map(m => {
+                    const p = state.people.find(p => p.id === m.personId);
+                    return <option key={m.personId} value={m.personId}>{p?.name}</option>;
+                  })}
+                </Select>
               </div>
             </div>
           </Card>
 
           <Card title="Horários das reuniões">
             <dl className="kv card-body">
-              <dt>Terça</dt><dd>18:30 — acompanhamento</dd>
-              <dt>Quarta</dt><dd>18:30 — reunião principal</dd>
+              <dt>Terça</dt><dd>08:00 — acompanhamento</dd>
+              <dt>Quarta</dt><dd>08:00 — reunião principal</dd>
               <dt>Feriados</dt>
               <dd>
                 <div className="flex gap-1 wrap">
@@ -198,7 +197,7 @@ export default function ConfiguracoesPage() {
                   const person = state.people.find((p) => p.id === m.personId);
                   if (!person) return null;
                   const front = state.fronts.find((f) => f.id === m.primaryFrontId);
-                  
+
                   return (
                     <tr key={m.id}>
                       <td style={{ fontWeight: 600 }}>
@@ -224,24 +223,19 @@ export default function ConfiguracoesPage() {
                       </td>
                       <td>
                         <div className="flex items-center gap-2">
-                          <Button 
-                            variant="secondary" 
-                            size="sm" 
+                          <Button
+                            variant="secondary"
+                            size="sm"
                             onClick={() => setManagingPermissionsFor(managingPermissionsFor === m.personId ? null : m.personId)}
                             title="Gerenciar Permissões das Frentes"
                           >
                             <Shield size={14} />
                           </Button>
-                          <Button 
-                            variant="danger" 
-                            size="sm" 
+                          <Button
+                            variant="danger"
+                            size="sm"
                             disabled={!isAdmin || m.personId === state.currentUserId}
-                            onClick={() => {
-                              if (confirm(`Remover ${person.name} do sistema?`)) {
-                                removePerson(m.personId);
-                                notify(`${person.name} foi removido.`);
-                              }
-                            }}
+                            onClick={() => setPersonToRemoveId(m.personId)}
                             title="Remover Usuário"
                           >
                             <Trash2 size={14} />
@@ -254,47 +248,74 @@ export default function ConfiguracoesPage() {
               </tbody>
             </table>
           </div>
-          
+
           {managingPermissionsFor && (() => {
             const m = state.memberships.find(mb => mb.personId === managingPermissionsFor);
             const p = state.people.find(pp => pp.id === managingPermissionsFor);
             if (!m || !p) return null;
-            
+
             // Regras implícitas
             const viewsAll = m.role === "COORDINATOR" || m.role === "PRODUCT_OWNER" || m.role === "SCRUM_MASTER" || m.role === "SCRUM_MASTER_ASSISTANT";
             const editsAll = m.role === "PRODUCT_OWNER" || m.role === "SCRUM_MASTER" || m.role === "SCRUM_MASTER_ASSISTANT";
-            
+
             return (
               <div className="card-footer" style={{ display: "block", background: "var(--surface-2)" }}>
                 <h3 className="mb-4">Permissões de {p.name}</h3>
                 <div className="overview-grid">
                   {state.fronts.map(f => {
                     const explicit = m.frontPermissions.find(fp => fp.frontId === f.id);
-                    
+
                     const canView = explicit ? explicit.canView : (viewsAll || f.id === m.primaryFrontId);
                     const canEdit = explicit ? explicit.canEdit : (editsAll || (m.role === "MEMBER" && f.id === m.primaryFrontId));
-                    
+
+                    const viewDisabled = !isAdmin || viewsAll;
+                    const editDisabled = !isAdmin || editsAll || !canView;
+
+                    let viewReason = "";
+                    if (viewsAll) viewReason = "Garantido pelo cargo global";
+                    else if (!isAdmin) viewReason = "Apenas admins podem alterar";
+
+                    let editReason = "";
+                    if (editsAll) editReason = "Garantido pelo cargo global";
+                    else if (!canView) editReason = "Requer permissão de visualização";
+                    else if (!isAdmin) editReason = "Apenas admins podem alterar";
+
                     return (
-                      <Card key={f.id} className="p-4">
+                      <Card key={f.id} className="p-4" style={{ position: "relative" }}>
+                        {f.id === m.primaryFrontId && (
+                          <div style={{ position: "absolute", top: -8, right: -8 }}>
+                            <Badge tone="info">Frente Primária</Badge>
+                          </div>
+                        )}
                         <div className="text-sm font-semibold mb-3">{f.name}</div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm flex items-center gap-2"><Eye size={14}/> Visualizar</span>
-                          <input 
-                            type="checkbox" 
-                            checked={canView} 
-                            disabled={!isAdmin || viewsAll} 
+
+                        <div className="flex items-center justify-between mb-3" title={viewReason}>
+                          <span className="text-sm flex items-center gap-2">
+                            <Eye size={14} /> Visualizar
+                            {viewDisabled && <span className="text-xs text-muted">({canView ? "Fixo" : "Bloqueado"})</span>}
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={canView}
+                            disabled={viewDisabled}
                             onChange={(e) => setFrontPermission(m.personId, f.id, e.target.checked, canEdit)}
                           />
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm flex items-center gap-2"><Edit2 size={14}/> Editar</span>
-                          <input 
-                            type="checkbox" 
-                            checked={canEdit} 
-                            disabled={!isAdmin || editsAll || (!canView && !e.target.checked)} 
+                        {viewReason && viewDisabled && <div className="text-xs text-muted mb-2 mt-[-8px] text-right">{viewReason}</div>}
+
+                        <div className="flex items-center justify-between mb-1" title={editReason}>
+                          <span className="text-sm flex items-center gap-2">
+                            <Edit2 size={14} /> Editar
+                            {editDisabled && <span className="text-xs text-muted">({canEdit ? "Fixo" : "Bloqueado"})</span>}
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={canEdit}
+                            disabled={editDisabled}
                             onChange={(e) => setFrontPermission(m.personId, f.id, canView, e.target.checked)}
                           />
                         </div>
+                        {editReason && editDisabled && <div className="text-xs text-muted mt-1 text-right">{editReason}</div>}
                       </Card>
                     );
                   })}
@@ -304,6 +325,37 @@ export default function ConfiguracoesPage() {
           })()}
         </Card>
       </div>
+
+      <Modal
+        open={personToRemoveId !== null}
+        onClose={() => setPersonToRemoveId(null)}
+        title="Confirmar exclusão"
+        footer={
+          <div className="flex gap-2 justify-end w-full">
+            <Button variant="ghost" onClick={() => setPersonToRemoveId(null)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                if (personToRemoveId) {
+                  const p = state.people.find(x => x.id === personToRemoveId);
+                  removePerson(personToRemoveId);
+                  notify(`${p?.name ?? "Usuário"} foi removido.`);
+                }
+                setPersonToRemoveId(null);
+              }}
+            >
+              Remover Usuário
+            </Button>
+          </div>
+        }
+      >
+        <p>
+          Tem certeza que deseja remover este usuário do sistema?
+          Todas as suas participações em frentes serão perdidas e o acesso será revogado.
+        </p>
+      </Modal>
     </div>
   );
 }

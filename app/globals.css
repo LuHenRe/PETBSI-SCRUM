@@ -7,9 +7,9 @@
   --text: #0f172a;
   --text-soft: #475569;
   --muted: #64748b;
-  --primary: #4338ca;
-  --primary-strong: #3730a3;
-  --primary-soft: #eef2ff;
+  --primary: #7c3aed;
+  --primary-strong: #6d28d9;
+  --primary-soft: #f3e8ff;
   --success: #059669;
   --success-soft: #ecfdf5;
   --danger: #dc2626;
@@ -36,9 +36,9 @@ html[data-theme="dark"] {
   --text: #e8e8e8;
   --text-soft: #b4b4b4;
   --muted: #8a8a8a;
-  --primary: #818cf8;
-  --primary-strong: #6366f1;
-  --primary-soft: #252538;
+  --primary: #a78bfa;
+  --primary-strong: #8b5cf6;
+  --primary-soft: #2e1065;
   --success: #34d399;
   --success-soft: #0c2b22;
   --danger: #f87171;
@@ -401,6 +401,11 @@ html[data-theme="dark"] .btn-primary:hover {
   color: var(--warning);
 }
 
+.badge-primary {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
 .badge-danger {
   background: var(--danger-soft);
   color: var(--danger);
@@ -430,6 +435,14 @@ html[data-theme="dark"] .btn-primary:hover {
 
 .dot-danger {
   background: var(--danger);
+}
+
+.dot-info {
+  background: var(--info);
+}
+
+.dot-primary {
+  background: var(--primary);
 }
 
 .dot-muted {
@@ -779,6 +792,7 @@ html[data-theme="dark"] .btn-primary:hover {
 
 .row-item {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 14px;
   padding: 14px 16px;
@@ -964,7 +978,7 @@ html[data-theme="dark"] .btn-primary:hover {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 6vh 16px 16px;
+  padding: 16px;
   z-index: 60;
   overflow-y: auto;
 }
@@ -973,6 +987,7 @@ html[data-theme="dark"] .btn-primary:hover {
   background: var(--surface);
   border-radius: var(--radius);
   width: min(560px, 100%);
+  margin: auto;
   box-shadow: var(--shadow-md);
   animation: modal-in 0.15s ease-out;
 }

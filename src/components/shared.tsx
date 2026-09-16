@@ -13,7 +13,8 @@ export function StatusBadge({ status }: { status: WorkItemStatus }) {
     status === "done" ? "ok" :
     status === "blocked" ? "danger" :
     status === "review" ? "warn" :
-    status === "todo" || status === "in_progress" ? "info" :
+    status === "in_progress" ? "primary" :
+    status === "todo" ? "info" :
     "muted";
   return (
     <Badge tone={tone} dot>
@@ -39,7 +40,7 @@ export function FrontTag({ front, truncate }: { front: Front | null | undefined;
   if (!front) return null;
   return (
     <span
-      className={`badge ${truncate ? "badge-truncate" : ""}`}
+      className="badge"
       title={front.name}
       style={{
         background: `${front.color}14`,
@@ -47,7 +48,7 @@ export function FrontTag({ front, truncate }: { front: Front | null | undefined;
       }}
     >
       <span className="dot" style={{ background: front.color }} aria-hidden />
-      <span>{front.name}</span>
+      <span className={truncate ? "badge-truncate" : ""}>{front.name}</span>
     </span>
   );
 }
@@ -79,12 +80,31 @@ export function KanbanCard({ item, state }: { item: BacklogItem; state: AppState
   return (
     <a className="mini-card" href={`/itens/${item.id}`}>
       <div className="mini-card-top">
-        <span className="mini-card-title" style={{ flex: 1, minWidth: 0 }}>{item.title}</span>
-        <span className="dot" style={{ background: front?.color ?? "#cbd5e1", flex: "none" }} aria-hidden />
+        <span className="mini-card-title">{item.title}</span>
       </div>
-      <div className="mini-card-meta">
-        <TypeBadge type={item.type} />
-        <Assignees item={item} state={state} />
+      {item.description && (
+        <div
+          className="text-xs text-muted"
+          style={{
+            marginTop: "6px",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            lineHeight: 1.4,
+          }}
+        >
+          {item.description}
+        </div>
+      )}
+      <div className="mini-card-meta" style={{ flexDirection: "column", alignItems: "flex-start", gap: "8px" }}>
+        <div style={{ width: "100%", minWidth: 0 }}>
+          <FrontTag front={front} truncate />
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+          <TypeBadge type={item.type} />
+          <Assignees item={item} state={state} />
+        </div>
       </div>
       {item.deadline && (
         <div className="mt-2 flex">

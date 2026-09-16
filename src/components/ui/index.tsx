@@ -68,7 +68,7 @@ export function Card({ title, action, footer, children, className = "" }: CardPr
 
 // ─── Badge ──────────────────────────────────────────────────────────────────
 
-type Tone = "ok" | "info" | "warn" | "danger" | "muted";
+type Tone = "ok" | "info" | "warn" | "danger" | "muted" | "primary";
 
 interface BadgeProps {
   tone?: Tone;

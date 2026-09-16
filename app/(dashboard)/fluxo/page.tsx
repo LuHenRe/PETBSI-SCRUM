@@ -15,11 +15,32 @@ export default function FluxoPage() {
   const actorId = state.currentUserId ?? "";
   const [dragId, setDragId] = useState<string | null>(null);
   const [wipWarning, setWipWarning] = useState<string | null>(null);
+  const [selectedFronts, setSelectedFronts] = useState<string[]>([]);
   const [blockItemId, setBlockItemId] = useState<string | null>(null);
   const [blockReason, setBlockReason] = useState("");
 
   const countIn = (status: WorkItemStatus) =>
     state.backlogItems.filter((i) => i.status === status).length;
+
+  const toggleFront = (frontId: string) => {
+    setSelectedFronts((prev) =>
+      prev.includes(frontId)
+        ? prev.filter((id) => id !== frontId)
+        : [...prev, frontId]
+    );
+  };
+
+  const getColumnDotClass = (status: WorkItemStatus) => {
+    switch (status) {
+      case "backlog": return "dot-muted";
+      case "todo": return "dot-info";
+      case "in_progress": return "dot-primary";
+      case "blocked": return "dot-danger";
+      case "review": return "dot-warn";
+      case "done": return "dot-ok";
+      default: return "dot-muted";
+    }
+  };
 
   const handleMove = (itemId: string, toStatus: WorkItemStatus) => {
     const item = state.backlogItems.find((i) => i.id === itemId);
@@ -72,10 +93,51 @@ export default function FluxoPage() {
         </div>
       )}
 
+      {state.fronts.length > 0 && (
+        <div className="flex gap-2 mb-4 wrap" style={{ flexWrap: "wrap", alignItems: "center" }}>
+          <span className="text-sm text-muted mr-1" style={{ fontWeight: 600 }}>Filtrar frentes:</span>
+          {state.fronts.map((front) => {
+            const selected = selectedFronts.includes(front.id);
+            return (
+              <button
+                key={front.id}
+                onClick={() => toggleFront(front.id)}
+                className="badge"
+                style={{
+                  background: selected ? front.color : `${front.color}14`,
+                  color: selected ? "#fff" : front.color,
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                  opacity: selectedFronts.length === 0 || selected ? 1 : 0.5,
+                }}
+              >
+                <span className="dot" style={{ background: selected ? "#fff" : front.color }} aria-hidden />
+                {front.name}
+              </button>
+            );
+          })}
+          {selectedFronts.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedFronts([])}
+              className="text-xs ml-1"
+            >
+              Limpar
+            </Button>
+          )}
+        </div>
+      )}
+
       <div className="board" role="region" aria-label="Quadro Kanban">
         {state.columns.map((column) => {
-          const items = state.backlogItems.filter((i) => i.status === column.status);
-          const over = column.wipLimit != null && items.length > column.wipLimit;
+          const allItems = state.backlogItems.filter((i) => i.status === column.status);
+          const over = column.wipLimit != null && allItems.length > column.wipLimit;
+          const items = selectedFronts.length > 0
+            ? allItems.filter(i => selectedFronts.includes(i.frontId))
+            : allItems;
+          
           return (
             <section
               key={column.id}
@@ -91,13 +153,13 @@ export default function FluxoPage() {
             >
               <div className="board-col-header">
                 <span className="board-col-title">
-                  <span className={`dot ${over ? "dot-danger" : "dot-muted"}`} aria-hidden />
+                  <span className={`dot ${over ? "dot-danger" : getColumnDotClass(column.status)}`} aria-hidden />
                   {column.name}
                   <span className="text-muted" style={{ fontWeight: 500 }}>{items.length}</span>
                 </span>
                 {column.wipLimit != null && (
                   <span className={`wip ${over ? "wip-over" : ""}`}>
-                    {items.length}/{column.wipLimit}
+                    {allItems.length}/{column.wipLimit}
                   </span>
                 )}
               </div>

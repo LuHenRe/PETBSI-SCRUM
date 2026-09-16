@@ -8,6 +8,7 @@ import { formatDate } from "@/lib/seed";
 import type { WorkItemStatus } from "@/lib/types";
 import { Badge, Card, EmptyState, Select } from "@/components/ui";
 import { DeadlinePill, FrontTag, StatusBadge, TypeBadge, Assignees } from "@/components/shared";
+import { WorkloadPieChart, SprintBurndownChart } from "@/components/charts";
 
 export default function OverviewPage() {
   const state = useAppState();
@@ -22,10 +23,12 @@ export default function OverviewPage() {
     const items = frontFilter === "all" ? base : base.filter((i) => i.frontId === frontFilter);
     return {
       total: items.length,
+      open: items.filter((i) => i.status !== "done").length,
+      todo: items.filter((i) => i.status === "todo").length,
       inProgress: items.filter((i) => i.status === "in_progress").length,
       blocked: items.filter((i) => i.status === "blocked").length,
+      review: items.filter((i) => i.status === "review").length,
       done: items.filter((i) => i.status === "done").length,
-      open: items.filter((i) => i.status !== "done").length,
     };
   }, [state.backlogItems, frontFilter]);
 
@@ -107,8 +110,13 @@ export default function OverviewPage() {
           <div className="stat-hint">{counts.total} itens no backlog</div>
         </div>
         <div className="card stat">
+          <div className="stat-label">A fazer</div>
+          <div className="stat-value" style={{ color: "var(--info)" }}>{counts.todo}</div>
+          <div className="stat-hint">Prontos para puxar</div>
+        </div>
+        <div className="card stat">
           <div className="stat-label">Em andamento</div>
-          <div className="stat-value" style={{ color: "var(--info)" }}>{counts.inProgress}</div>
+          <div className="stat-value" style={{ color: "var(--primary)" }}>{counts.inProgress}</div>
           <div className="stat-hint">WIP do fluxo ativo</div>
         </div>
         <div className="card stat">
@@ -117,14 +125,27 @@ export default function OverviewPage() {
           <div className="stat-hint">{openBlockers.length} impedimento(s) em aberto</div>
         </div>
         <div className="card stat">
+          <div className="stat-label">Em revisão</div>
+          <div className="stat-value" style={{ color: "var(--warning)" }}>{counts.review}</div>
+          <div className="stat-hint">Aguardando aprovação</div>
+        </div>
+        <div className="card stat">
           <div className="stat-label">Concluídos</div>
           <div className="stat-value" style={{ color: "var(--success)" }}>{counts.done}</div>
-          <div className="stat-hint">itens finalizados</div>
+          <div className="stat-hint">Itens finalizados</div>
         </div>
       </div>
 
       <div className="widget-grid">
         <div className="flex" style={{ flexDirection: "column", gap: 16 }}>
+          {activeSprint && (
+            <Card title="Burndown da Sprint">
+              <div className="mt-2">
+                <SprintBurndownChart sprint={activeSprint} items={activeItems} />
+              </div>
+            </Card>
+          )}
+
           <Card title="Avanço por frente">
             {byFront.map(({ front, b, d, total }) => {
               const pct = total ? Math.round((d / total) * 100) : 0;
@@ -154,7 +175,7 @@ export default function OverviewPage() {
                   <Link key={item.id} href={`/itens/${item.id}`} className="card row-item" style={{ textDecoration: "none" }}>
                     <FrontTag front={frontById(state, item.frontId)} truncate />
                     <div className="flex-1" style={{ minWidth: 180 }}>
-                      <div className="text-sm" style={{ fontWeight: 600 }}>{item.title}</div>
+                      <div className="text-sm" style={{ fontWeight: 600, color: "var(--text)" }}>{item.title}</div>
                       <div className="row-meta mt-1">
                         <StatusBadge status={item.status} />
                         <Assignees item={item} state={state} />
@@ -167,6 +188,29 @@ export default function OverviewPage() {
                 ))}
               </div>
             )}
+          </Card>
+
+          <Card title="Entregas">
+            <div className="list">
+              {state.deliveries.map((delivery) => (
+                <div key={delivery.id} className="card row-item">
+                  <Flag size={16} style={{ color: frontById(state, delivery.frontId)?.color ?? "var(--muted)", flex: "none" }} aria-hidden />
+                  <div className="flex-1" style={{ minWidth: 0 }}>
+                    <div className="text-sm" style={{ fontWeight: 600 }}>{delivery.title}</div>
+                    <div className="text-xs text-muted">{delivery.sprintName} · {delivery.itemIds.length} itens</div>
+                  </div>
+                  {delivery.status === "entregue" ? <Badge tone="ok">Entregue</Badge> : delivery.status === "em_andamento" ? <Badge tone="warn">Em andamento</Badge> : <Badge tone="muted">Planejada</Badge>}
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+
+        <div className="flex" style={{ flexDirection: "column", gap: 16 }}>
+          <Card title="Carga de trabalho">
+            <div className="mt-2">
+              <WorkloadPieChart items={frontFilter === "all" ? state.backlogItems : state.backlogItems.filter((i) => i.frontId === frontFilter)} />
+            </div>
           </Card>
 
           <Card title="Bloqueios em aberto">
@@ -190,9 +234,7 @@ export default function OverviewPage() {
               </div>
             )}
           </Card>
-        </div>
 
-        <div className="flex" style={{ flexDirection: "column", gap: 16 }}>
           <Card title="Reuniões e eventos" action={<Link href="/agenda" className="text-sm">Agenda</Link>}>
             <div className="list">
               {upcomingEvents.length === 0 && (
@@ -225,21 +267,6 @@ export default function OverviewPage() {
                     <div className="text-xs text-muted mt-1">{m.kind === "DEADLINE_REMINDER" ? "Lembrete de prazo" : "Evento"} · {formatDate(m.createdAt.slice(0, 10))}</div>
                   </div>
                   <Badge tone={m.status === "sent" ? "ok" : "warn"}>{m.status === "sent" ? "Enviada" : "Pendente"}</Badge>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          <Card title="Entregas">
-            <div className="list">
-              {state.deliveries.map((delivery) => (
-                <div key={delivery.id} className="card row-item">
-                  <Flag size={16} style={{ color: frontById(state, delivery.frontId)?.color ?? "var(--muted)", flex: "none" }} aria-hidden />
-                  <div className="flex-1" style={{ minWidth: 0 }}>
-                    <div className="text-sm" style={{ fontWeight: 600 }}>{delivery.title}</div>
-                    <div className="text-xs text-muted">{delivery.sprintName} · {delivery.itemIds.length} itens</div>
-                  </div>
-                  {delivery.status === "entregue" ? <Badge tone="ok">Entregue</Badge> : delivery.status === "em_andamento" ? <Badge tone="warn">Em andamento</Badge> : <Badge tone="muted">Planejada</Badge>}
                 </div>
               ))}
             </div>
