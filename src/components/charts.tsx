@@ -68,7 +68,7 @@ export function WorkloadPieChart({ items }: { items: BacklogItem[] }) {
           ))}
         </Pie>
         <Tooltip
-          formatter={(value: number, name: string) => [`${value} (${((value / items.length) * 100).toFixed(0)}%)`, name]}
+          formatter={(value: any, name: any) => [`${value} (${((Number(value) / items.length) * 100).toFixed(0)}%)`, name]}
           contentStyle={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)" }}
           itemStyle={{ color: "var(--text)" }}
         />

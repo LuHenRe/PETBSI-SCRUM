@@ -22,7 +22,7 @@ export default function FrentesPage() {
           const open = items.filter((i) => i.status !== "done").length;
           const done = items.filter((i) => i.status === "done").length;
           const members = state.memberships
-            .filter((m) => m.frontId === front.id)
+            .filter((m) => m.primaryFrontId === front.id || m.frontPermissions.some((fp) => fp.frontId === front.id && (fp.canView || fp.canEdit)))
             .map((m) => state.people.find((p) => p.id === m.personId) ?? null)
             .filter((p): p is NonNullable<typeof p> => !!p);
           const deliveries = state.deliveries.filter((d) => d.frontId === front.id);
