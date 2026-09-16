@@ -153,7 +153,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <div style={{ fontWeight: 600, fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {user.name}
               </div>
-              <div className="text-xs text-muted">{frontById(state, membership?.frontId ?? null)?.name ?? ""}</div>
+              <div className="text-xs text-muted">{frontById(state, membership?.primaryFrontId ?? null)?.name ?? ""}</div>
             </div>
             <Button
               variant="ghost"
