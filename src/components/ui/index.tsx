@@ -75,11 +75,12 @@ interface BadgeProps {
   tone?: Tone;
   dot?: boolean;
   children: ReactNode;
+  style?: React.CSSProperties;
 }
 
-export function Badge({ tone = "muted", dot, children }: BadgeProps) {
+export function Badge({ tone = "muted", dot, children, style }: BadgeProps) {
   return (
-    <span className={`badge badge-${tone}`}>
+    <span className={`badge badge-${tone}`} style={style}>
       {dot && <span className={`dot dot-${tone}`} aria-hidden />}
       {children}
     </span>

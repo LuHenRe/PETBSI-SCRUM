@@ -26,9 +26,9 @@ export class MemoryMembershipRepository implements MembershipRepository {
         new ProjectMembership({
           id: m.id,
           personId: m.personId,
-          frontId: m.frontId,
+          primaryFrontId: m.primaryFrontId,
           role: m.role as ProjectRole,
-          canEdit: m.canEdit,
+          frontPermissions: m.frontPermissions,
         })
       );
     }
