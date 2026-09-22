@@ -152,12 +152,15 @@ export function createApiClient(): ApiClient {
       if (!actorId) return [];
       const mine = (await deps.memberships.listAll()).filter((m) => m.personId === actorId);
       if (mine.length === 0) return [];
-      if (mine.some((m) => m.isTechAdmin() || m.isCoordinator())) return store.listFronts().map((f) => f.id);
+      
       const allFrontIds = new Set<string>();
+      const allFronts = store.listFronts();
+      
       for (const m of mine) {
-        if (m.primaryFrontId) allFrontIds.add(m.primaryFrontId);
-        for (const fp of m.frontPermissions) {
-          if (fp.canView || fp.canEdit) allFrontIds.add(fp.frontId);
+        for (const front of allFronts) {
+          if (m.canViewFront(front.id)) {
+            allFrontIds.add(front.id);
+          }
         }
       }
       return Array.from(allFrontIds);

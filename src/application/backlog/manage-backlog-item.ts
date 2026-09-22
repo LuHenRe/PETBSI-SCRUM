@@ -26,11 +26,7 @@ export interface BacklogDeps {
 }
 
 function canCreateInFront(membership: ProjectMembership, frontId: string): boolean {
-  return (
-    membership.canMoveItem(frontId) ||
-    membership.isTechAdmin() ||
-    membership.isCoordinator()
-  );
+  return membership.canMoveItem(frontId);
 }
 
 export async function createBacklogItem(
