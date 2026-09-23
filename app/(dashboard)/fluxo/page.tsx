@@ -168,7 +168,40 @@ export default function FluxoPage() {
                   <div className="board-empty">Nenhum item</div>
                 )}
                 {items.map((item) => (
-                  <div key={item.id} className="mini-card board-card-wrapper" draggable onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; setDragId(item.id); }}>
+                  <div
+                    key={item.id}
+                    className={`mini-card board-card-wrapper ${dragId === item.id ? "is-dragging" : ""}`}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.effectAllowed = "move";
+                      setDragId(item.id);
+
+                      const target = e.currentTarget as HTMLElement;
+                      const rect = target.getBoundingClientRect();
+                      const clone = target.cloneNode(true) as HTMLElement;
+                      
+                      clone.style.position = "absolute";
+                      clone.style.top = "-9999px";
+                      clone.style.left = "-9999px";
+                      clone.style.width = `${rect.width}px`;
+                      clone.classList.remove("is-dragging");
+                      clone.style.opacity = "1";
+                      clone.style.transform = "none";
+                      
+                      document.body.appendChild(clone);
+                      
+                      const offsetX = e.clientX - rect.left;
+                      const offsetY = e.clientY - rect.top;
+                      e.dataTransfer.setDragImage(clone, offsetX, offsetY);
+
+                      setTimeout(() => {
+                        if (document.body.contains(clone)) {
+                          document.body.removeChild(clone);
+                        }
+                      }, 0);
+                    }}
+                    onDragEnd={() => setDragId(null)}
+                  >
                     <KanbanCard item={item} state={state} />
                     <div className="board-card-actions">
                       <div className="dropdown">
