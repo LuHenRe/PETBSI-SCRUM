@@ -658,6 +658,75 @@ html[data-theme="dark"] .btn-primary:hover {
   border-top: 1px solid var(--border);
 }
 
+.sidebar-footer-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+}
+
+.sidebar-footer-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar-footer-name {
+  font-weight: 600;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-footer-role {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ─── Sidebar Collapsed State ─────────────────────────────────────────────── */
+
+.sidebar-collapsed .sidebar {
+  width: 76px;
+  padding: 18px 8px 28px;
+  align-items: center;
+}
+
+.sidebar-collapsed .sidebar-logo {
+  padding: 6px 0 18px;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sidebar-collapsed .sidebar-logo-text,
+.sidebar-collapsed .sidebar-group-text,
+.sidebar-collapsed .nav-link-text,
+.sidebar-collapsed .sidebar-footer-text {
+  display: none;
+}
+
+.sidebar-collapsed .sidebar-group {
+  padding: 0;
+  height: 14px; /* Just some spacing */
+}
+
+.sidebar-collapsed .nav-link {
+  justify-content: center;
+  padding: 12px;
+}
+
+.sidebar-collapsed .nav-link svg {
+  margin: 0;
+}
+
+.sidebar-collapsed .sidebar-footer-inner {
+  flex-direction: column;
+  padding: 6px 0;
+}
+
+.sidebar-collapsed .sidebar-logout-btn {
+  margin-top: 8px;
+}
+
 .main {
   flex: 1;
   min-width: 0;
@@ -884,10 +953,11 @@ html[data-theme="dark"] .btn-primary:hover {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 12px 14px;
-  box-shadow: var(--shadow);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
   text-decoration: none;
   color: var(--text);
   display: block;
+  position: relative;
 }
 
 .mini-card:hover {
@@ -895,29 +965,149 @@ html[data-theme="dark"] .btn-primary:hover {
   text-decoration: none;
 }
 
-.mini-card-top {
+.board-card-wrapper {
+  position: relative;
+}
+
+.board-card-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.board-card-wrapper:hover .board-card-actions,
+.board-card-actions:focus-within {
+  opacity: 1;
+}
+
+.btn-icon {
+  padding: 4px;
+  height: auto;
+  border-radius: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.btn-icon:hover {
+  background: var(--surface-2);
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: var(--surface);
+  min-width: 160px;
+  box-shadow: var(--shadow-md);
+  z-index: 100;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  padding: 4px 0;
+  margin-top: 4px;
+}
+
+.dropdown:hover .dropdown-menu,
+.dropdown-menu:focus-within {
+  display: block;
+}
+
+.dropdown-title {
+  padding: 8px 12px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+.dropdown-item {
+  padding: 8px 12px;
+  text-decoration: none;
   display: flex;
   align-items: center;
+  font-size: 13px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.dropdown-item:hover:not(:disabled) {
+  background-color: var(--surface-2);
+}
+
+.dropdown-item:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: var(--border);
+  margin: 4px 0;
+}
+
+.text-ok { color: var(--success); }
+.text-danger { color: var(--danger); }
+
+.mini-card-top {
+  display: flex;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+  padding-right: 24px;
 }
 
 .mini-card-title {
   font-weight: 600;
-  font-size: 13px;
-  line-height: 1.35;
+  font-size: 13.5px;
+  line-height: 1.4;
   overflow-wrap: break-word;
   word-break: break-word;
+  color: var(--text);
+  text-decoration: none;
 }
 
-.mini-card-meta {
+.mini-card-title:hover {
+  text-decoration: underline;
+}
+
+.mini-card-footer {
   margin-top: 10px;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 8px;
-  font-size: 12px;
-  color: var(--muted);
+}
+
+.mini-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mini-card-tags .badge {
+  padding: 2px 7px;
+  font-size: 11px;
+}
+
+.mini-card-assignees {
+  flex-shrink: 0;
+  display: flex;
 }
 
 .board-empty {

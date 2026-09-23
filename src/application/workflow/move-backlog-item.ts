@@ -33,10 +33,12 @@ export async function moveBacklogItem(
   }
 
   const authorized =
-    input.membership.canMoveItem(item.frontId) || input.membership.isTechAdmin();
+    input.membership.canMoveItem(item.frontId);
   if (!authorized) {
     throw new DomainError(`Sem permissão para mover item da frente ${item.frontId}`);
   }
+
+
 
   if (!input.column.canReceive(input.countInTarget)) {
     throw new DomainError(

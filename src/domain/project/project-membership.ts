@@ -32,19 +32,32 @@ export class ProjectMembership {
   }
 
   canMoveItem(frontId: string): boolean {
-    return this.primaryFrontId === frontId && this.canEditFront(frontId);
+    return this.canEditFront(frontId);
   }
 
   canEditFront(frontId: string): boolean {
-    if (isTechAdmin(this.role) || isCoordinator(this.role)) return true;
     const fp = this.frontPermissions.find(p => p.frontId === frontId);
-    return fp ? fp.canEdit : false;
+    if (fp) {
+      return fp.canEdit;
+    }
+    if (this.role === "SCRUM_MASTER" || this.role === "SCRUM_MASTER_ASSISTANT" || this.role === "PRODUCT_OWNER") {
+      return true;
+    }
+    return false;
   }
 
   canViewFront(frontId: string): boolean {
-    if (isTechAdmin(this.role) || isCoordinator(this.role)) return true;
     const fp = this.frontPermissions.find(p => p.frontId === frontId);
-    return fp ? fp.canView : false;
+    if (fp) {
+      return fp.canView;
+    }
+    if (this.role === "SCRUM_MASTER" || this.role === "SCRUM_MASTER_ASSISTANT" || this.role === "PRODUCT_OWNER" || this.role === "COORDINATOR") {
+      return true;
+    }
+    if (this.primaryFrontId === frontId) {
+      return true;
+    }
+    return false;
   }
 
   isTechAdmin(): boolean {

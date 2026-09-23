@@ -17,7 +17,7 @@ export interface BlockerDeps {
 }
 
 function ensureCanEdit(itemFrontId: string, membership: ProjectMembership): void {
-  const ok = membership.canMoveItem(itemFrontId) || membership.isTechAdmin();
+  const ok = membership.canMoveItem(itemFrontId);
   if (!ok) {
     throw new DomainError(`Sem permissão para gerenciar bloqueio da frente ${itemFrontId}`);
   }

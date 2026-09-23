@@ -78,39 +78,20 @@ export function FrontBar({ frontId, state }: { frontId: string; state: AppState 
 export function KanbanCard({ item, state }: { item: BacklogItem; state: AppState }) {
   const front = frontById(state, item.frontId);
   return (
-    <a className="mini-card" href={`/itens/${item.id}`}>
+    <div className="mini-card-content">
       <div className="mini-card-top">
-        <span className="mini-card-title">{item.title}</span>
+        <a className="mini-card-title" href={`/itens/${item.id}`}>{item.title}</a>
       </div>
-      {item.description && (
-        <div
-          className="text-xs text-muted"
-          style={{
-            marginTop: "6px",
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            lineHeight: 1.4,
-          }}
-        >
-          {item.description}
-        </div>
-      )}
-      <div className="mini-card-meta" style={{ flexDirection: "column", alignItems: "flex-start", gap: "8px" }}>
-        <div style={{ width: "100%", minWidth: 0 }}>
+      <div className="mini-card-footer">
+        <div className="mini-card-tags">
           <FrontTag front={front} truncate />
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
           <TypeBadge type={item.type} />
+          {item.deadline && <DeadlinePill deadline={item.deadline} />}
+        </div>
+        <div className="mini-card-assignees">
           <Assignees item={item} state={state} />
         </div>
       </div>
-      {item.deadline && (
-        <div className="mt-2 flex">
-          <DeadlinePill deadline={item.deadline} />
-        </div>
-      )}
-    </a>
+    </div>
   );
 }

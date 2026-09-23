@@ -43,17 +43,17 @@ export default function LoginPage() {
             return (
               <button key={person.id} className="person-option" onClick={() => handleSelect(person.id)}>
                 <Avatar person={person} size="lg" />
-                <div className="flex-1">
-                  <div style={{ fontWeight: 600 }}>{person.name}</div>
-                  <div className="text-xs text-muted">{person.email}</div>
+                <div className="flex-1" style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{person.name}</div>
+                  <div className="text-xs text-muted" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{person.email}</div>
                 </div>
-                <Badge tone="muted">{ROLE_LABEL[role]}</Badge>
+                <Badge tone="muted" className="badge-truncate">{ROLE_LABEL[role]}</Badge>
               </button>
             );
           })}
         </div>
 
-        <div className="flex justify-between items-center mt-4">
+        <div className="flex justify-between items-center mt-4 gap-3" style={{ flexWrap: "wrap" }}>
           <button
             className="btn btn-ghost btn-sm"
             onClick={resetStore}

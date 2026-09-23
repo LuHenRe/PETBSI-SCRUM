@@ -281,7 +281,7 @@ export default function ConfiguracoesPage() {
                     else if (!isAdmin) editReason = "Apenas admins podem alterar";
 
                     return (
-                      <div key={f.id} className="card p-4" style={{ position: "relative" }}>
+                      <div key={f.id} className="card" style={{ position: "relative", padding: "16px" }}>
                         {f.id === m.primaryFrontId && (
                           <div style={{ position: "absolute", top: -8, right: -8 }}>
                             <Badge tone="info">Frente Primária</Badge>
@@ -301,7 +301,7 @@ export default function ConfiguracoesPage() {
                             onChange={(e) => setFrontPermission(m.personId, f.id, e.target.checked, canEdit)}
                           />
                         </div>
-                        {viewReason && viewDisabled && <div className="text-xs text-muted mb-2 mt-[-8px] text-right">{viewReason}</div>}
+                        {viewReason && viewDisabled && <div className="text-xs text-muted mb-2" style={{ textAlign: "right", marginTop: -8 }}>{viewReason}</div>}
 
                         <div className="flex items-center justify-between mb-1" title={editReason}>
                           <span className="text-sm flex items-center gap-2">
@@ -315,7 +315,7 @@ export default function ConfiguracoesPage() {
                             onChange={(e) => setFrontPermission(m.personId, f.id, canView, e.target.checked)}
                           />
                         </div>
-                        {editReason && editDisabled && <div className="text-xs text-muted mt-1 text-right">{editReason}</div>}
+                        {editReason && editDisabled && <div className="text-xs text-muted mt-1" style={{ textAlign: "right" }}>{editReason}</div>}
                       </div>
                     );
                   })}

@@ -74,13 +74,14 @@ type Tone = "ok" | "info" | "warn" | "danger" | "muted" | "primary";
 interface BadgeProps {
   tone?: Tone;
   dot?: boolean;
+  className?: string;
   children: ReactNode;
   style?: React.CSSProperties;
 }
 
-export function Badge({ tone = "muted", dot, children, style }: BadgeProps) {
+export function Badge({ tone = "muted", dot, className = "", children, style }: BadgeProps) {
   return (
-    <span className={`badge badge-${tone}`} style={style}>
+    <span className={`badge badge-${tone} ${className}`.trim()} style={style}>
       {dot && <span className={`dot dot-${tone}`} aria-hidden />}
       {children}
     </span>
