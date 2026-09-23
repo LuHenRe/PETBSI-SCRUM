@@ -40,6 +40,12 @@ export async function moveBacklogItem(
 
 
 
+  if (!input.column.canReceive(input.countInTarget)) {
+    throw new DomainError(
+      `Limite de WIP da coluna "${input.column.name}" seria ultrapassado`
+    );
+  }
+
   const at = input.at ?? now();
   item.moveTo(input.column, input.countInTarget, {
     actorId: input.actorId,
