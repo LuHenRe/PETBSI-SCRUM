@@ -80,7 +80,7 @@ export function KanbanCard({ item, state }: { item: BacklogItem; state: AppState
   return (
     <div className="mini-card-content">
       <div className="mini-card-top">
-        <a className="mini-card-title" href={`/itens/${item.id}`}>{item.title}</a>
+        <a className="mini-card-title" href={`/itens/${item.id}`} draggable={false}>{item.title}</a>
       </div>
       <div className="mini-card-footer">
         <div className="mini-card-tags">
