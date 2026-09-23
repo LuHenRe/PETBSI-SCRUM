@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -16,6 +16,8 @@ import {
   Settings,
   Target,
   Users,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { useAppState, logout, personById } from "@/lib/store";
 import { ROLE_LABEL, isCoordinator, isTechAdmin } from "@/lib/labels";
@@ -78,6 +80,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const role = membership?.role ?? null;
   const roleLabel = role ? ROLE_LABEL[role] : null;
 
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   useEffect(() => {
     if (!state.currentUserId) {
       router.replace("/login");
@@ -104,19 +108,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const coordinator = isCoordinator(role ?? "MEMBER");
 
   return (
-    <div className="shell">
+    <div className={`shell ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
       <aside className="sidebar" aria-label="Navegação principal">
         <div className="sidebar-logo">
-          <span className="mark" aria-hidden>
-            P
-          </span>
-          PETBSI Scrum
+          <div className="flex items-center gap-2">
+            <span className="mark" aria-hidden>
+              P
+            </span>
+            <span className="sidebar-logo-text">PETBSI Scrum</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="sidebar-toggle-btn"
+            aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
+          >
+            {isCollapsed ? <ChevronsRight size={18} /> : <ChevronsLeft size={18} />}
+          </Button>
         </div>
 
         <nav className="sidebar-nav" aria-label="Seções">
           {NAV.map((section) => (
             <div key={section.group}>
-              <div className="sidebar-group">{section.group}</div>
+              <div className="sidebar-group">
+                <span className="sidebar-group-text">{section.group}</span>
+              </div>
               {section.items.map((item) => {
                 const Icon = item.icon;
                 const active =
@@ -124,9 +141,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     ? pathname === "/"
                     : pathname === item.href || pathname.startsWith(item.href + "/");
                 return (
-                  <Link key={item.href} href={item.href} className={`nav-link ${active ? "active" : ""}`}>
+                  <Link key={item.href} href={item.href} className={`nav-link ${active ? "active" : ""}`} title={isCollapsed ? item.label : undefined}>
                     <Icon aria-hidden />
-                    {item.label}
+                    <span className="nav-link-text">{item.label}</span>
                   </Link>
                 );
               })}
@@ -134,32 +151,37 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           ))}
           {(admin || coordinator) && (
             <div>
-              <div className="sidebar-group">Administração</div>
+              <div className="sidebar-group">
+                <span className="sidebar-group-text">Administração</span>
+              </div>
               <Link
                 href="/configuracoes/integracoes"
                 className={`nav-link ${pathname.startsWith("/configuracoes/integracoes") ? "active" : ""}`}
+                title={isCollapsed ? "Integrações" : undefined}
               >
                 <Settings aria-hidden />
-                Integrações
+                <span className="nav-link-text">Integrações</span>
               </Link>
             </div>
           )}
         </nav>
 
         <div className="sidebar-footer">
-          <div className="flex items-center gap-2" style={{ padding: "6px 10px" }}>
+          <div className="sidebar-footer-inner">
             <Avatar person={user} />
-            <div className="flex-1" style={{ minWidth: 0 }}>
-              <div style={{ fontWeight: 600, fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <div className="sidebar-footer-text">
+              <div className="sidebar-footer-name">
                 {user.name}
               </div>
-              <div className="text-xs text-muted">{frontById(state, membership?.primaryFrontId ?? null)?.name ?? ""}</div>
+              <div className="sidebar-footer-role">{frontById(state, membership?.primaryFrontId ?? null)?.name ?? ""}</div>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={logout}
               aria-label="Sair"
+              className="sidebar-logout-btn"
+              title={isCollapsed ? "Sair" : undefined}
             >
               <LogOut size={15} />
             </Button>

@@ -86,9 +86,7 @@ export function WorkloadPieChart({ items }: { items: BacklogItem[] }) {
   );
 }
 
-export function SprintBurndownChart({ sprint, items }: { sprint: Sprint; items: BacklogItem[] }) {
-  const [mode, setMode] = useState<"burndown" | "burnup">("burndown");
-
+export function SprintBurndownChart({ sprint, items, mode, onModeChange }: { sprint: Sprint; items: BacklogItem[]; mode: "burndown" | "burnup"; onModeChange: (mode: "burndown" | "burnup") => void }) {
   const data = useMemo(() => {
     if (!sprint || items.length === 0) return [];
 
@@ -138,7 +136,7 @@ export function SprintBurndownChart({ sprint, items }: { sprint: Sprint; items: 
     }
 
     return dataPoints;
-  }, [sprint, items]);
+  }, [sprint, items, mode]);
 
   if (data.length === 0) {
     return <div className="text-muted text-sm flex items-center justify-center h-full">Nenhum dado</div>;
@@ -148,14 +146,14 @@ export function SprintBurndownChart({ sprint, items }: { sprint: Sprint; items: 
     <div style={{ position: "relative" }}>
       <div className="flex gap-2" style={{ position: "absolute", top: -35, right: 0, zIndex: 10 }}>
         <button
-          onClick={() => setMode("burndown")}
+          onClick={() => onModeChange("burndown")}
           className={`btn btn-sm ${mode === "burndown" ? "btn-secondary" : "btn-ghost"}`}
           style={{ fontSize: 11, padding: "4px 8px" }}
         >
           Burndown
         </button>
         <button
-          onClick={() => setMode("burnup")}
+          onClick={() => onModeChange("burnup")}
           className={`btn btn-sm ${mode === "burnup" ? "btn-secondary" : "btn-ghost"}`}
           style={{ fontSize: 11, padding: "4px 8px" }}
         >

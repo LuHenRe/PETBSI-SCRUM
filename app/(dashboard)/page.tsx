@@ -13,10 +13,18 @@ import { WorkloadPieChart, SprintBurndownChart } from "@/components/charts";
 export default function OverviewPage() {
   const state = useAppState();
   const [frontFilter, setFrontFilter] = useState<string>("all");
+  const [chartMode, setChartMode] = useState<"burndown" | "burnup">("burndown");
 
   const activeSprint = state.sprints.find((s) => s.status === "active");
 
-  const activeItems = activeSprint ? state.backlogItems.filter((i) => activeSprint.itemIds.includes(i.id)) : [];
+  const activeItems = useMemo(() => {
+    if (!activeSprint) return [];
+    let items = state.backlogItems.filter((i) => activeSprint.itemIds.includes(i.id));
+    if (frontFilter !== "all") {
+      items = items.filter((i) => i.frontId === frontFilter);
+    }
+    return items;
+  }, [state.backlogItems, activeSprint, frontFilter]);
 
   const counts = useMemo(() => {
     const base = state.backlogItems;
@@ -139,9 +147,9 @@ export default function OverviewPage() {
       <div className="widget-grid">
         <div className="flex" style={{ flexDirection: "column", gap: 16 }}>
           {activeSprint && (
-            <Card title="Burndown da Sprint">
+            <Card title={chartMode === "burndown" ? "Burndown da Sprint" : "Burnup da Sprint"}>
               <div className="mt-2">
-                <SprintBurndownChart sprint={activeSprint} items={activeItems} />
+                <SprintBurndownChart sprint={activeSprint} items={activeItems} mode={chartMode} onModeChange={setChartMode} />
               </div>
             </Card>
           )}

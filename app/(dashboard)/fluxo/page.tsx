@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Ban, CheckCircle2, Info } from "lucide-react";
+import { AlertTriangle, Ban, CheckCircle2, Info, MoreHorizontal } from "lucide-react";
 import {
   moveBacklogItem, openBlocker, resolveBlocker, sendTelegram, useAppState,
 } from "@/lib/store";
@@ -168,49 +168,45 @@ export default function FluxoPage() {
                   <div className="board-empty">Nenhum item</div>
                 )}
                 {items.map((item) => (
-                  <div key={item.id} className="flex" style={{ flexDirection: "column", gap: 6 }}>
-                    <div draggable onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; setDragId(item.id); }}>
-                      <KanbanCard item={item} state={state} />
-                    </div>
-                    <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "6px 8px" }}>
-                      <div className="flex items-center gap-2">
-                        <select
-                          className="select"
-                          style={{ flex: 1, minWidth: 0, padding: "4px 8px", fontSize: 12, height: 28 }}
-                          aria-label={`Mover ${item.title}`}
-                          value={item.status}
-                          onChange={(e) => handleMove(item.id, e.target.value as WorkItemStatus)}
-                        >
+                  <div key={item.id} className="mini-card board-card-wrapper" draggable onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; setDragId(item.id); }}>
+                    <KanbanCard item={item} state={state} />
+                    <div className="board-card-actions">
+                      <div className="dropdown">
+                        <Button variant="ghost" size="sm" className="btn-icon">
+                          <MoreHorizontal size={14} />
+                        </Button>
+                        <div className="dropdown-menu">
+                          <div className="dropdown-title">Mover para:</div>
                           {state.columns.map((c) => (
-                            <option key={c.id} value={c.status} disabled={c.status === item.status}>
-                              Mover: {c.name}
-                            </option>
+                            <button
+                              key={c.id}
+                              className="dropdown-item"
+                              disabled={c.status === item.status}
+                              onClick={() => handleMove(item.id, c.status)}
+                            >
+                              {c.name}
+                            </button>
                           ))}
-                        </select>
-                        {column.status === "blocked" ? (
-                          <Button
-                            size="sm"
-                            variant="danger"
-                            style={{ padding: "4px 8px", fontSize: 12, height: 28, flex: "none" }}
-                            onClick={() => {
-                              const b = state.blockers.find((blk) => blk.itemId === item.id && !blk.resolvedAt);
-                              if (b) resolveBlocker(b.id, actorId);
-                            }}
-                            title="Resolver bloqueio"
-                          >
-                            <CheckCircle2 size={13} /> Resolver
-                          </Button>
-                        ) : (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            style={{ padding: "4px 8px", fontSize: 12, height: 28, flex: "none" }}
-                            onClick={() => { setBlockItemId(item.id); setBlockReason(""); }}
-                            title="Registrar bloqueio"
-                          >
-                            <AlertTriangle size={13} /> Bloquear
-                          </Button>
-                        )}
+                          <div className="dropdown-divider" />
+                          {column.status === "blocked" ? (
+                            <button
+                              className="dropdown-item text-ok"
+                              onClick={() => {
+                                const b = state.blockers.find((blk) => blk.itemId === item.id && !blk.resolvedAt);
+                                if (b) resolveBlocker(b.id, actorId);
+                              }}
+                            >
+                              <CheckCircle2 size={13} style={{ marginRight: 6 }} /> Resolver bloqueio
+                            </button>
+                          ) : (
+                            <button
+                              className="dropdown-item text-danger"
+                              onClick={() => { setBlockItemId(item.id); setBlockReason(""); }}
+                            >
+                              <AlertTriangle size={13} style={{ marginRight: 6 }} /> Registrar bloqueio
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
