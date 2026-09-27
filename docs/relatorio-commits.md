@@ -9,6 +9,7 @@ Este documento apresenta o relatório do histórico de desenvolvimento do PETBSI
 
 | Data | Autor | Descrição da Atualização |
 | :--- | :--- | :--- |
+| **2026-09-27** | LuHenRe | Otimização de UX na tabela do Product Backlog (responsividade, sticky column e datas compactas) e correção na ordenação de prazos |
 | **2026-09-23** | LuHenRe | Refinamentos de interface (kanban, sidebar) e validação de WIP limit |
 | **2026-09-22** | LuHenRe | Refatoração: aplicação de mudanças na lógica de WIP e permissões, correção de overflows na UI e gráficos |
 | **2026-09-15** | LuHenRe | Correção de erros residuais de TypeScript no domínio e API client |

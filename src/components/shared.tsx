@@ -31,6 +31,18 @@ export function PriorityBadge({ priority }: { priority: BacklogPriority }) {
   return <Badge tone={PRIORITY_TONE[priority]}>{PRIORITY_LABEL[priority]}</Badge>;
 }
 
+export function PriorityIcon({ priority }: { priority: BacklogPriority }) {
+  const color = priority === "alta" ? "var(--danger)" : priority === "media" ? "var(--warn)" : "var(--info)";
+  return (
+    <span 
+      className="dot" 
+      style={{ background: color, flexShrink: 0 }} 
+      title={`Prioridade: ${PRIORITY_LABEL[priority]}`} 
+      aria-hidden 
+    />
+  );
+}
+
 export function ValueBadge({ value }: { value: BacklogItem["value"] }) {
   const tone = value === "PQ" ? "info" : value === "M" ? "warn" : "muted";
   return <Badge tone={tone}>{VALUE_LABEL[value]}</Badge>;
@@ -55,11 +67,15 @@ export function FrontTag({ front, truncate }: { front: Front | null | undefined;
 
 export function DeadlinePill({ deadline }: { deadline: string | null }) {
   if (!deadline) return null;
+  const parts = deadline.split("-");
+  const compact = parts.length === 3 ? `${parts[2]}/${parts[1]}` : deadline;
   return (
-    <Badge tone={deadlineTone(deadline) as "ok" | "warn" | "danger"}>
-      <CalendarDays size={12} aria-hidden />
-      {deadlineLabel(deadline)}
-    </Badge>
+    <span title={deadlineLabel(deadline)}>
+      <Badge tone={deadlineTone(deadline) as "ok" | "warn" | "danger"}>
+        <CalendarDays size={12} aria-hidden />
+        {compact}
+      </Badge>
+    </span>
   );
 }
 

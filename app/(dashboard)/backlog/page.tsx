@@ -5,9 +5,11 @@ import Link from "next/link";
 import { ArrowDown, ArrowUp, ListOrdered, Pencil, Plus, Search } from "lucide-react";
 import { createBacklogItem, reorderBacklogItem, updateBacklogItem, useAppState } from "@/lib/store";
 import { Button, Card, EmptyState, Select, TextInput } from "@/components/ui";
-import { Assignees, DeadlinePill, FrontBar, PriorityBadge, StatusBadge, TypeBadge, ValueBadge } from "@/components/shared";
+import { Assignees, DeadlinePill, FrontTag, PriorityIcon, StatusBadge, TypeBadge } from "@/components/shared";
 import { ItemFormModal, type ItemDraft } from "@/components/item-form";
 import type { WorkItemStatus } from "@/lib/types";
+
+type SortKey = "title" | "frontId" | "type" | "priority" | "value" | "status" | "deadline" | "assignees" | null;
 
 export default function BacklogPage() {
   const state = useAppState();
@@ -17,9 +19,12 @@ export default function BacklogPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
 
+  const [sortKey, setSortKey] = useState<SortKey>(null);
+  const [sortDesc, setSortDesc] = useState(false);
+
   const editingItem = editing ? state.backlogItems.find((i) => i.id === editing) ?? null : null;
 
-  const items = useMemo(() => {
+  const filteredItems = useMemo(() => {
     return state.backlogItems.filter((item) => {
       if (frontFilter !== "all" && item.frontId !== frontFilter) return false;
       if (statusFilter !== "all" && item.status !== statusFilter) return false;
@@ -27,6 +32,62 @@ export default function BacklogPage() {
       return true;
     });
   }, [state.backlogItems, frontFilter, statusFilter, search]);
+
+  const sortedItems = useMemo(() => {
+    const result = [...filteredItems];
+    if (sortKey === null) {
+      result.sort((a, b) => {
+        const dA = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+        const dB = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+        if (dA !== dB) return dA - dB;
+
+        const pA = { alta: 3, media: 2, baixa: 1 }[a.priority] ?? 0;
+        const pB = { alta: 3, media: 2, baixa: 1 }[b.priority] ?? 0;
+        return pB - pA;
+      });
+    } else {
+      result.sort((a, b) => {
+        let cmp = 0;
+        if (sortKey === "title") {
+          cmp = a.title.localeCompare(b.title);
+        } else if (sortKey === "frontId") {
+          const fA = state.fronts.find((f) => f.id === a.frontId)?.name || "";
+          const fB = state.fronts.find((f) => f.id === b.frontId)?.name || "";
+          cmp = fA.localeCompare(fB);
+        } else if (sortKey === "type") {
+          cmp = a.type.localeCompare(b.type);
+        } else if (sortKey === "priority") {
+          const pA = { alta: 3, media: 2, baixa: 1 }[a.priority] ?? 0;
+          const pB = { alta: 3, media: 2, baixa: 1 }[b.priority] ?? 0;
+          cmp = pB - pA;
+        } else if (sortKey === "value") {
+          const vA = { PQ: 3, M: 2, S: 1 }[a.value] ?? 0;
+          const vB = { PQ: 3, M: 2, S: 1 }[b.value] ?? 0;
+          cmp = vB - vA;
+        } else if (sortKey === "status") {
+          const sA = { backlog: 0, todo: 1, in_progress: 2, review: 3, blocked: 4, done: 5 }[a.status] ?? 0;
+          const sB = { backlog: 0, todo: 1, in_progress: 2, review: 3, blocked: 4, done: 5 }[b.status] ?? 0;
+          cmp = sA - sB;
+        } else if (sortKey === "deadline") {
+          const dA = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+          const dB = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+          cmp = dA - dB;
+          
+          if (cmp === 0) {
+            const pA = { alta: 3, media: 2, baixa: 1 }[a.priority] ?? 0;
+            const pB = { alta: 3, media: 2, baixa: 1 }[b.priority] ?? 0;
+            cmp = pB - pA;
+          }
+        } else if (sortKey === "assignees") {
+          const nA = a.assigneeIds.map(id => state.people.find(p => p.id === id)?.name || "").join(", ");
+          const nB = b.assigneeIds.map(id => state.people.find(p => p.id === id)?.name || "").join(", ");
+          cmp = nA.localeCompare(nB);
+        }
+        return sortDesc ? -cmp : cmp;
+      });
+    }
+    return result;
+  }, [filteredItems, sortKey, sortDesc, state.fronts, state.people]);
 
   const handleSave = (draft: ItemDraft) => {
     if (editing) {
@@ -37,12 +98,40 @@ export default function BacklogPage() {
     setEditing(null);
   };
 
+  const SortHeader = ({ label, field, width, className = "" }: { label: string; field: SortKey; width: number; className?: string }) => {
+    const isSorted = sortKey === field;
+    return (
+      <th 
+        style={{ minWidth: width, cursor: "pointer", userSelect: "none", transition: "color 0.2s" }} 
+        onClick={() => {
+          if (sortKey === field) {
+            if (sortDesc) setSortKey(null);
+            else setSortDesc(true);
+          } else {
+            setSortKey(field);
+            setSortDesc(false);
+          }
+        }}
+        className={`${className} ${isSorted ? "text-primary" : ""}`}
+      >
+        <div className="flex items-center gap-1">
+          {label}
+          {isSorted ? (
+            sortDesc ? <ArrowDown size={14} /> : <ArrowUp size={14} />
+          ) : (
+            <ArrowDown size={14} style={{ opacity: 0.2 }} />
+          )}
+        </div>
+      </th>
+    );
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between wrap gap-3 mb-4">
         <div>
           <h1>Product Backlog</h1>
-          <p className="text-muted mt-1">Itens ordenáveis por prioridade, com tipo, valor, frente e estado.</p>
+          <p className="text-muted mt-1">Clique nos cabeçalhos para ordenar por categoria ou alfabeticamente.</p>
         </div>
         <Button variant="primary" onClick={() => { setEditing(null); setModalOpen(true); }}>
           <Plus size={16} />
@@ -81,7 +170,7 @@ export default function BacklogPage() {
         </div>
       </Card>
 
-      {items.length === 0 ? (
+      {sortedItems.length === 0 ? (
         <Card>
           <EmptyState
             icon={<ListOrdered />}
@@ -100,57 +189,34 @@ export default function BacklogPage() {
             <table className="table" style={{ minWidth: 960 }}>
               <thead>
                 <tr>
-                  <th style={{ width: 6 }}></th>
-                  <th style={{ minWidth: 200 }}>Item</th>
-                  <th style={{ minWidth: 140 }}>Frente</th>
-                  <th style={{ minWidth: 90 }}>Tipo</th>
-                  <th style={{ minWidth: 90 }}>Prioridade</th>
-                  <th style={{ minWidth: 70 }}>Valor</th>
-                  <th style={{ minWidth: 110 }}>Estado</th>
-                  <th style={{ minWidth: 150 }}>Prazo</th>
-                  <th style={{ minWidth: 110 }}>Responsáveis</th>
+                  <SortHeader label="Item" field="title" width={350} className="sticky-col" />
+                  <SortHeader label="Estado" field="status" width={110} />
+                  <SortHeader label="Prazo" field="deadline" width={100} />
+                  <SortHeader label="Responsáveis" field="assignees" width={110} />
                   <th style={{ width: 90, textAlign: "right" }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {items.map((item, index) => (
+                {sortedItems.map((item) => (
                   <tr key={item.id}>
-                    <td><FrontBar frontId={item.frontId} state={state} /></td>
-                    <td>
-                      <Link href={`/itens/${item.id}`} style={{ fontWeight: 600 }}>{item.title}</Link>
-                      {item.sprintId && (
-                        <div className="text-xs text-muted">{state.sprints.find((s) => s.id === item.sprintId)?.name}</div>
-                      )}
+                    <td className="sticky-col">
+                      <div className="flex items-center gap-2 mb-1">
+                        <PriorityIcon priority={item.priority} />
+                        <Link href={`/itens/${item.id}`} style={{ fontWeight: 600 }}>{item.title}</Link>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted wrap" style={{ marginTop: 4 }}>
+                        {item.sprintId && (
+                          <span style={{ fontWeight: 500 }}>{state.sprints.find((s) => s.id === item.sprintId)?.name}</span>
+                        )}
+                        <FrontTag front={state.fronts.find((f) => f.id === item.frontId)} />
+                        <TypeBadge type={item.type} />
+                      </div>
                     </td>
-                    <td>
-                      <span className="text-sm">{state.fronts.find((f) => f.id === item.frontId)?.name}</span>
-                    </td>
-                    <td><TypeBadge type={item.type} /></td>
-                    <td><PriorityBadge priority={item.priority} /></td>
-                    <td><ValueBadge value={item.value} /></td>
                     <td><StatusBadge status={item.status} /></td>
                     <td><DeadlinePill deadline={item.deadline} /></td>
                     <td><Assignees item={item} state={state} /></td>
                     <td>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          aria-label="Mover para cima"
-                          disabled={index === 0}
-                          onClick={() => reorderBacklogItem(item.id, -1)}
-                        >
-                          <ArrowUp size={14} />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          aria-label="Mover para baixo"
-                          disabled={index === items.length - 1}
-                          onClick={() => reorderBacklogItem(item.id, 1)}
-                        >
-                          <ArrowDown size={14} />
-                        </Button>
+                      <div className="flex gap-2 justify-end">
                         <Button
                           size="sm"
                           variant="ghost"
