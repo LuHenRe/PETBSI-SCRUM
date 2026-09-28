@@ -17,42 +17,42 @@ describe("A14 manage-front-permissions", () => {
   });
 
   it("concede edição: SM altera canEdit para true", async () => {
-    // m7: p6/f3 canEdit=false (visitante em f3)
-    const updated = await setFrontPermission("m7", true, scrumMaster(), {
+    // m6: p6/f3 canEdit=false (visitante em f3)
+    const updated = await setFrontPermission("m6", "f3", true, true, scrumMaster(), {
       memberships, audit, now: fixedNow,
     });
-    expect(updated.canEdit).toBe(true);
-    expect((await memberships.load("m7"))!.canEdit).toBe(true);
+    expect(updated.canEditFront("f3")).toBe(true);
+    expect((await memberships.load("m6"))!.canEditFront("f3")).toBe(true);
     expect(audit.events).toHaveLength(1);
     expect(audit.events[0].action).toBe("FrontPermissionChanged");
   });
 
   it("revoga edição: SM altera canEdit para false", async () => {
-    const updated = await setFrontPermission("m5", false, scrumMaster(), {
+    const updated = await setFrontPermission("m5", "f1", true, false, scrumMaster(), {
       memberships, audit, now: fixedNow,
     });
-    expect(updated.canEdit).toBe(false);
-    expect((await memberships.load("m5"))!.canEdit).toBe(false);
+    expect(updated.canEditFront("f1")).toBe(false);
+    expect((await memberships.load("m5"))!.canEditFront("f1")).toBe(false);
   });
 
   it("membro inexistente é rejeitado", async () => {
     await expect(
-      setFrontPermission("m_missing", true, scrumMaster(), { memberships, audit, now: fixedNow })
+      setFrontPermission("m_missing", "f3", true, true, scrumMaster(), { memberships, audit, now: fixedNow })
     ).rejects.toThrow(DomainError);
     expect(audit.events).toHaveLength(0);
   });
 
   it("não-SM rejeitado: membro comum não pode alterar", async () => {
     await expect(
-      setFrontPermission("m7", true, memberF1(), { memberships, audit, now: fixedNow })
+      setFrontPermission("m6", "f3", true, true, memberF1(), { memberships, audit, now: fixedNow })
     ).rejects.toThrow(DomainError);
-    expect((await memberships.load("m7"))!.canEdit).toBe(false);
+    expect((await memberships.load("m6"))!.canEditFront("f3")).toBe(false);
     expect(audit.events).toHaveLength(0);
   });
 
   it("não-SM rejeitado: coordenador não pode alterar (só SM/assistente)", async () => {
     await expect(
-      setFrontPermission("m7", true, coordinator(), { memberships, audit, now: fixedNow })
+      setFrontPermission("m6", "f3", true, true, coordinator(), { memberships, audit, now: fixedNow })
     ).rejects.toThrow(DomainError);
   });
 });

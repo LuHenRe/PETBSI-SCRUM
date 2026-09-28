@@ -22,12 +22,11 @@ describe("MT-4.3 boundary-permissions", () => {
     expect(before.id).toBeTruthy();
 
     // SM revoga a edição de m5 (p5/f1).
-    const revoked = await client.setCanEdit("m5", false, {
+    const revoked = await client.setFrontPermission("m5", "f1", true, false, {
       actorId: "p3",
       now: fixedNow,
     });
-    expect(revoked.canEdit).toBe(false);
-    expect(revoked.displayTitle).toBe("Visitante");
+    expect(revoked.canEditFront("f1")).toBe(false);
 
     // Criar passa a ser rejeitado.
     await expect(
@@ -54,7 +53,7 @@ describe("MT-4.3 boundary-permissions", () => {
 
   it("SM mantém override após revogar membro comum", async () => {
     const client = createApiClient();
-    await client.setCanEdit("m5", false, {
+    await client.setFrontPermission("m5", "f1", true, false, {
       actorId: "p3",
       now: fixedNow,
     });

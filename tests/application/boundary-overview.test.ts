@@ -25,13 +25,12 @@ describe("boundary overview/shell — permissão via domínio", () => {
 
     const deps = client.getDeps();
     const all = await deps.memberships.listAll();
-    const visitante = all.find((m) => m.personId === "p6" && m.frontId === "f3")!;
-    expect(visitante.canEdit).toBe(false);
-    expect(visitante.displayTitle).toBe("Visitante");
+    const visitante = all.find((m) => m.personId === "p6")!;
+    expect(visitante.canEditFront("f3")).toBe(false);
 
     // Contrato de UI: Visitante não recebe links de escrita.
     // A página/shell decide via canEdit; aqui provamos o dado que a UI usa.
-    const canWrite = visitante.canEdit;
+    const canWrite = visitante.canEditFront("f3");
     expect(canWrite).toBe(false);
   });
 
