@@ -24,12 +24,14 @@ export function makeMembership(overrides: Partial<{
   role: ProjectRole;
   canEdit: boolean;
 }> = {}): ProjectMembership {
+  const frontId = overrides.frontId ?? "f1";
+  const canEdit = overrides.canEdit ?? true;
   return new ProjectMembership({
-    id: overrides.id ?? `m_${overrides.personId ?? "p1"}_${overrides.frontId ?? "f1"}`,
+    id: overrides.id ?? `m_${overrides.personId ?? "p1"}_${frontId}`,
     personId: overrides.personId ?? "p1",
-    frontId: overrides.frontId ?? "f1",
+    primaryFrontId: frontId,
     role: overrides.role ?? "MEMBER",
-    canEdit: overrides.canEdit ?? true,
+    frontPermissions: [{ frontId, canView: true, canEdit }],
   });
 }
 

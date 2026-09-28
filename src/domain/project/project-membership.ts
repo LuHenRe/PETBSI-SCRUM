@@ -43,6 +43,9 @@ export class ProjectMembership {
     if (this.role === "SCRUM_MASTER" || this.role === "SCRUM_MASTER_ASSISTANT" || this.role === "PRODUCT_OWNER") {
       return true;
     }
+    if (this.primaryFrontId === frontId) {
+      return true;
+    }
     return false;
   }
 

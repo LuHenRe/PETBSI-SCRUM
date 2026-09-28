@@ -104,18 +104,18 @@ describe("api-client", () => {
     expect(allowedSM.sort()).toEqual(["f1", "f2", "f3", "f4"].sort());
   });
 
-  it("setCanEdit exige SM e registra auditoria", async () => {
+  it("setFrontPermission exige SM e registra auditoria", async () => {
     const client = createApiClient();
     // SM pode alterar
-    const updated = await client.setCanEdit("m7", true, {
+    const updated = await client.setFrontPermission("m6", "f3", true, true, {
       actorId: "p3",
       now: fixedNow,
     });
-    expect(updated.canEdit).toBe(true);
+    expect(updated.canEditFront("f3")).toBe(true);
     expect(client.getDeps().audit).toBeDefined();
     // Membro comum não pode
     await expect(
-      client.setCanEdit("m7", false, { actorId: "p5", now: fixedNow })
+      client.setFrontPermission("m6", "f3", true, false, { actorId: "p5", now: fixedNow })
     ).rejects.toThrow(DomainError);
   });
 });

@@ -36,7 +36,7 @@ describe("memory repositories — isolamento e seed", () => {
   it("membership: instâncias isoladas", async () => {
     const a = new MemoryMembershipRepository();
     const b = new MemoryMembershipRepository();
-    await a.save(new ProjectMembership({ id: "m1", personId: "p1", frontId: "f1", role: "MEMBER", canEdit: true }));
+    await a.save(new ProjectMembership({ id: "m1", personId: "p1", primaryFrontId: "f1", role: "MEMBER", frontPermissions: [{ frontId: "f1", canView: true, canEdit: true }] }));
     expect(await a.load("m1")).not.toBeNull();
     expect(await b.load("m1")).toBeNull();
   });
@@ -86,6 +86,6 @@ describe("memory repositories — isolamento e seed", () => {
     await memberships.seedFromSeed();
     expect((await backlog.listByProject("proj")).length).toBe(18);
     expect((await sprints.listActive()).map((s) => s.id)).toEqual(["s2"]);
-    expect((await memberships.listAll()).length).toBe(9);
+    expect((await memberships.listAll()).length).toBe(8);
   });
 });
