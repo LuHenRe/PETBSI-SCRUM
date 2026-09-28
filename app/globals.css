@@ -969,6 +969,11 @@ html[data-theme="dark"] .btn-primary:hover {
   position: relative;
 }
 
+.is-dragging {
+  opacity: 0.4;
+  border-style: dashed;
+}
+
 .board-card-actions {
   position: absolute;
   top: 8px;
