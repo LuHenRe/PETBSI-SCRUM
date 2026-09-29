@@ -1,71 +1,24 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-import { GraduationCap, RefreshCw } from "lucide-react";
-import { resetStore, useAppState, login } from "@/lib/store";
-import { ROLE_LABEL } from "@/lib/labels";
-import { Avatar, Badge, Button } from "@/components/ui";
+import { redirect } from "next/navigation";
+import { auth, signIn } from "@/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-export default function LoginPage() {
-  const state = useAppState();
-  const router = useRouter();
-
-  const handleSelect = (personId: string) => {
-    login(personId);
-    router.replace("/");
-  };
+export default async function LoginPage() {
+  const session = await auth();
+  if (session?.user?.id) redirect("/");
 
   return (
     <main className="login-page">
-      <div style={{ position: "absolute", top: 20, right: 20 }}>
-        <ThemeToggle />
-      </div>
+      <div style={{ position: "absolute", top: 20, right: 20 }}><ThemeToggle /></div>
       <section className="card login-card">
-        <div className="flex items-center gap-3 mb-2">
-          <span className="mark" aria-hidden style={{ width: 44, height: 44, borderRadius: 12, background: "#4338ca", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
-            <GraduationCap size={22} />
-          </span>
-          <div>
-            <h1>PETBSI Scrum</h1>
-            <p className="text-muted text-sm">Gestão ágil do projeto acadêmico</p>
-          </div>
-        </div>
-
-        <p className="text-sm text-soft mt-2">
-          Demonstração do frontend. Selecione quem está usando o sistema para continuar.
-        </p>
-
-        <div className="person-picker mt-3" role="group" aria-label="Selecionar pessoa">
-          {state.people.map((person) => {
-            const membership = state.memberships.find((m) => m.personId === person.id);
-            const role = membership?.role ?? "MEMBER";
-            return (
-              <button key={person.id} className="person-option" onClick={() => handleSelect(person.id)}>
-                <Avatar person={person} size="lg" />
-                <div className="flex-1" style={{ minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{person.name}</div>
-                  <div className="text-xs text-muted" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{person.email}</div>
-                </div>
-                <Badge tone="muted" className="badge-truncate">{ROLE_LABEL[role]}</Badge>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="flex justify-between items-center mt-4 gap-3" style={{ flexWrap: "wrap" }}>
-          <button
-            className="btn btn-ghost btn-sm"
-            onClick={resetStore}
-            title="Recarregar os dados de demonstração"
-          >
-            <RefreshCw size={14} />
-            Reiniciar demonstração
-          </button>
-          <Button variant="primary" onClick={() => handleSelect(state.people[0].id)}>
-            Entrar como coordenador (Product Owner)
-          </Button>
-        </div>
+        <h1>PETBSI Scrum</h1>
+        <p className="text-muted mt-2">Entre com a conta Google autorizada para o projeto.</p>
+        <form className="mt-4" action={async () => {
+          "use server";
+          await signIn("google", { redirectTo: "/" });
+        }}>
+          <button type="submit" className="btn btn-primary">Entrar com Google</button>
+        </form>
+        <p className="text-muted text-sm mt-3">Se sua conta ainda não estiver cadastrada, solicite acesso à coordenação.</p>
       </section>
     </main>
   );

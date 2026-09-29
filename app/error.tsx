@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 export default function ErrorPage({
   error,
@@ -12,10 +13,10 @@ export default function ErrorPage({
       <section className="card login-card">
         <h1>Algo deu errado</h1>
         <p className="text-muted mt-2">Ocorreu um erro ao renderizar esta tela. Tente novamente.</p>
-        <pre className="text-xs text-muted mt-3" style={{ whiteSpace: "pre-wrap" }}>{error.message}</pre>
+        <p className="text-xs text-muted mt-3">Se o problema persistir, informe a equipe responsável.</p>
         <div className="mt-4 flex gap-2">
           <button className="btn btn-primary" onClick={reset}>Tentar novamente</button>
-          <a href="/" className="btn btn-secondary">Início</a>
+          <Link href="/" className="btn btn-secondary">Início</Link>
         </div>
       </section>
     </main>

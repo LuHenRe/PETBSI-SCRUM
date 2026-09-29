@@ -77,7 +77,7 @@ export class Blocker {
     // Note: In a real implementation, we'd need to mutate the object
     // For now, we'll allow it since this is used in tests
     // A better approach would be to return a new Blocker instance
-    (this as any)._resolvedAt = at;
-    (this as any)._resolvedBy = resolvedBy;
+    this._resolvedAt = at;
+    this._resolvedBy = resolvedBy;
   }
 }

@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { AlertTriangle, Ban, CheckCircle2, Info, MoreHorizontal } from "lucide-react";
 import {
-  moveBacklogItem, openBlocker, resolveBlocker, sendTelegram, useAppState,
+  moveBacklogItem, openBlocker, resolveBlocker, useAppState,
 } from "@/lib/store";
 import { Button, Card, Modal, TextArea } from "@/components/ui";
 import { KanbanCard } from "@/components/shared";
-import { STATUS_LABEL } from "@/lib/labels";
 import type { WorkItemStatus } from "@/lib/types";
 
 export default function FluxoPage() {
@@ -59,10 +58,6 @@ export default function FluxoPage() {
     }
     setWipWarning(null);
     moveBacklogItem(itemId, toStatus, actorId);
-    sendTelegram(
-      "EVENT",
-      `Item "${item.title}" movido para ${STATUS_LABEL[toStatus]}.`
-    );
   };
 
   const saveBlocker = () => {

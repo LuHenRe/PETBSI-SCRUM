@@ -1,35 +1,32 @@
 import NextAuth from "next-auth";
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import Nodemailer from "next-auth/providers/nodemailer";
-import { db } from "./db";
-import {
-  users,
-  accounts,
-  sessions,
-  verificationTokens,
-} from "./db/schema";
+import Google from "next-auth/providers/google";
+import { verifiedGoogleIdentity } from "./server/authorization/google-identity";
+import { allowGoogleLogin, userIdForGoogleSubject } from "./server/authorization/membership";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: DrizzleAdapter(db, {
-    usersTable: users,
-    accountsTable: accounts,
-    sessionsTable: sessions,
-    verificationTokensTable: verificationTokens,
-  }),
-  providers: [
-    Nodemailer({
-      server: process.env.EMAIL_SERVER,
-      from: process.env.EMAIL_FROM,
-    }),
-  ],
+  providers: [Google],
+  session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
+    error: "/login",
   },
   callbacks: {
-    async session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id;
+    async signIn({ account, profile }) {
+      if (account?.provider !== "google") return false;
+      const identity = verifiedGoogleIdentity(profile);
+      return identity ? allowGoogleLogin(identity.email, identity.subject) : false;
+    },
+    async jwt({ token, account, profile }) {
+      if (account?.provider === "google") {
+        const identity = verifiedGoogleIdentity(profile);
+        const id = identity && await userIdForGoogleSubject(identity.subject);
+        if (!id) throw new Error("Conta não autorizada");
+        token.sub = id;
       }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user && token.sub) session.user.id = token.sub;
       return session;
     },
   },

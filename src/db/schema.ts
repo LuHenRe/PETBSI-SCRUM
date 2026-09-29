@@ -5,9 +5,12 @@ import {
   boolean,
   primaryKey,
   integer,
-  jsonb
+  jsonb,
+  uniqueIndex,
+  check,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
+import { sql } from "drizzle-orm";
 
 // --- NextAuth.js Tables ---
 
@@ -19,6 +22,8 @@ export const users = pgTable("user", {
   email: text("email").unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
+  enabled: boolean("enabled").notNull().default(false),
+  googleSubject: text("googleSubject").unique(),
 });
 
 export const accounts = pgTable(
@@ -71,6 +76,7 @@ export const verificationTokens = pgTable(
 
 export const fronts = pgTable("front", {
   id: text("id").primaryKey(),
+  projectId: text("projectId").notNull().default("petbsi"),
   name: text("name").notNull(),
   description: text("description").notNull(),
   color: text("color").notNull(),
@@ -78,23 +84,30 @@ export const fronts = pgTable("front", {
 
 export const projectMemberships = pgTable("project_membership", {
   id: text("id").primaryKey(),
+  projectId: text("projectId").notNull().default("petbsi"),
   userId: text("userId").notNull().references(() => users.id),
   primaryFrontId: text("primaryFrontId").references(() => fronts.id),
   role: text("role").notNull(), // e.g., 'PRODUCT_OWNER', 'MEMBER', etc
-  frontPermissions: jsonb("frontPermissions").default('[]').notNull(),
-});
+  frontPermissions: jsonb("frontPermissions").$type<{ frontId: string; canView: boolean; canEdit: boolean }[]>().default([]).notNull(),
+}, (table) => [
+  uniqueIndex("membership_project_user_unique").on(table.projectId, table.userId),
+  uniqueIndex("membership_one_product_owner").on(table.projectId).where(sql`${table.role} = 'PRODUCT_OWNER'`),
+  check("membership_valid_role", sql`${table.role} in ('MEMBER', 'COORDINATOR', 'PRODUCT_OWNER', 'SCRUM_MASTER', 'SCRUM_MASTER_ASSISTANT')`),
+]);
 
 export const sprints = pgTable("sprint", {
   id: text("id").primaryKey(),
+  projectId: text("projectId").notNull().default("petbsi"),
   name: text("name").notNull(),
   goal: text("goal").notNull(),
   status: text("status").notNull(), // 'planned' | 'active' | 'closed'
   startDate: timestamp("startDate", { mode: "date" }).notNull(),
   endDate: timestamp("endDate", { mode: "date" }).notNull(),
-});
+}, (table) => [uniqueIndex("sprint_one_active_per_project").on(table.projectId).where(sql`${table.status} = 'active'`)]);
 
 export const backlogItems = pgTable("backlog_item", {
   id: text("id").primaryKey(),
+  projectId: text("projectId").notNull().default("petbsi"),
   title: text("title").notNull(),
   description: text("description").notNull(),
   frontId: text("frontId").notNull().references(() => fronts.id),
@@ -103,9 +116,13 @@ export const backlogItems = pgTable("backlog_item", {
   type: text("type"), // 'codigo', 'documento', etc
   value: text("value"), // 'PQ', 'M', 'S'
   sprintId: text("sprintId").references(() => sprints.id),
+  orderIndex: integer("orderIndex").notNull().default(0),
   deadline: timestamp("deadline", { mode: "date" }),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-});
+}, (table) => [
+  check("backlog_valid_status", sql`${table.status} in ('backlog', 'todo', 'in_progress', 'blocked', 'review', 'done', 'cancelled')`),
+  check("backlog_valid_priority", sql`${table.priority} in ('baixa', 'media', 'alta')`),
+]);
 
 export const itemAssignees = pgTable("item_assignee", {
   itemId: text("itemId").notNull().references(() => backlogItems.id, { onDelete: "cascade" }),
@@ -123,6 +140,56 @@ export const blockers = pgTable("blocker", {
   resolvedAt: timestamp("resolvedAt", { mode: "string" }),
   resolvedBy: text("resolvedBy").references(() => users.id),
 });
+
+export const workflowColumns = pgTable("workflow_column", {
+  id: text("id").primaryKey(),
+  projectId: text("projectId").notNull().default("petbsi"),
+  status: text("status").notNull(),
+  name: text("name").notNull(),
+  wipLimit: integer("wipLimit"),
+  orderIndex: integer("orderIndex").notNull(),
+}, (table) => [
+  uniqueIndex("workflow_project_status_unique").on(table.projectId, table.status),
+  check("workflow_positive_wip", sql`${table.wipLimit} is null or ${table.wipLimit} > 0`),
+]);
+
+export const stateChanges = pgTable("work_item_state_change", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  projectId: text("projectId").notNull().default("petbsi"),
+  itemId: text("itemId").notNull().references(() => backlogItems.id),
+  fromStatus: text("fromStatus"),
+  toStatus: text("toStatus").notNull(),
+  changedBy: text("changedBy").notNull().references(() => users.id),
+  reason: text("reason"),
+  changedAt: timestamp("changedAt", { mode: "date" }).notNull().defaultNow(),
+});
+
+export const calendarEvents = pgTable("calendar_event", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  projectId: text("projectId").notNull().default("petbsi"),
+  title: text("title").notNull(),
+  date: text("date").notNull(),
+  time: text("time").notNull(),
+  kind: text("kind").notNull(),
+  sourceItemId: text("sourceItemId").references(() => backlogItems.id),
+  syncStatus: text("syncStatus").notNull().default("local"),
+});
+
+export const deliveries = pgTable("delivery", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  projectId: text("projectId").notNull().default("petbsi"),
+  frontId: text("frontId").notNull().references(() => fronts.id),
+  sprintId: text("sprintId").references(() => sprints.id),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  status: text("status").notNull().default("planejada"),
+  completedOn: text("completedOn"),
+}, (table) => [check("delivery_valid_status", sql`${table.status} in ('planejada', 'em_andamento', 'entregue')`)]);
+
+export const deliveryItems = pgTable("delivery_item", {
+  deliveryId: text("deliveryId").notNull().references(() => deliveries.id),
+  itemId: text("itemId").notNull().references(() => backlogItems.id),
+}, (table) => [primaryKey({ columns: [table.deliveryId, table.itemId] })]);
 
 export const auditEvents = pgTable("audit_event", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),

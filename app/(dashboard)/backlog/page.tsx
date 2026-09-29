@@ -13,6 +13,7 @@ type SortKey = "title" | "frontId" | "type" | "priority" | "value" | "status" | 
 
 export default function BacklogPage() {
   const state = useAppState();
+  const canManageBacklog = state.memberships.find((membership) => membership.personId === state.currentUserId)?.role === "PRODUCT_OWNER";
   const [frontFilter, setFrontFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState<"all" | WorkItemStatus>("all");
   const [search, setSearch] = useState("");
@@ -35,17 +36,7 @@ export default function BacklogPage() {
 
   const sortedItems = useMemo(() => {
     const result = [...filteredItems];
-    if (sortKey === null) {
-      result.sort((a, b) => {
-        const dA = a.deadline ? new Date(a.deadline).getTime() : Infinity;
-        const dB = b.deadline ? new Date(b.deadline).getTime() : Infinity;
-        if (dA !== dB) return dA - dB;
-
-        const pA = { alta: 3, media: 2, baixa: 1 }[a.priority] ?? 0;
-        const pB = { alta: 3, media: 2, baixa: 1 }[b.priority] ?? 0;
-        return pB - pA;
-      });
-    } else {
+    if (sortKey !== null) {
       result.sort((a, b) => {
         let cmp = 0;
         if (sortKey === "title") {
@@ -101,9 +92,8 @@ export default function BacklogPage() {
   const SortHeader = ({ label, field, width, className = "" }: { label: string; field: SortKey; width: number; className?: string }) => {
     const isSorted = sortKey === field;
     return (
-      <th 
-        style={{ minWidth: width, cursor: "pointer", userSelect: "none", transition: "color 0.2s" }} 
-        onClick={() => {
+      <th aria-sort={isSorted ? (sortDesc ? "descending" : "ascending") : "none"} style={{ minWidth: width }} className={className}>
+        <button type="button" className={`btn btn-ghost ${isSorted ? "text-primary" : ""}`} onClick={() => {
           if (sortKey === field) {
             if (sortDesc) setSortKey(null);
             else setSortDesc(true);
@@ -111,9 +101,7 @@ export default function BacklogPage() {
             setSortKey(field);
             setSortDesc(false);
           }
-        }}
-        className={`${className} ${isSorted ? "text-primary" : ""}`}
-      >
+        }}>
         <div className="flex items-center gap-1">
           {label}
           {isSorted ? (
@@ -121,7 +109,7 @@ export default function BacklogPage() {
           ) : (
             <ArrowDown size={14} style={{ opacity: 0.2 }} />
           )}
-        </div>
+        </div></button>
       </th>
     );
   };
@@ -133,10 +121,10 @@ export default function BacklogPage() {
           <h1>Product Backlog</h1>
           <p className="text-muted mt-1">Clique nos cabeçalhos para ordenar por categoria ou alfabeticamente.</p>
         </div>
-        <Button variant="primary" onClick={() => { setEditing(null); setModalOpen(true); }}>
+        {canManageBacklog && <Button variant="primary" onClick={() => { setEditing(null); setModalOpen(true); }}>
           <Plus size={16} />
           Novo item
-        </Button>
+        </Button>}
       </div>
 
       <Card className="mb-4">
@@ -175,12 +163,12 @@ export default function BacklogPage() {
           <EmptyState
             icon={<ListOrdered />}
             title="Nenhum item encontrado"
-            description="Ajuste os filtros ou crie um novo item no Product Backlog."
-            action={
+            description="Não há itens disponíveis para os filtros e permissões atuais."
+            action={canManageBacklog ?
               <Button variant="primary" onClick={() => { setEditing(null); setModalOpen(true); }}>
                 <Plus size={16} /> Criar item
               </Button>
-            }
+            : undefined}
           />
         </Card>
       ) : (
@@ -197,7 +185,7 @@ export default function BacklogPage() {
                 </tr>
               </thead>
               <tbody>
-                {sortedItems.map((item) => (
+                {sortedItems.map((item, index) => (
                   <tr key={item.id}>
                     <td className="sticky-col">
                       <div className="flex items-center gap-2 mb-1">
@@ -217,6 +205,13 @@ export default function BacklogPage() {
                     <td><Assignees item={item} state={state} /></td>
                     <td>
                       <div className="flex gap-2 justify-end">
+                        {canManageBacklog && sortKey === null && frontFilter === "all" && statusFilter === "all" && !search && <>
+                          <Button size="sm" variant="ghost" aria-label={`Subir ${item.title}`} disabled={index === 0}
+                            onClick={() => reorderBacklogItem(item.id, -1)}><ArrowUp size={14} /></Button>
+                          <Button size="sm" variant="ghost" aria-label={`Descer ${item.title}`} disabled={index === sortedItems.length - 1}
+                            onClick={() => reorderBacklogItem(item.id, 1)}><ArrowDown size={14} /></Button>
+                        </>}
+                        {canManageBacklog &&
                         <Button
                           size="sm"
                           variant="ghost"
@@ -224,7 +219,7 @@ export default function BacklogPage() {
                           onClick={() => { setEditing(item.id); setModalOpen(true); }}
                         >
                           <Pencil size={14} />
-                        </Button>
+                        </Button>}
                       </div>
                     </td>
                   </tr>

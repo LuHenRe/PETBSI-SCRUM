@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { CalendarPlus, CalendarSync, Info } from "lucide-react";
-import { createEvent, setSyncStatus, useAppState, itemById } from "@/lib/store";
+import { CalendarPlus, Info } from "lucide-react";
+import { createEvent, useAppState, itemById } from "@/lib/store";
 import { formatDate } from "@/lib/seed";
 import { Badge, Button, Card, Field, Select, TextInput } from "@/components/ui";
 import { DeadlinePill, FrontTag } from "@/components/shared";
@@ -35,14 +35,14 @@ export default function AgendaPage() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
-  const [time, setTime] = useState("18:30");
+  const [time, setTime] = useState("08:00");
   const [kind, setKind] = useState<EventKind>("evento");
   const [linkedItemId, setLinkedItemId] = useState("");
 
   const meetings = useMemo(() => buildWeeklyMeetings(new Date()), []);
 
   const upcoming = state.events
-    .filter((e) => e.date >= "2026-09-13")
+    .filter((e) => e.date >= new Date().toISOString().slice(0, 10))
     .slice()
     .sort((a, b) => (a.date < b.date ? -1 : 1));
 
@@ -56,7 +56,7 @@ export default function AgendaPage() {
     createEvent({
       title: title.trim(),
       date,
-      time: time || "18:30",
+      time: time || "08:00",
       kind,
       sourceItemId: linkedItemId || null,
     });
@@ -81,8 +81,7 @@ export default function AgendaPage() {
       <div className="alert alert-info mb-4">
         <Info size={16} style={{ flex: "none" }} aria-hidden />
         <span>
-          Tarefas com prazo geram lembretes automáticos no chat <strong>PETBSI notificações</strong> via Agendador,
-          no formato "A tarefa X falta Y dias para o prazo final.".
+          A agenda interna está ativa. Sincronização Google e lembretes Telegram ainda não estão habilitados.
         </span>
       </div>
 
@@ -97,7 +96,7 @@ export default function AgendaPage() {
                 </div>
                 <div className="flex-1">
                   <div style={{ fontWeight: 600 }}>{m.title}</div>
-                  <div className="text-xs text-muted">{m.date.toLocaleDateString("pt-BR")} às 18:30</div>
+                  <div className="text-xs text-muted">{m.date.toLocaleDateString("pt-BR")} das 08:00 às 10:00 (confirme feriados)</div>
                 </div>
                 {m.kind === "reuniao-quarta" && <Badge tone="warn">Principal</Badge>}
               </div>
@@ -106,7 +105,6 @@ export default function AgendaPage() {
               const item = itemById(state, event.sourceItemId ?? "");
               const month = event.date.split("-")[1];
               const day = event.date.split("-")[2];
-              const today = new Date();
               const weekday = WEEKDAYS[new Date(`${event.date}T12:00:00`).getDay()];
               return (
                 <div key={event.id} className="card agenda-item">
@@ -125,14 +123,6 @@ export default function AgendaPage() {
                     <Badge tone={event.syncStatus === "synced" ? "ok" : event.syncStatus === "pending" ? "warn" : "muted"}>
                       {event.syncStatus === "synced" ? "Sincronizado" : event.syncStatus === "pending" ? "Pendente" : "Local"}
                     </Badge>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      aria-label="Sincronizar evento"
-                      onClick={() => setSyncStatus(event.id, event.syncStatus === "pending" ? "synced" : "pending")}
-                    >
-                      <CalendarSync size={14} />
-                    </Button>
                   </div>
                 </div>
               );

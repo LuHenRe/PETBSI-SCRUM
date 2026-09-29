@@ -160,9 +160,9 @@ export function loadState(): AppState {
     }
 
     if (parsed.memberships) {
-      parsed.memberships = parsed.memberships.map((m: any) => ({
+      parsed.memberships = parsed.memberships.map((m) => ({
         ...m,
-        primaryFrontId: m.primaryFrontId !== undefined ? m.primaryFrontId : (m.frontId ?? null),
+        primaryFrontId: m.primaryFrontId !== undefined ? m.primaryFrontId : ((m as typeof m & { frontId?: string }).frontId ?? null),
         frontPermissions: m.frontPermissions || [],
       }));
     }

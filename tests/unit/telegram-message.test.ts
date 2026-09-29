@@ -138,7 +138,7 @@ describe("TelegramMessage", () => {
         id: "t1",
         titulo: "Sem prazo",
         dias: 5,
-        deadline: undefined as any,
+        deadline: undefined as unknown as string,
       });
       expect(msg).toBeNull();
     });

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "sprint_one_active_per_project" ON "sprint" USING btree ("projectId") WHERE "sprint"."status" = 'active';

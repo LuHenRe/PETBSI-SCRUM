@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import {
   PieChart,
   Pie,
@@ -14,7 +14,7 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
-import type { BacklogItem, Sprint } from "@/lib/types";
+import type { BacklogItem, Sprint, WorkItemStateChange } from "@/lib/types";
 import { STATUS_LABEL } from "@/lib/labels";
 
 // O recharts suporta vars CSS diretamente nas props!
@@ -68,7 +68,7 @@ export function WorkloadPieChart({ items }: { items: BacklogItem[] }) {
           ))}
         </Pie>
         <Tooltip
-          formatter={(value: any, name: any) => [`${value} (${((Number(value) / items.length) * 100).toFixed(0)}%)`, name]}
+           formatter={(value, name) => [`${value} (${((Number(value) / items.length) * 100).toFixed(0)}%)`, name]}
           contentStyle={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)" }}
           itemStyle={{ color: "var(--text)" }}
         />
@@ -76,9 +76,11 @@ export function WorkloadPieChart({ items }: { items: BacklogItem[] }) {
           verticalAlign="bottom"
           height={100}
           wrapperStyle={{ fontSize: 12, color: "var(--text-soft)" }}
-          formatter={(value, entry: any) => {
-            const percent = ((entry.payload.value / items.length) * 100).toFixed(0);
-            return `${value}: ${entry.payload.value} (${percent}%)`;
+           formatter={(value, entry) => {
+             const payload = entry.payload as { value?: number } | undefined;
+             const amount = Number(payload?.value ?? 0);
+             const percent = ((amount / items.length) * 100).toFixed(0);
+             return `${value}: ${amount} (${percent}%)`;
           }}
         />
       </PieChart>
@@ -86,57 +88,43 @@ export function WorkloadPieChart({ items }: { items: BacklogItem[] }) {
   );
 }
 
-export function SprintBurndownChart({ sprint, items, mode, onModeChange }: { sprint: Sprint; items: BacklogItem[]; mode: "burndown" | "burnup"; onModeChange: (mode: "burndown" | "burnup") => void }) {
+export function SprintBurndownChart({ sprint, items, changes, mode, onModeChange }: { sprint: Sprint; items: BacklogItem[]; changes: WorkItemStateChange[]; mode: "burndown" | "burnup"; onModeChange: (mode: "burndown" | "burnup") => void }) {
   const data = useMemo(() => {
     if (!sprint || items.length === 0) return [];
 
-    // Ajuste de datas (UTC/locais) para mock consistente
     const start = new Date(sprint.startDate + "T00:00:00");
     const end = new Date(sprint.endDate + "T00:00:00");
-    const today = new Date("2026-09-15T00:00:00"); // data atual fixa do ambiente demo
+    const today = new Date();
 
     const totalDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 3600 * 24)));
     const totalItems = items.length;
-    const doneItems = items.filter(i => i.status === "done").length;
-
-    // Gerar pontos simulados de progressão
+    const completedAt = new Map<string, string>();
+    for (const change of changes) {
+      if (change.toStatus !== "done" || !items.some((item) => item.id === change.itemId)) continue;
+      const previous = completedAt.get(change.itemId);
+      if (!previous || change.changedAt < previous) completedAt.set(change.itemId, change.changedAt);
+    }
     const dataPoints = [];
-    let currentRemaining = totalItems;
-    let currentDone = 0;
-
-    const pastDays = Math.max(0, Math.ceil((today.getTime() - start.getTime()) / (1000 * 3600 * 24)));
-    let itemsToDistribute = doneItems;
-    const dropPerDay = pastDays > 0 ? doneItems / pastDays : 0;
-    let accumulatedDrop = 0;
 
     for (let i = 0; i <= totalDays; i++) {
       const date = new Date(start.getTime() + i * 24 * 3600 * 1000);
-      const isPastOrToday = date <= today;
+      const isPastOrToday = date.toISOString().slice(0, 10) <= today.toISOString().slice(0, 10);
 
       const idealRemaining = Math.max(0, totalItems - (totalItems / totalDays) * i);
       const idealDone = (totalItems / totalDays) * i;
 
-      if (isPastOrToday && i > 0 && itemsToDistribute > 0) {
-        accumulatedDrop += dropPerDay;
-        const dropNow = Math.floor(accumulatedDrop);
-        accumulatedDrop -= dropNow;
-
-        const actualDrop = Math.min(itemsToDistribute, dropNow + (i === pastDays ? Math.ceil(accumulatedDrop) : 0));
-        currentRemaining -= actualDrop;
-        currentDone += actualDrop;
-        itemsToDistribute -= actualDrop;
-      }
+      const currentDone = [...completedAt.values()].filter((at) => at <= date.toISOString().slice(0, 10)).length;
 
       dataPoints.push({
         day: `Dia ${i}`,
         date: date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
         ideal: mode === "burndown" ? parseFloat(idealRemaining.toFixed(1)) : parseFloat(idealDone.toFixed(1)),
-        real: isPastOrToday ? (mode === "burndown" ? currentRemaining : currentDone) : null,
+        real: isPastOrToday ? (mode === "burndown" ? totalItems - currentDone : currentDone) : null,
       });
     }
 
     return dataPoints;
-  }, [sprint, items, mode]);
+  }, [sprint, items, changes, mode]);
 
   if (data.length === 0) {
     return <div className="text-muted text-sm flex items-center justify-center h-full">Nenhum dado</div>;

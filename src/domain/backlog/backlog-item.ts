@@ -101,6 +101,20 @@ export class BacklogItem {
     });
   }
 
+  static restore(draft: {
+    id: string; title: string; description: string; frontId: string;
+    priority: BacklogPriority; deadline: string | null; status: WorkItemStatus;
+    blockers: Blocker[];
+  }): BacklogItem {
+    assertWorkItemStatus(draft.status);
+    const created = BacklogItem.create(draft);
+    return new BacklogItem({
+      id: created.id, title: created.title, description: created.description,
+      frontId: created.frontId, priority: created.priority, deadline: created.deadline,
+      status: draft.status, stateChanges: [], blockers: draft.blockers,
+    });
+  }
+
   get status(): WorkItemStatus {
     return this._status;
   }

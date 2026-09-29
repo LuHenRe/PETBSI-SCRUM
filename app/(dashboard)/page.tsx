@@ -149,7 +149,7 @@ export default function OverviewPage() {
           {activeSprint && (
             <Card title={chartMode === "burndown" ? "Burndown da Sprint" : "Burnup da Sprint"}>
               <div className="mt-2">
-                <SprintBurndownChart sprint={activeSprint} items={activeItems} mode={chartMode} onModeChange={setChartMode} />
+                <SprintBurndownChart sprint={activeSprint} items={activeItems} changes={state.stateChanges} mode={chartMode} onModeChange={setChartMode} />
               </div>
             </Card>
           )}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   Calendar,
   KanbanSquare,
@@ -10,8 +10,6 @@ import {
   Layers,
   ListOrdered,
   LogOut,
-  FolderOpen,
-  Mail,
   Package,
   Settings,
   Target,
@@ -19,7 +17,9 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import { useAppState, logout, personById } from "@/lib/store";
+import { useAppState, setServerState, personById } from "@/lib/store";
+import { signOut } from "next-auth/react";
+import type { AppState } from "@/lib/types";
 import { ROLE_LABEL, isCoordinator, isTechAdmin } from "@/lib/labels";
 import { Avatar, Badge, Button } from "@/components/ui";
 import { frontById } from "@/lib/store";
@@ -40,14 +40,12 @@ const NAV = [
     items: [
       { href: "/frentes", label: "Frentes", icon: Layers },
       { href: "/entregas", label: "Entregas", icon: Package },
-      { href: "/arquivos", label: "Arquivos", icon: FolderOpen },
       { href: "/pessoas", label: "Pessoas", icon: Users },
     ],
   },
   {
     group: "Comunicação e agenda",
     items: [
-      { href: "/notificacoes", label: "Notificações", icon: Mail },
       { href: "/agenda", label: "Agenda", icon: Calendar },
       { href: "/configuracoes", label: "Configurações", icon: Settings },
     ],
@@ -70,10 +68,10 @@ const TITLES: Record<string, string> = {
   "/itens/[itemId]": "Detalhe do item",
 };
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({ children, initialState }: { children: React.ReactNode; initialState: AppState }) {
+  useEffect(() => { setServerState(initialState); }, [initialState]);
   const state = useAppState();
   const pathname = usePathname();
-  const router = useRouter();
 
   const user = personById(state, state.currentUserId);
   const membership = state.memberships.find((m) => m.personId === state.currentUserId);
@@ -82,12 +80,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  useEffect(() => {
-    if (!state.currentUserId) {
-      router.replace("/login");
-    }
-  }, [state.currentUserId, router]);
-
   const title = useMemo(() => {
     if (pathname.startsWith("/itens/")) return "Detalhe do item";
     if (pathname.startsWith("/configuracoes/integracoes")) return "Integrações";
@@ -95,7 +87,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return TITLES[pathname] ?? "PETBSI Scrum";
   }, [pathname]);
 
-  if (!state.currentUserId || !user) {
+  if (state.currentUserId !== initialState.currentUserId || !user) {
     return (
       <div className="page-loading" role="status">
         <span className="spinner" aria-hidden />
@@ -149,21 +141,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               })}
             </div>
           ))}
-          {(admin || coordinator) && (
-            <div>
-              <div className="sidebar-group">
-                <span className="sidebar-group-text">Administração</span>
-              </div>
-              <Link
-                href="/configuracoes/integracoes"
-                className={`nav-link ${pathname.startsWith("/configuracoes/integracoes") ? "active" : ""}`}
-                title={isCollapsed ? "Integrações" : undefined}
-              >
-                <Settings aria-hidden />
-                <span className="nav-link-text">Integrações</span>
-              </Link>
-            </div>
-          )}
         </nav>
 
         <div className="sidebar-footer">
@@ -178,7 +155,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={logout}
+              onClick={() => { void signOut({ redirectTo: "/login" }); }}
               aria-label="Sair"
               className="sidebar-logout-btn"
               title={isCollapsed ? "Sair" : undefined}

@@ -1,0 +1,5 @@
+CREATE UNIQUE INDEX "membership_one_product_owner" ON "project_membership" USING btree ("projectId") WHERE "project_membership"."role" = 'PRODUCT_OWNER';--> statement-breakpoint
+ALTER TABLE "backlog_item" ADD CONSTRAINT "backlog_valid_status" CHECK ("backlog_item"."status" in ('backlog', 'todo', 'in_progress', 'blocked', 'review', 'done', 'cancelled'));--> statement-breakpoint
+ALTER TABLE "backlog_item" ADD CONSTRAINT "backlog_valid_priority" CHECK ("backlog_item"."priority" in ('baixa', 'media', 'alta'));--> statement-breakpoint
+ALTER TABLE "project_membership" ADD CONSTRAINT "membership_valid_role" CHECK ("project_membership"."role" in ('MEMBER', 'COORDINATOR', 'PRODUCT_OWNER', 'SCRUM_MASTER', 'SCRUM_MASTER_ASSISTANT'));--> statement-breakpoint
+ALTER TABLE "workflow_column" ADD CONSTRAINT "workflow_positive_wip" CHECK ("workflow_column"."wipLimit" is null or "workflow_column"."wipLimit" > 0);

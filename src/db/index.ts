@@ -1,10 +1,13 @@
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
-import * as schema from './schema';
+import "server-only";
+import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
+import * as schema from "./schema";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL environment variable is not set');
+// Lazy initialization keeps builds and public pages independent of production credentials.
+let pool: Pool | undefined;
+export function getDb() {
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error("DATABASE_URL não configurada no servidor");
+  pool ??= new Pool({ connectionString: url, max: 2, connectionTimeoutMillis: 5000, idleTimeoutMillis: 10000 });
+  return drizzle(pool, { schema });
 }
-
-const sql = neon(process.env.DATABASE_URL);
-export const db = drizzle(sql, { schema });

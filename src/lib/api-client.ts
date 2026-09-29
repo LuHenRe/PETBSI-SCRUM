@@ -26,7 +26,7 @@ import { defaultClock, defaultIdGenerator, type AuditEvent, type AuditPort, type
 export const PROJECT_ID = "petbsi";
 export interface ApiDeps { backlog: BacklogRepository; sprints: SprintRepository; memberships: MembershipRepository; audit: AuditPort; }
 export interface CreateItemDraft { title: string; description?: string; frontId: string; priority: BacklogPriority; deadline?: string | null; type?: BacklogItemType; value?: LegacyBacklogItem["value"]; sprintId?: string | null; assigneeIds?: string[]; }
-export interface SaveItemDraft extends CreateItemDraft {}
+export type SaveItemDraft = CreateItemDraft;
 
 async function resolveMembershipForFront(frontId: string, actorId: string, deps: ApiDeps): Promise<ProjectMembership> {
   if (!actorId || !actorId.trim()) throw new DomainError("Usuário não autenticado");

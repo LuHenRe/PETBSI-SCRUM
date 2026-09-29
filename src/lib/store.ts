@@ -1,9 +1,4 @@
 import { useSyncExternalStore } from "react";
-import {
-  createSeedState,
-  loadState,
-  saveState,
-} from "./seed";
 import type {
   AppState,
   BacklogItem,
@@ -14,13 +9,40 @@ import type {
   WorkItemStatus,
 } from "./types";
 
-let state: AppState = createSeedState();
+const emptyState: AppState = {
+  currentUserId: null, people: [], pairs: [], fronts: [], memberships: [], backlogItems: [],
+  sprints: [], columns: [], blockers: [], stateChanges: [], deliveries: [], attachments: [],
+  notifications: [], events: [], telegramMessages: [],
+  rotationConfig: { intervalDays: 7, startDayOfWeek: 2, startDate: "", activeScrumMasterId: null, activeProductOwnerId: null },
+};
+let state: AppState = emptyState;
 const listeners = new Set<() => void>();
 
 function set(newState: AppState) {
   state = newState;
-  saveState(state);
   listeners.forEach((listener) => listener());
+}
+
+async function command(payload: Record<string, unknown>): Promise<void> {
+  try {
+    const response = await fetch("/api/commands", {
+      method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const result = await response.json() as { error?: string };
+      throw new Error(result.error ?? "Operação não concluída");
+    }
+    const snapshot = await fetch("/api/state", { credentials: "same-origin", cache: "no-store" });
+    if (!snapshot.ok) throw new Error("Não foi possível atualizar os dados");
+    set(await snapshot.json() as AppState);
+  } catch (error) {
+    window.alert(error instanceof Error ? error.message : "Operação não concluída");
+  }
+}
+
+function unavailable(): void {
+  window.alert("Esta funcionalidade ainda não está disponível com integração real.");
 }
 
 function subscribe(listener: () => void) {
@@ -30,23 +52,16 @@ function subscribe(listener: () => void) {
   };
 }
 
-const initialServerState = createSeedState();
-
 export function useAppState(): AppState {
-  return useSyncExternalStore(subscribe, () => state, () => initialServerState);
+  return useSyncExternalStore(subscribe, () => state, () => emptyState);
 }
 
 export function getState(): AppState {
   return state;
 }
 
-export function hydrateStore() {
-  const stored = loadState();
-  set(stored);
-}
-
-export function resetStore() {
-  set(createSeedState());
+export function setServerState(snapshot: AppState) {
+  set(snapshot);
 }
 
 export function uid(prefix: string): string {
@@ -72,11 +87,13 @@ export function itemById(state: AppState, id: string) {
 // ─── Sessão ────────────────────────────────────────────────────────────────
 
 export function login(personId: string) {
-  set({ ...state, currentUserId: personId });
+  // Identity comes from the authenticated server session, never from a browser choice.
+  void personId;
+  unavailable();
 }
 
 export function logout() {
-  set({ ...state, currentUserId: null });
+  unavailable();
 }
 
 // ─── Product Backlog ───────────────────────────────────────────────────────
@@ -92,90 +109,36 @@ export function createBacklogItem(draft: {
   assigneeIds: string[];
   deadline: string | null;
 }) {
-  const item: BacklogItem = {
-    id: uid("i"),
-    status: "backlog",
-    createdAt: new Date().toISOString().slice(0, 10),
-    ...draft,
-  };
-  set({ ...state, backlogItems: [item, ...state.backlogItems] });
+  void command({ action: "createItem", draft });
 }
 
 export function updateBacklogItem(id: string, patch: Partial<BacklogItem>) {
-  set({
-    ...state,
-    backlogItems: state.backlogItems.map((item) =>
-      item.id === id ? { ...item, ...patch } : item
-    ),
-  });
+  const previous = itemById(state, id);
+  if (!previous) return unavailable();
+  void command({ action: "updateItem", itemId: id, draft: { ...previous, ...patch } });
 }
 
 export function reorderBacklogItem(id: string, direction: -1 | 1) {
-  const index = state.backlogItems.findIndex((i) => i.id === id);
-  const target = index + direction;
-  if (index < 0 || target < 0 || target >= state.backlogItems.length) return;
-  const items = [...state.backlogItems];
-  const [item] = items.splice(index, 1);
-  items.splice(target, 0, item);
-  set({ ...state, backlogItems: items });
+  void command({ action: "reorderItem", itemId: id, direction });
 }
 
 export function moveBacklogItem(id: string, toStatus: WorkItemStatus, changedBy: string) {
-  const item = state.backlogItems.find((i) => i.id === id);
-  if (!item || item.status === toStatus) return;
-  set({
-    ...state,
-    backlogItems: state.backlogItems.map((i) =>
-      i.id === id ? { ...i, status: toStatus } : i
-    ),
-    stateChanges: [
-      {
-        id: uid("h"),
-        itemId: id,
-        fromStatus: item.status,
-        toStatus,
-        changedAt: new Date().toISOString().slice(0, 10),
-        changedBy,
-      },
-      ...state.stateChanges,
-    ],
-  });
+  void changedBy;
+  void command({ action: "moveItem", itemId: id, toStatus });
 }
 
 // ─── Bloqueios ─────────────────────────────────────────────────────────────
 
 export function openBlocker(itemId: string, description: string, openedBy: string) {
-  const blocker = {
-    id: uid("b"),
-    itemId,
-    description,
-    openedAt: new Date().toISOString().slice(0, 10),
-    openedBy,
-    resolvedAt: null as string | null,
-    resolvedBy: null as string | null,
-  };
-  set({
-    ...state,
-    blockers: [...state.blockers, blocker],
-    backlogItems: state.backlogItems.map((i) =>
-      i.id === itemId && i.status !== "blocked"
-        ? { ...i, status: "blocked" as WorkItemStatus }
-        : i
-    ),
-  });
+  void openedBy;
+  void command({ action: "openBlocker", itemId, description });
 }
 
 export function resolveBlocker(blockerId: string, resolvedBy: string) {
   const blocker = state.blockers.find((b) => b.id === blockerId);
   if (!blocker) return;
-  set({
-    ...state,
-    blockers: state.blockers.map((b) =>
-      b.id === blockerId
-        ? { ...b, resolvedAt: new Date().toISOString().slice(0, 10), resolvedBy }
-        : b
-    ),
-  });
+  void resolvedBy;
+  void command({ action: "resolveBlocker", itemId: blocker.itemId, blockerId });
 }
 
 // ─── Agenda ────────────────────────────────────────────────────────────────
@@ -187,95 +150,65 @@ export function createEvent(draft: {
   kind: EventKind;
   sourceItemId: string | null;
 }) {
-  const event: CalendarEvent = {
-    id: uid("e"),
-    syncStatus: "local",
-    ...draft,
-  };
-  set({ ...state, events: [...state.events, event] });
+  void command({ action: "createEvent", ...draft });
 }
 
 export function setSyncStatus(eventId: string, syncStatus: CalendarEvent["syncStatus"]) {
-  set({
-    ...state,
-    events: state.events.map((e) =>
-      e.id === eventId ? { ...e, syncStatus } : e
-    ),
-  });
+  void eventId; void syncStatus;
+  unavailable();
 }
 
 // ─── Sprint ─────────────────────────────────────────────────────────────────
 
 export function updateSprintGoal(sprintId: string, goal: string) {
-  set({
-    ...state,
-    sprints: state.sprints.map((s) =>
-      s.id === sprintId ? { ...s, goal } : s
-    ),
-  });
+  void command({ action: "updateSprintGoal", sprintId, goal });
+}
+
+export function createSprint(draft: { name: string; goal: string; startDate: string; endDate: string }) {
+  void command({ action: "createSprint", ...draft });
+}
+
+export function createDelivery(draft: { title: string; description: string; frontId: string; sprintId: string | null; itemIds: string[] }) {
+  void command({ action: "createDelivery", ...draft });
+}
+
+export function setDeliveryStatus(deliveryId: string, status: "planejada" | "em_andamento" | "entregue") {
+  void command({ action: "setDeliveryStatus", deliveryId, status });
+}
+
+export function startSprint(sprintId: string) {
+  void command({ action: "startSprint", sprintId });
 }
 
 export function closeSprint(sprintId: string) {
-  set({
-    ...state,
-    sprints: state.sprints.map((s) =>
-      s.id === sprintId ? { ...s, status: "closed" as const } : s
-    ),
-  });
+  void command({ action: "closeSprint", sprintId });
 }
 
 // ─── Configurações ──────────────────────────────────────────────────────────
 
 export function setColumnWip(columnId: string, wipLimit: number | null) {
-  set({
-    ...state,
-    columns: state.columns.map((c) =>
-      c.id === columnId ? { ...c, wipLimit } : c
-    ),
-  });
+  void command({ action: "setColumnWip", columnId, wipLimit });
 }
 
 export function setFrontPermission(personId: string, frontId: string, canView: boolean, canEdit: boolean) {
-  set({
-    ...state,
-    memberships: state.memberships.map((m) => {
-      if (m.personId !== personId) return m;
-      const existing = m.frontPermissions.find(p => p.frontId === frontId);
-      let newPermissions;
-      if (existing) {
-        newPermissions = m.frontPermissions.map(p => 
-          p.frontId === frontId ? { ...p, canView, canEdit } : p
-        );
-      } else {
-        newPermissions = [...m.frontPermissions, { frontId, canView, canEdit }];
-      }
-      return { ...m, frontPermissions: newPermissions };
-    }),
-  });
+  const membership = state.memberships.find((m) => m.personId === personId);
+  if (!membership) return unavailable();
+  void command({ action: "setFrontPermission", membershipId: membership.id, frontId, canView, canEdit });
 }
 
 export function changePersonRole(personId: string, newRole: AppState["memberships"][0]["role"]) {
-  set({
-    ...state,
-    memberships: state.memberships.map((m) =>
-      m.personId === personId ? { ...m, role: newRole } : m
-    ),
-  });
+  void personId; void newRole;
+  unavailable();
 }
 
 export function removePerson(personId: string) {
-  set({
-    ...state,
-    people: state.people.filter(p => p.id !== personId),
-    memberships: state.memberships.filter(m => m.personId !== personId),
-  });
+  void personId;
+  unavailable();
 }
 
 export function updateRotationConfig(patch: Partial<AppState["rotationConfig"]>) {
-  set({
-    ...state,
-    rotationConfig: { ...state.rotationConfig, ...patch },
-  });
+  void patch;
+  unavailable();
 }
 
 // ─── Arquivos ──────────────────────────────────────────────────────────────
@@ -286,21 +219,8 @@ export async function uploadAttachment(draft: {
   refId: string;
   uploadedBy: string;
 }) {
-  const attachment = {
-    id: uid("a"),
-    url: `https://drive.google.com/file/d/${uid("file")}`,
-    status: "pending" as const,
-    uploadedAt: new Date().toISOString().slice(0, 10),
-    ...draft,
-  };
-  set({ ...state, attachments: [attachment, ...state.attachments] });
-  await new Promise((resolve) => setTimeout(resolve, 900));
-  set({
-    ...state,
-    attachments: state.attachments.map((a) =>
-      a.id === attachment.id ? { ...a, status: "synced" as const } : a
-    ),
-  });
+  void draft;
+  unavailable();
 }
 
 // ─── Notificações ──────────────────────────────────────────────────────────
@@ -310,37 +230,13 @@ export async function sendNotification(draft: {
   body: string;
   recipientIds: string[];
 }) {
-  const notification = {
-    id: uid("n"),
-    status: "sent" as const,
-    createdAt: new Date().toISOString().slice(0, 10),
-    sentAt: new Date().toISOString(),
-    subject: draft.subject,
-    body: draft.body,
-    recipients: draft.recipientIds.map((personId) => ({
-      personId,
-      status: "sent" as const,
-    })),
-  };
-  set({ ...state, notifications: [notification, ...state.notifications] });
-  await new Promise((resolve) => setTimeout(resolve, 700));
+  void draft;
+  unavailable();
 }
 
 // ─── Telegram (simulação por frontend) ─────────────────────────────────────
 
 export function sendTelegram(kind: "EVENT" | "DEADLINE_REMINDER", body: string) {
-  set({
-    ...state,
-    telegramMessages: [
-      {
-        id: uid("t"),
-        chatName: "PETBSI notificações",
-        kind,
-        body,
-        status: "sent" as const,
-        createdAt: new Date().toISOString(),
-      },
-      ...state.telegramMessages,
-    ],
-  });
+  void kind; void body;
+  unavailable();
 }

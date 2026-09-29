@@ -2,6 +2,8 @@
 
 Aplicação web para tornar transparente o trabalho de um projeto acadêmico multidisciplinar, reunindo em um mesmo espaço objetivos, backlog, Sprints, fluxo de trabalho, bloqueios, entregas e histórico.
 
+> **Implementação em andamento:** o frontend histórico de demonstração está sendo substituído por login Google autorizado, PostgreSQL/Neon no servidor e persistência dos fluxos do núcleo. Para configurar banco, migrações, convite de participantes, variáveis e testes, comece pelo [guia de operação](docs/operacao-infra.md). A publicação no domínio existente ainda depende da configuração dos ambientes e de validação do deploy.
+
 O produto utiliza **Scrum como estrutura principal de organização** e o **Método Kanban como complemento para visualização e melhoria do fluxo**. A proposta não é criar apenas um gerenciador de tarefas, mas apoiar o sistema de trabalho real da equipe.
 
 ## Visão Geral
@@ -141,16 +143,13 @@ O projeto será bem-sucedido se conseguir:
 3. Revisar o [backlog inicial](docs/backlog/backlog.md) e selecionar os itens da primeira Sprint.
 4. Iniciar a implementação com testes das regras de domínio e dos casos de uso.
 
-## Frontend de Demonstração (Atual)
+## Desenvolvimento local e estado da integração
 
-Existe hoje uma implementação **frontend-only** em Next.js (App Router + TypeScript), sem banco, sem autenticação real e sem integrações Google:
-
-- **Rodar localmente:** `npm install` e `npm run dev` (abrir `http://localhost:3000`).
-- **Dados:** os dados de demonstração (4 frentes, 8 pessoas em 4 duplas, Product Backlog, Sprint, Kanban, agenda e notificações) ficam no `localStorage`; o botão **"Reiniciar demonstração"** na tela de login restaura o seed.
-- **Telas:** `/login`, visão geral, `/backlog`, `/sprint`, `/fluxo` (Kanban com WIP e drag-and-drop), `/itens/[id]`, `/frentes`, `/entregas`, `/arquivos`, `/notificacoes`, `/agenda`, `/pessoas`, `/configuracoes` e `/configuracoes/integracoes`.
-- **Tema:** botão de alternância claro/escuro disponível em todas as telas, incluindo o login; a preferência é salva no navegador e o tema do sistema é usado como padrão.
-- **Organização:** `app/` (rotas), `src/components/` (UI e shell), `src/lib/` (tipos de domínio, seed e store client).
-- **Limite da fase:** as regras de negócio permanecem simuladas no frontend; banco, servidor, OAuth e as integrações reais (Drive, Gmail, Calendar, Telegram) ficam para as próximas fases, conforme a [especificação técnica](docs/especificacao-tecnica.md).
+- Execute os passos de [configuração e bootstrap](docs/operacao-infra.md), depois `npm run dev` e abra `http://localhost:3000`.
+- O login exige uma conta Google previamente cadastrada no PostgreSQL. Os dados operacionais do backlog, fluxo, bloqueios, Sprints e agenda interna são lidos no servidor; o estado do navegador não é fonte de autenticação ou persistência.
+- O esquema e as migrações versionadas ficam em `src/db/` e `drizzle/`; regras permanecem em `src/domain/` e `src/application/`.
+- Drive, Gmail, Calendar externo e Telegram ainda não estão conectados. Nenhum envio simulado deve ser interpretado como envio real.
+- A preferência de tema é salva no navegador; telas mantidas da demonstração estão sendo conectadas progressivamente aos dados reais.
 
 ## Referências do Projeto
 
