@@ -7,6 +7,6 @@ import { AppShell } from "@/components/layout/app-shell";
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   if (!(await auth())?.user?.id) redirect("/login");
   const member = await getCurrentMember();
-  if (!member) redirect("/acesso-negado");
+  if (!member) redirect("/onboarding");
   return <AppShell initialState={await getDashboardState(member)}>{children}</AppShell>;
 }

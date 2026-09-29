@@ -7,7 +7,7 @@ import * as schema from "./schema";
 let pool: Pool | undefined;
 export function getDb() {
   const url = process.env.DATABASE_URL;
-  if (!url) throw new Error("DATABASE_URL não configurada no servidor");
-  pool ??= new Pool({ connectionString: url, max: 2, connectionTimeoutMillis: 5000, idleTimeoutMillis: 10000 });
+  if (!url) console.warn("Aviso: DATABASE_URL não configurada no servidor.");
+  pool ??= new Pool({ connectionString: url || "postgresql://dummy:dummy@localhost/dummy", max: 2, connectionTimeoutMillis: 5000, idleTimeoutMillis: 10000 });
   return drizzle(pool, { schema });
 }

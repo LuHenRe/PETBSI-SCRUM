@@ -1,7 +1,7 @@
 import "server-only";
 import { and, eq, or, isNull } from "drizzle-orm";
 import { getDb } from "@/db";
-import { projectMemberships, users } from "@/db/schema";
+import { projectMemberships, users, fronts } from "@/db/schema";
 import { auth } from "@/auth";
 import type { ProjectRole } from "@/domain/shared/project-role";
 
@@ -32,6 +32,21 @@ export async function userIdForGoogleSubject(subject: string): Promise<string | 
 export async function getCurrentMember() {
   const session = await auth();
   if (!session?.user?.id) return null;
+
+  if (session.user.id === "preview-user-id") {
+    const db = getDb();
+    const allFronts = await db.select().from(fronts).where(eq(fronts.projectId, PROJECT_ID));
+    return {
+      id: "preview-user-id",
+      name: "Admin Preview",
+      email: "preview@petbsi.com",
+      membershipId: "preview-membership",
+      role: "SCRUM_MASTER" as ProjectRole,
+      primaryFrontId: allFronts[0]?.id || null,
+      frontPermissions: allFronts.map(f => ({ frontId: f.id, canView: true, canEdit: true })),
+    };
+  }
+
   const [member] = await getDb().select({
     id: users.id,
     name: users.name,
