@@ -18,10 +18,12 @@
     "db:invite": "tsx scripts/bootstrap-data.ts invite"
   },
   "dependencies": {
+    "@auth/drizzle-adapter": "^1.11.3",
     "drizzle-orm": "^0.45.3",
     "lucide-react": "^0.469.0",
     "next": "^15.1.3",
     "next-auth": "^5.0.0-beta.32",
+    "nodemailer": "^8.0.11",
     "pg": "^8.23.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -33,6 +35,7 @@
     "@electric-sql/pglite": "^0.5.8",
     "@eslint/eslintrc": "^3.3.7",
     "@types/node": "^22.10.2",
+    "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.23.1",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
