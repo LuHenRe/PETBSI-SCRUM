@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getDb } from "@/db";
-import { fronts, projectMemberships } from "@/db/schema";
+import { fronts, projectMemberships, users } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { OnboardingForm } from "./OnboardingForm";
 
@@ -11,10 +11,20 @@ export default async function OnboardingPage() {
 
   const db = getDb();
   
-  const [membership] = await db.select().from(projectMemberships)
-    .where(and(eq(projectMemberships.userId, session.user.id), eq(projectMemberships.projectId, "petbsi"))).limit(1);
+  const [memberStatus] = await db.select({
+    hasMembership: projectMemberships.id,
+    enabled: users.enabled
+  }).from(users)
+    .leftJoin(projectMemberships, and(eq(projectMemberships.userId, users.id), eq(projectMemberships.projectId, "petbsi")))
+    .where(eq(users.id, session.user.id)).limit(1);
     
-  if (membership) redirect("/");
+  if (memberStatus?.hasMembership) {
+    if (memberStatus.enabled) {
+      redirect("/");
+    } else {
+      redirect("/acesso-negado");
+    }
+  }
 
   const allFronts = await db.select().from(fronts).where(eq(fronts.projectId, "petbsi"));
 
