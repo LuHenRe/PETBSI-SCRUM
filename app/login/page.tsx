@@ -160,24 +160,22 @@ export default async function LoginPage(props: { searchParams: Promise<{ verifyR
                 </button>
               </form>
 
-              {/* MODO PREVIEW - APENAS PARA DESENVOLVIMENTO */}
-              {process.env.NODE_ENV === "development" && (
-                <form action={async () => {
-                  "use server";
-                  await signIn("preview", { redirectTo: "/" });
-                }} style={{ marginTop: '1rem' }}>
-                  <button type="submit" style={{ 
-                    width: "100%", padding: "0.875rem", borderRadius: "8px", 
-                    backgroundColor: '#e2e8f0', color: '#4a5568', 
-                    border: '1px dashed #cbd5e0',
-                    fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                    transition: 'background-color 0.2s'
-                  }} className="outline-btn" title="Modo Preview (Administrador)">
-                    Modo Preview (Temporário)
-                  </button>
-                </form>
-              )}
+              {/* MODO PREVIEW - TEMPORÁRIO PARA APRESENTAÇÃO */}
+              <form action={async () => {
+                "use server";
+                await signIn("preview", { redirectTo: "/" });
+              }} style={{ marginTop: '1rem' }}>
+                <button type="submit" style={{ 
+                  width: "100%", padding: "0.875rem", borderRadius: "8px", 
+                  backgroundColor: '#e2e8f0', color: '#4a5568', 
+                  border: '1px dashed #cbd5e0',
+                  fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                  transition: 'background-color 0.2s'
+                }} className="outline-btn" title="Modo Preview (Administrador)">
+                  Modo Preview (Temporário)
+                </button>
+              </form>
             </>
           )}
         </div>
