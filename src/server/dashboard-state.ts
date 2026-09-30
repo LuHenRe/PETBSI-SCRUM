@@ -41,14 +41,15 @@ export async function getDashboardState(member: Member): Promise<AppState> {
   return {
     currentUserId: member.id,
     people: memberRows.map(({ person }) => ({ id: person.id, name: person.name ?? "Participante", email: person.email ?? "",
-      initials: (person.name ?? "P").split(" ").slice(0, 2).map((s) => s[0]).join("").toUpperCase() })),
+      initials: (person.name ?? "P").split(" ").slice(0, 2).map((s) => s[0]).join("").toUpperCase() }))
+      .concat(member.id === "preview-user-id" ? [{ id: "preview-user-id", name: "Admin Preview", email: "preview@petbsi.com", initials: "AP" }] : []),
     pairs: [],
     fronts: visibleFronts.map(({ id, name, description, color }) => ({ id, name, description, color })),
     memberships: memberRows.map(({ membership }) => ({ id: membership.id, personId: membership.userId,
       primaryFrontId: membership.primaryFrontId && visibleIds.has(membership.primaryFrontId) ? membership.primaryFrontId : null,
       role: roles.has(membership.role) ? membership.role as ProjectRole : "MEMBER",
       frontPermissions: membership.userId === member.id || permission.isTechAdmin() ? membership.frontPermissions : [],
-    })),
+    })).concat(member.id === "preview-user-id" ? [{ id: "preview-membership", personId: "preview-user-id", primaryFrontId: member.primaryFrontId, role: "SCRUM_MASTER", frontPermissions: member.frontPermissions }] : []),
     backlogItems: visibleItems.filter((item) => statuses.has(item.status)).map((item) => ({
       id: item.id, title: item.title, description: item.description, frontId: item.frontId,
       priority: item.priority as BacklogPriority, status: item.status as WorkItemStatus,

@@ -4,13 +4,14 @@ import Nodemailer from "next-auth/providers/nodemailer";
 import Credentials from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { getDb } from "@/db";
+import { createTransport } from "nodemailer";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: DrizzleAdapter(getDb()),
   providers: [
     Google,
     Nodemailer({
-      server: process.env.EMAIL_SERVER,
+      server: process.env.EMAIL_SERVER || "smtp://localhost:25",
       from: process.env.EMAIL_FROM,
       sendVerificationRequest: async (params) => {
         const { identifier, url, provider } = params;
@@ -23,7 +24,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return;
         }
 
-        const { createTransport } = require("nodemailer");
         const transport = createTransport(provider.server);
         const result = await transport.sendMail({
           to: identifier,
