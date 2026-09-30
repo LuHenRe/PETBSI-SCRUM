@@ -52,7 +52,7 @@ async function main() {
         userId: m.personId,
         primaryFrontId: m.primaryFrontId,
         role: m.role,
-        frontPermissions: m.frontPermissions as any,
+        frontPermissions: m.frontPermissions as { frontId: string; canView: boolean; canEdit: boolean }[],
       }).onConflictDoNothing();
     }
 

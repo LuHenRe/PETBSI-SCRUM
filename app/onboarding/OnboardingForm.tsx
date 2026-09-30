@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { registerMember } from "./actions";
 
-export function OnboardingForm({ fronts, defaultName }: { fronts: any[], defaultName: string }) {
+interface Front {
+  id: string;
+  name: string;
+}
+
+export function OnboardingForm({ fronts, defaultName }: { fronts: Front[], defaultName: string }) {
   const [role, setRole] = useState("MEMBER");
   const [loading, setLoading] = useState(false);
 
