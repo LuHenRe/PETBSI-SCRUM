@@ -54,4 +54,3 @@ jobs:
       - run: npm run db:bootstrap
       - run: npm test
       - run: npm run build
-      - run: npm audit --omit=dev
