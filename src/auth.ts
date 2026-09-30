@@ -11,7 +11,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Google,
     Nodemailer({
-      server: process.env.EMAIL_SERVER,
+      server: process.env.EMAIL_SERVER || "smtp://localhost:25",
       from: process.env.EMAIL_FROM,
       sendVerificationRequest: async (params) => {
         const { identifier, url, provider } = params;
