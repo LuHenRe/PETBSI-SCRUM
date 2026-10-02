@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowDown, ArrowUp, ListOrdered, Pencil, Plus, Search } from "lucide-react";
 import { createBacklogItem, reorderBacklogItem, updateBacklogItem, useAppState } from "@/lib/store";
@@ -10,6 +10,31 @@ import { ItemFormModal, type ItemDraft } from "@/components/item-form";
 import type { WorkItemStatus } from "@/lib/types";
 
 type SortKey = "title" | "frontId" | "type" | "priority" | "value" | "status" | "deadline" | "assignees" | null;
+
+function QuickAdd({ parentId, defaultFrontId, placeholder }: { parentId: string | null; defaultFrontId: string | null; placeholder: string }) {
+  const [title, setTitle] = useState("");
+  const state = useAppState();
+  
+  return (
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      if (title.trim().length >= 3) {
+        createBacklogItem({
+          title, type: parentId === null ? "gestao" : "documento", description: "",
+          frontId: defaultFrontId || state.fronts[0]?.id || "",
+          priority: "media", value: "M", sprintId: null, parentId,
+          assigneeIds: [], deadline: null
+        });
+        setTitle("");
+      }
+    }} className="flex items-center gap-2">
+      <TextInput value={title} onChange={e => setTitle(e.target.value)} placeholder={placeholder} style={{ flex: 1 }} />
+      <Button variant="secondary" type="submit" disabled={title.trim().length < 3}>
+        Adicionar
+      </Button>
+    </form>
+  );
+}
 
 export default function BacklogPage() {
   const state = useAppState();
@@ -80,6 +105,10 @@ export default function BacklogPage() {
     return result;
   }, [filteredItems, sortKey, sortDesc, state.fronts, state.people]);
 
+  // Hierarquia
+  const majors = sortedItems.filter(i => i.parentId === null);
+  const orphanMinors = sortedItems.filter(i => i.parentId !== null && !majors.find(m => m.id === i.parentId));
+
   const handleSave = (draft: ItemDraft) => {
     if (editing) {
       updateBacklogItem(editing, draft);
@@ -114,16 +143,56 @@ export default function BacklogPage() {
     );
   };
 
+  const renderItemRow = (item: any, isMinor: boolean, index: number, total: number) => (
+    <tr key={item.id} style={{ background: isMinor ? "var(--bg-card)" : "transparent" }}>
+      <td className="sticky-col" style={{ paddingLeft: isMinor ? "32px" : "12px", borderLeft: isMinor ? "2px solid var(--border)" : "none" }}>
+        <div className="flex items-center gap-2 mb-1">
+          <PriorityIcon priority={item.priority} />
+          <Link href={`/itens/${item.id}`} style={{ fontWeight: isMinor ? 500 : 700, fontSize: isMinor ? "0.95em" : "1em" }}>{item.title}</Link>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-muted wrap" style={{ marginTop: 4 }}>
+          {item.sprintId && (
+            <span style={{ fontWeight: 500 }}>{state.sprints.find((s) => s.id === item.sprintId)?.name}</span>
+          )}
+          <FrontTag front={state.fronts.find((f) => f.id === item.frontId)} />
+          <TypeBadge type={item.type} />
+        </div>
+      </td>
+      <td><StatusBadge status={item.status} /></td>
+      <td><DeadlinePill deadline={item.deadline} /></td>
+      <td><Assignees item={item} state={state} /></td>
+      <td>
+        <div className="flex gap-2 justify-end">
+          {canManageBacklog && sortKey === null && frontFilter === "all" && statusFilter === "all" && !search && <>
+            <Button size="sm" variant="ghost" aria-label={`Subir ${item.title}`} disabled={index === 0}
+              onClick={() => reorderBacklogItem(item.id, -1)}><ArrowUp size={14} /></Button>
+            <Button size="sm" variant="ghost" aria-label={`Descer ${item.title}`} disabled={index === total - 1}
+              onClick={() => reorderBacklogItem(item.id, 1)}><ArrowDown size={14} /></Button>
+          </>}
+          {canManageBacklog &&
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-label="Editar item"
+            onClick={() => { setEditing(item.id); setModalOpen(true); }}
+          >
+            <Pencil size={14} />
+          </Button>}
+        </div>
+      </td>
+    </tr>
+  );
+
   return (
     <div>
       <div className="flex items-center justify-between wrap gap-3 mb-4">
         <div>
           <h1>Product Backlog</h1>
-          <p className="text-muted mt-1">Clique nos cabeçalhos para ordenar por categoria ou alfabeticamente.</p>
+          <p className="text-muted mt-1">Épicos (Majors) e suas Tarefas (Minors).</p>
         </div>
         {canManageBacklog && <Button variant="primary" onClick={() => { setEditing(null); setModalOpen(true); }}>
           <Plus size={16} />
-          Novo item
+          Criar item detalhado
         </Button>}
       </div>
 
@@ -157,6 +226,12 @@ export default function BacklogPage() {
           </div>
         </div>
       </Card>
+      
+      {canManageBacklog && (
+        <Card className="mb-4">
+          <QuickAdd parentId={null} defaultFrontId={frontFilter !== "all" ? frontFilter : null} placeholder="Digite o título de um novo Épico (Major) e aperte Enter..." />
+        </Card>
+      )}
 
       {sortedItems.length === 0 ? (
         <Card>
@@ -164,11 +239,6 @@ export default function BacklogPage() {
             icon={<ListOrdered />}
             title="Nenhum item encontrado"
             description="Não há itens disponíveis para os filtros e permissões atuais."
-            action={canManageBacklog ?
-              <Button variant="primary" onClick={() => { setEditing(null); setModalOpen(true); }}>
-                <Plus size={16} /> Criar item
-              </Button>
-            : undefined}
           />
         </Card>
       ) : (
@@ -185,45 +255,33 @@ export default function BacklogPage() {
                 </tr>
               </thead>
               <tbody>
-                {sortedItems.map((item, index) => (
-                  <tr key={item.id}>
-                    <td className="sticky-col">
-                      <div className="flex items-center gap-2 mb-1">
-                        <PriorityIcon priority={item.priority} />
-                        <Link href={`/itens/${item.id}`} style={{ fontWeight: 600 }}>{item.title}</Link>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-muted wrap" style={{ marginTop: 4 }}>
-                        {item.sprintId && (
-                          <span style={{ fontWeight: 500 }}>{state.sprints.find((s) => s.id === item.sprintId)?.name}</span>
-                        )}
-                        <FrontTag front={state.fronts.find((f) => f.id === item.frontId)} />
-                        <TypeBadge type={item.type} />
-                      </div>
-                    </td>
-                    <td><StatusBadge status={item.status} /></td>
-                    <td><DeadlinePill deadline={item.deadline} /></td>
-                    <td><Assignees item={item} state={state} /></td>
-                    <td>
-                      <div className="flex gap-2 justify-end">
-                        {canManageBacklog && sortKey === null && frontFilter === "all" && statusFilter === "all" && !search && <>
-                          <Button size="sm" variant="ghost" aria-label={`Subir ${item.title}`} disabled={index === 0}
-                            onClick={() => reorderBacklogItem(item.id, -1)}><ArrowUp size={14} /></Button>
-                          <Button size="sm" variant="ghost" aria-label={`Descer ${item.title}`} disabled={index === sortedItems.length - 1}
-                            onClick={() => reorderBacklogItem(item.id, 1)}><ArrowDown size={14} /></Button>
-                        </>}
-                        {canManageBacklog &&
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          aria-label="Editar item"
-                          onClick={() => { setEditing(item.id); setModalOpen(true); }}
-                        >
-                          <Pencil size={14} />
-                        </Button>}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {majors.map((major, index) => {
+                  const minors = sortedItems.filter(i => i.parentId === major.id);
+                  return (
+                    <React.Fragment key={major.id}>
+                      {renderItemRow(major, false, index, majors.length)}
+                      {minors.map((minor, minorIdx) => renderItemRow(minor, true, minorIdx, minors.length))}
+                      {canManageBacklog && (
+                        <tr>
+                          <td colSpan={5} style={{ paddingLeft: "32px", borderLeft: "2px solid var(--border)", background: "var(--bg-card)" }}>
+                            <QuickAdd parentId={major.id} defaultFrontId={major.frontId} placeholder={`Nova tarefa para ${major.title}...`} />
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+                
+                {orphanMinors.length > 0 && (
+                  <>
+                    <tr>
+                      <td colSpan={5} className="text-muted" style={{ padding: "16px 12px", background: "var(--bg-card)" }}>
+                        Tarefas sem Épico ou cujo Épico está fora dos filtros atuais:
+                      </td>
+                    </tr>
+                    {orphanMinors.map((minor, minorIdx) => renderItemRow(minor, true, minorIdx, orphanMinors.length))}
+                  </>
+                )}
               </tbody>
             </table>
           </div>
@@ -240,7 +298,7 @@ export default function BacklogPage() {
   );
 }
 
-function draftFrom(item: { title: string; type: "documento" | "codigo" | "pesquisa" | "material" | "infra" | "gestao"; description: string; frontId: string; priority: "alta" | "media" | "baixa"; value: "PQ" | "M" | "S"; sprintId: string | null; assigneeIds: string[]; deadline: string | null }): ItemDraft {
+function draftFrom(item: { title: string; type: "documento" | "codigo" | "pesquisa" | "material" | "infra" | "gestao"; description: string; frontId: string; priority: "alta" | "media" | "baixa"; value: "PQ" | "M" | "S"; sprintId: string | null; parentId: string | null; assigneeIds: string[]; deadline: string | null }): ItemDraft {
   return {
     title: item.title,
     type: item.type,
@@ -249,6 +307,7 @@ function draftFrom(item: { title: string; type: "documento" | "codigo" | "pesqui
     priority: item.priority,
     value: item.value,
     sprintId: item.sprintId,
+    parentId: item.parentId,
     assigneeIds: item.assigneeIds,
     deadline: item.deadline,
   };

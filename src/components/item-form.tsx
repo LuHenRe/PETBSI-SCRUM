@@ -14,6 +14,7 @@ export interface ItemDraft {
   priority: BacklogPriority;
   value: BacklogItem["value"];
   sprintId: string | null;
+  parentId: string | null;
   assigneeIds: string[];
   deadline: string | null;
 }
@@ -121,6 +122,14 @@ export function ItemFormModal({ open, initial, onClose, onSave }: Props) {
             ))}
           </Select>
         </Field>
+        <Field label="Épico (Major)" hint="Opcional. Torna este item uma tarefa de um Épico.">
+          <Select value={draft.parentId ?? ""} onChange={(e) => set("parentId", e.target.value || null)}>
+            <option value="">Nenhum (Tornar Épico)</option>
+            {state.backlogItems.filter((i) => i.parentId === null).map((m) => (
+              <option key={m.id} value={m.id}>{m.title}</option>
+            ))}
+          </Select>
+        </Field>
         <Field label="Prazo">
           <TextInput type="date" value={draft.deadline ?? ""} onChange={(e) => set("deadline", e.target.value || null)} />
         </Field>
@@ -159,6 +168,7 @@ function empty(initial: ItemDraft | null): ItemDraft {
     priority: "media",
     value: "M",
     sprintId: null,
+    parentId: null,
     assigneeIds: [],
     deadline: null,
   };

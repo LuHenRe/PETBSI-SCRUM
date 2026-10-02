@@ -40,6 +40,8 @@ export interface Person {
   name: string;
   email: string;
   initials: string;
+  tags?: string[];
+  systemRole?: string;
 }
 
 export interface Pair {
@@ -48,8 +50,15 @@ export interface Pair {
   personIds: string[];
 }
 
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+}
+
 export interface Front {
   id: string;
+  projectId: string;
   name: string;
   description: string;
   color: string;
@@ -79,6 +88,7 @@ export interface BacklogItem {
   priority: BacklogPriority;
   value: "PQ" | "M" | "S"; // produto do projeto acadêmico, melhoraria ou supérfluo
   sprintId: string | null;
+  parentId: string | null;
   assigneeIds: string[];
   deadline: string | null; // ISO date
   createdAt: string;
@@ -186,6 +196,7 @@ export interface RoleRotationConfig {
 
 export interface AppState {
   currentUserId: string | null;
+  projects: Project[];
   people: Person[];
   pairs: Pair[];
   fronts: Front[];

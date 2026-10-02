@@ -30,6 +30,7 @@ export interface UpdateFieldsInput {
   frontId?: string;
   priority?: BacklogPriority;
   deadline?: string | null;
+  parentId?: string | null;
 }
 
 export interface UpdateFieldsContext {
@@ -44,6 +45,7 @@ export class BacklogItem {
   frontId: string;
   priority: BacklogPriority;
   deadline: string | null;
+  parentId: string | null;
   private _status: WorkItemStatus;
   private readonly _stateChanges: WorkItemStateChange[];
   private readonly _blockers: Blocker[];
@@ -55,6 +57,7 @@ export class BacklogItem {
     frontId: string;
     priority: BacklogPriority;
     deadline: string | null;
+    parentId: string | null;
     status: WorkItemStatus;
     stateChanges: WorkItemStateChange[];
     blockers: Blocker[];
@@ -65,6 +68,7 @@ export class BacklogItem {
     this.frontId = draft.frontId;
     this.priority = draft.priority;
     this.deadline = draft.deadline;
+    this.parentId = draft.parentId;
     this._status = draft.status;
     this._stateChanges = draft.stateChanges;
     this._blockers = draft.blockers;
@@ -79,6 +83,7 @@ export class BacklogItem {
     frontId: string;
     priority: BacklogPriority;
     deadline: string | null;
+    parentId?: string | null;
   }): BacklogItem {
     if (!draft.title || !draft.title.trim()) {
       throw new DomainError("Título do item não pode ser vazio");
@@ -95,6 +100,7 @@ export class BacklogItem {
     }
     return new BacklogItem({
       ...draft,
+      parentId: draft.parentId ?? null,
       status: "backlog",
       stateChanges: [],
       blockers: [],
@@ -103,7 +109,7 @@ export class BacklogItem {
 
   static restore(draft: {
     id: string; title: string; description: string; frontId: string;
-    priority: BacklogPriority; deadline: string | null; status: WorkItemStatus;
+    priority: BacklogPriority; deadline: string | null; parentId: string | null; status: WorkItemStatus;
     blockers: Blocker[];
   }): BacklogItem {
     assertWorkItemStatus(draft.status);
@@ -111,6 +117,7 @@ export class BacklogItem {
     return new BacklogItem({
       id: created.id, title: created.title, description: created.description,
       frontId: created.frontId, priority: created.priority, deadline: created.deadline,
+      parentId: draft.parentId,
       status: draft.status, stateChanges: [], blockers: draft.blockers,
     });
   }
@@ -227,12 +234,14 @@ export class BacklogItem {
     }
     const nextDescription =
       input.description === undefined ? this.description : input.description.trim();
+    const nextParentId = input.parentId === undefined ? this.parentId : input.parentId;
 
     this.title = nextTitle;
     this.description = nextDescription;
     this.frontId = nextFrontId;
     this.priority = nextPriority;
     this.deadline = nextDeadline;
+    this.parentId = nextParentId;
 
     const change = new WorkItemStateChange({
       id: `h_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,

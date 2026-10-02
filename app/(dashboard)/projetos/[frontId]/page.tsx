@@ -38,7 +38,7 @@ export default function FrontDetailPage() {
   return (
     <div>
       <div className="mb-4">
-        <Link href="/frentes" className="text-sm">← Frentes</Link>
+        <Link href="/projetos" className="text-sm">← Projetos</Link>
         <h1 style={{ marginTop: 6 }}>{front.name}</h1>
         <p className="text-muted mt-1">{front.description}</p>
       </div>

@@ -50,6 +50,13 @@
       "when": 1790640708088,
       "tag": "0006_fresh_northstar",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790890514885,
+      "tag": "0007_hard_colossus",
+      "breakpoints": true
     }
   ]
 }

@@ -162,6 +162,8 @@ export default function ItemDetailPage() {
               <dd>{front?.name ?? "—"}</dd>
               <dt>Sprint</dt>
               <dd>{sprint ? `${sprint.name} (${sprint.status})` : "Product Backlog"}</dd>
+              <dt>Épico</dt>
+              <dd>{item.parentId ? state.backlogItems.find(i => i.id === item.parentId)?.title ?? "Desconhecido" : "—"}</dd>
               <dt>Prazo</dt>
               <dd className="flex items-center gap-2 wrap">
                 <CalendarDays size={14} aria-hidden />
@@ -261,10 +263,10 @@ export default function ItemDetailPage() {
   );
 }
 
-function draft(item: { title: string; type: "documento" | "codigo" | "pesquisa" | "material" | "infra" | "gestao"; description: string; frontId: string; priority: "alta" | "media" | "baixa"; value: "PQ" | "M" | "S"; sprintId: string | null; assigneeIds: string[]; deadline: string | null }): ItemDraft {
+function draft(item: { title: string; type: "documento" | "codigo" | "pesquisa" | "material" | "infra" | "gestao"; description: string; frontId: string; priority: "alta" | "media" | "baixa"; value: "PQ" | "M" | "S"; sprintId: string | null; parentId: string | null; assigneeIds: string[]; deadline: string | null }): ItemDraft {
   return {
     title: item.title, type: item.type, description: item.description, frontId: item.frontId,
-    priority: item.priority, value: item.value, sprintId: item.sprintId, assigneeIds: item.assigneeIds, deadline: item.deadline,
+    priority: item.priority, value: item.value, sprintId: item.sprintId, parentId: item.parentId, assigneeIds: item.assigneeIds, deadline: item.deadline,
   };
 }
 

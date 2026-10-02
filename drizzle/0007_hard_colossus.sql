@@ -1,0 +1,2 @@
+ALTER TABLE "backlog_item" ADD COLUMN "parentId" text;--> statement-breakpoint
+ALTER TABLE "backlog_item" ADD CONSTRAINT "backlog_item_parentId_backlog_item_id_fk" FOREIGN KEY ("parentId") REFERENCES "public"."backlog_item"("id") ON DELETE no action ON UPDATE no action;

@@ -25,17 +25,17 @@ export function postgresPorts(tx: Transaction): { backlog: BacklogRepository; au
       });
       return BacklogItem.restore({ id: row.id, title: row.title, description: row.description,
         frontId: row.frontId, priority: row.priority as BacklogPriority,
-        deadline: row.deadline?.toISOString().slice(0, 10) ?? null,
+        deadline: row.deadline?.toISOString().slice(0, 10) ?? null, parentId: row.parentId,
         status: row.status as WorkItemStatus, blockers: restored });
     },
     async save(item) {
       await tx.insert(backlogItems).values({ id: item.id, projectId: PROJECT_ID,
         title: item.title, description: item.description, frontId: item.frontId,
-        priority: item.priority, status: item.status,
+        priority: item.priority, status: item.status, parentId: item.parentId,
         deadline: item.deadline ? new Date(`${item.deadline}T12:00:00Z`) : null })
         .onConflictDoUpdate({ target: backlogItems.id, set: { title: item.title,
           description: item.description, frontId: item.frontId, priority: item.priority,
-          status: item.status, deadline: item.deadline ? new Date(`${item.deadline}T12:00:00Z`) : null } });
+          status: item.status, parentId: item.parentId, deadline: item.deadline ? new Date(`${item.deadline}T12:00:00Z`) : null } });
       for (const change of item.getStateChanges()) {
         await tx.insert(stateChanges).values({ id: change.id, projectId: PROJECT_ID,
           itemId: item.id, fromStatus: change.from, toStatus: change.to,

@@ -8,6 +8,7 @@ import {
   jsonb,
   uniqueIndex,
   check,
+  AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 import { sql } from "drizzle-orm";
@@ -24,6 +25,8 @@ export const users = pgTable("user", {
   image: text("image"),
   enabled: boolean("enabled").notNull().default(false),
   googleSubject: text("googleSubject").unique(),
+  systemRole: text("systemRole").notNull().default("USER"), // 'USER' or 'ADMIN'
+  tags: jsonb("tags").$type<string[]>().default([]).notNull(),
 });
 
 export const accounts = pgTable(
@@ -74,6 +77,13 @@ export const verificationTokens = pgTable(
 
 // --- Domain Tables ---
 
+export const projects = pgTable("project", {
+  id: text("id").primaryKey(), // Using text for custom IDs like "petbsi"
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+});
+
 export const fronts = pgTable("front", {
   id: text("id").primaryKey(),
   projectId: text("projectId").notNull().default("petbsi"),
@@ -84,7 +94,7 @@ export const fronts = pgTable("front", {
 
 export const projectMemberships = pgTable("project_membership", {
   id: text("id").primaryKey(),
-  projectId: text("projectId").notNull().default("petbsi"),
+  projectId: text("projectId").notNull().default("petbsi").references(() => projects.id),
   userId: text("userId").notNull().references(() => users.id),
   primaryFrontId: text("primaryFrontId").references(() => fronts.id),
   role: text("role").notNull(), // e.g., 'PRODUCT_OWNER', 'MEMBER', etc
@@ -107,7 +117,7 @@ export const sprints = pgTable("sprint", {
 
 export const backlogItems = pgTable("backlog_item", {
   id: text("id").primaryKey(),
-  projectId: text("projectId").notNull().default("petbsi"),
+  projectId: text("projectId").notNull().default("petbsi").references(() => projects.id),
   title: text("title").notNull(),
   description: text("description").notNull(),
   frontId: text("frontId").notNull().references(() => fronts.id),
@@ -119,6 +129,7 @@ export const backlogItems = pgTable("backlog_item", {
   orderIndex: integer("orderIndex").notNull().default(0),
   deadline: timestamp("deadline", { mode: "date" }),
   createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+  parentId: text("parentId").references((): AnyPgColumn => backlogItems.id),
 }, (table) => [
   check("backlog_valid_status", sql`${table.status} in ('backlog', 'todo', 'in_progress', 'blocked', 'review', 'done', 'cancelled')`),
   check("backlog_valid_priority", sql`${table.priority} in ('baixa', 'media', 'alta')`),
@@ -143,7 +154,7 @@ export const blockers = pgTable("blocker", {
 
 export const workflowColumns = pgTable("workflow_column", {
   id: text("id").primaryKey(),
-  projectId: text("projectId").notNull().default("petbsi"),
+  projectId: text("projectId").notNull().default("petbsi").references(() => projects.id),
   status: text("status").notNull(),
   name: text("name").notNull(),
   wipLimit: integer("wipLimit"),
@@ -155,7 +166,7 @@ export const workflowColumns = pgTable("workflow_column", {
 
 export const stateChanges = pgTable("work_item_state_change", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-  projectId: text("projectId").notNull().default("petbsi"),
+  projectId: text("projectId").notNull().default("petbsi").references(() => projects.id),
   itemId: text("itemId").notNull().references(() => backlogItems.id),
   fromStatus: text("fromStatus"),
   toStatus: text("toStatus").notNull(),
@@ -166,7 +177,7 @@ export const stateChanges = pgTable("work_item_state_change", {
 
 export const calendarEvents = pgTable("calendar_event", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-  projectId: text("projectId").notNull().default("petbsi"),
+  projectId: text("projectId").notNull().default("petbsi").references(() => projects.id),
   title: text("title").notNull(),
   date: text("date").notNull(),
   time: text("time").notNull(),
@@ -177,7 +188,7 @@ export const calendarEvents = pgTable("calendar_event", {
 
 export const deliveries = pgTable("delivery", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-  projectId: text("projectId").notNull().default("petbsi"),
+  projectId: text("projectId").notNull().default("petbsi").references(() => projects.id),
   frontId: text("frontId").notNull().references(() => fronts.id),
   sprintId: text("sprintId").references(() => sprints.id),
   title: text("title").notNull(),
