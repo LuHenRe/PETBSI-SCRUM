@@ -44,6 +44,7 @@ export async function getCurrentMember() {
       role: "SCRUM_MASTER" as ProjectRole,
       primaryFrontId: allFronts[0]?.id || null,
       frontPermissions: allFronts.map(f => ({ frontId: f.id, canView: true, canEdit: true })),
+      systemRole: "ADMIN" as const,
     };
   }
 
@@ -55,6 +56,7 @@ export async function getCurrentMember() {
     role: projectMemberships.role,
     primaryFrontId: projectMemberships.primaryFrontId,
     frontPermissions: projectMemberships.frontPermissions,
+    systemRole: users.systemRole,
   }).from(users)
     .innerJoin(projectMemberships, and(eq(projectMemberships.userId, users.id), eq(projectMemberships.projectId, PROJECT_ID)))
     .where(and(eq(users.id, session.user.id), eq(users.enabled, true))).limit(1);

@@ -31,14 +31,15 @@ const NAV = [
     items: [
       { href: "/", label: "Visão geral", icon: LayoutDashboard },
       { href: "/backlog", label: "Product Backlog", icon: ListOrdered },
+      { href: "/planejamento", label: "Sprint Planning", icon: KanbanSquare },
       { href: "/sprint", label: "Sprint", icon: Target },
       { href: "/fluxo", label: "Fluxo Kanban", icon: KanbanSquare },
     ],
   },
   {
-    group: "Frentes e entregas",
+    group: "Gestão",
     items: [
-      { href: "/frentes", label: "Frentes", icon: Layers },
+      { href: "/projetos", label: "Projetos", icon: Layers },
       { href: "/entregas", label: "Entregas", icon: Package },
       { href: "/pessoas", label: "Pessoas", icon: Users },
     ],
@@ -56,8 +57,9 @@ const TITLES: Record<string, string> = {
   "/": "Visão geral",
   "/backlog": "Product Backlog",
   "/sprint": "Sprint atual",
+  "/planejamento": "Sprint Planning",
   "/fluxo": "Fluxo Kanban",
-  "/frentes": "Frentes de trabalho",
+  "/projetos": "Gestão de Projetos e Frentes",
   "/entregas": "Entregas e histórico",
   "/arquivos": "Arquivos",
   "/notificacoes": "Notificações",

@@ -1,7 +1,7 @@
 import "server-only";
 import { and, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
-import { backlogItems, blockers, calendarEvents, deliveries, deliveryItems, fronts, itemAssignees, projectMemberships, sprints, stateChanges, users, workflowColumns } from "@/db/schema";
+import { backlogItems, blockers, calendarEvents, deliveries, deliveryItems, fronts, itemAssignees, projectMemberships, sprints, stateChanges, users, workflowColumns, projects } from "@/db/schema";
 import { ProjectMembership } from "@/domain/project/project-membership";
 import { PROJECT_ID, type getCurrentMember } from "./authorization/membership";
 import type { AppState, BacklogItemType, BacklogPriority, ProjectRole, SprintStatus, WorkItemStatus } from "@/lib/types";
@@ -12,7 +12,8 @@ const roles = new Set(["MEMBER", "SCRUM_MASTER", "SCRUM_MASTER_ASSISTANT", "COOR
 
 export async function getDashboardState(member: Member): Promise<AppState> {
   const db = getDb();
-  const [frontRows, memberRows, sprintRows, columnRows, itemRows, eventRows, deliveryRows] = await Promise.all([
+  const [projectRows, frontRows, memberRows, sprintRows, columnRows, itemRows, eventRows, deliveryRows] = await Promise.all([
+    db.select().from(projects),
     db.select().from(fronts).where(eq(fronts.projectId, PROJECT_ID)),
     db.select({ person: users, membership: projectMemberships }).from(projectMemberships)
       .innerJoin(users, eq(projectMemberships.userId, users.id))
@@ -40,11 +41,13 @@ export async function getDashboardState(member: Member): Promise<AppState> {
 
   return {
     currentUserId: member.id,
+    projects: projectRows.map(({ id, name, description }) => ({ id, name, description })),
     people: memberRows.map(({ person }) => ({ id: person.id, name: person.name ?? "Participante", email: person.email ?? "",
-      initials: (person.name ?? "P").split(" ").slice(0, 2).map((s) => s[0]).join("").toUpperCase() }))
-      .concat(member.id === "preview-user-id" ? [{ id: "preview-user-id", name: "Admin Preview", email: "preview@petbsi.com", initials: "AP" }] : []),
+      initials: (person.name ?? "P").split(" ").slice(0, 2).map((s) => s[0]).join("").toUpperCase(),
+      tags: person.tags as string[], systemRole: person.systemRole }))
+      .concat(member.id === "preview-user-id" ? [{ id: "preview-user-id", name: "Admin Preview", email: "preview@petbsi.com", initials: "AP", tags: [], systemRole: "ADMIN" }] : []),
     pairs: [],
-    fronts: visibleFronts.map(({ id, name, description, color }) => ({ id, name, description, color })),
+    fronts: visibleFronts.map(({ id, projectId, name, description, color }) => ({ id, projectId, name, description, color })),
     memberships: memberRows.map(({ membership }) => ({ id: membership.id, personId: membership.userId,
       primaryFrontId: membership.primaryFrontId && visibleIds.has(membership.primaryFrontId) ? membership.primaryFrontId : null,
       role: roles.has(membership.role) ? membership.role as ProjectRole : "MEMBER",
@@ -54,7 +57,7 @@ export async function getDashboardState(member: Member): Promise<AppState> {
       id: item.id, title: item.title, description: item.description, frontId: item.frontId,
       priority: item.priority as BacklogPriority, status: item.status as WorkItemStatus,
       type: (item.type ?? "documento") as BacklogItemType, value: (item.value ?? "M") as "PQ" | "M" | "S",
-      sprintId: item.sprintId, assigneeIds: assigneeRows.filter((a) => a.itemId === item.id).map((a) => a.userId),
+      sprintId: item.sprintId, parentId: item.parentId, assigneeIds: assigneeRows.filter((a) => a.itemId === item.id).map((a) => a.userId),
       deadline: item.deadline?.toISOString().slice(0, 10) ?? null, createdAt: item.createdAt.toISOString().slice(0, 10),
     })),
     sprints: sprintRows.map((sprint) => ({ id: sprint.id, name: sprint.name, goal: sprint.goal,

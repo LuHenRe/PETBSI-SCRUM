@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { and, count, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "@/db";
-import { auditEvents, backlogItems, calendarEvents, deliveries, deliveryItems, fronts, itemAssignees, projectMemberships, sprints, users, workflowColumns } from "@/db/schema";
+import { auditEvents, backlogItems, calendarEvents, deliveries, deliveryItems, fronts, itemAssignees, projectMemberships, sprints, users, workflowColumns, projects } from "@/db/schema";
 import { createBacklogItem, saveBacklogItem } from "@/application/backlog/manage-backlog-item";
 import { moveBacklogItem } from "@/application/workflow/move-backlog-item";
 import { openBlockerForItem, resolveBlockerForItem } from "@/application/workflow/manage-blocker";
@@ -22,6 +22,7 @@ const draft = z.object({
   priority: z.enum(["alta", "media", "baixa"]), deadline: z.iso.date().nullable().default(null),
   type: z.enum(["documento", "codigo", "pesquisa", "material", "infra", "gestao"]).default("documento"),
   value: z.enum(["PQ", "M", "S"]).default("M"), sprintId: id.nullable().default(null),
+  parentId: id.nullable().default(null),
   assigneeIds: z.array(id).max(20).default([]),
 });
 export const commandSchema = z.discriminatedUnion("action", [
@@ -44,6 +45,9 @@ export const commandSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("createDelivery"), title: z.string().trim().min(3).max(200),
     description: z.string().max(5000), frontId: id, sprintId: id.nullable(), itemIds: z.array(id).min(1).max(100) }),
   z.object({ action: z.literal("setDeliveryStatus"), deliveryId: id, status: z.enum(["planejada", "em_andamento", "entregue"]) }),
+  z.object({ action: z.literal("createProject"), id: id, name: z.string().trim().min(3).max(150), description: z.string().max(2000).default("") }),
+  z.object({ action: z.literal("createFront"), projectId: id, name: z.string().trim().min(3).max(150), description: z.string().max(2000).default(""), color: z.string().regex(/^#[0-9A-Fa-f]{6}$/) }),
+  z.object({ action: z.literal("setPersonTags"), personId: id, tags: z.array(z.string().trim().min(2).max(30)).max(4) }),
 ]);
 export type Command = z.infer<typeof commandSchema>;
 
@@ -87,6 +91,35 @@ export async function executeCommand(member: Member, command: Command): Promise<
       return unique;
     };
     switch (command.action) {
+      case "createProject": {
+        ensure(member.systemRole === "ADMIN", "Somente um Admin Global pode criar novos projetos.");
+        await tx.insert(projects).values({
+          id: command.id,
+          name: command.name,
+          description: command.description,
+        });
+        await audit("createProject", command.id);
+        break;
+      }
+      case "createFront": {
+        ensure(member.systemRole === "ADMIN" || member.role === "PRODUCT_OWNER", "Somente Admin ou PO podem criar frentes.");
+        const frontId = randomUUID();
+        await tx.insert(fronts).values({
+          id: frontId,
+          projectId: command.projectId,
+          name: command.name,
+          description: command.description,
+          color: command.color,
+        });
+        await audit("createFront", frontId);
+        break;
+      }
+      case "setPersonTags": {
+        ensure(member.systemRole === "ADMIN", "Somente um Admin Global pode editar as tags dos usuários.");
+        await tx.update(users).set({ tags: command.tags }).where(eq(users.id, command.personId));
+        await audit("setPersonTags", command.personId);
+        break;
+      }
       case "createItem": {
         ensure(member.role === "PRODUCT_OWNER", "Somente o Product Owner cria itens no Product Backlog");
         const d = command.draft;
@@ -94,7 +127,7 @@ export async function executeCommand(member: Member, command: Command): Promise<
         const item = await createBacklogItem(d, permission, { ...ports, uid: () => randomUUID() });
         const [order] = await tx.select({ value: sql<number>`coalesce(max(${backlogItems.orderIndex}), 0)` }).from(backlogItems)
           .where(eq(backlogItems.projectId, PROJECT_ID));
-        await tx.update(backlogItems).set({ type: d.type, value: d.value, sprintId: d.sprintId,
+        await tx.update(backlogItems).set({ type: d.type, value: d.value, sprintId: d.sprintId, parentId: d.parentId,
           orderIndex: Number(order.value) + 1 }).where(eq(backlogItems.id, item.id));
         if (assignments.length) await tx.insert(itemAssignees).values(assignments.map((userId) => ({ itemId: item.id, userId })));
         break;
@@ -112,7 +145,7 @@ export async function executeCommand(member: Member, command: Command): Promise<
         const assignments = await ensureAssignments(d.frontId, d.sprintId, d.assigneeIds);
         item.updateFields(d, { actorId: member.id, at: new Date().toISOString() });
         await saveBacklogItem(item, permission, ports);
-        await tx.update(backlogItems).set({ type: d.type, value: d.value, sprintId: d.sprintId })
+        await tx.update(backlogItems).set({ type: d.type, value: d.value, sprintId: d.sprintId, parentId: d.parentId })
           .where(and(eq(backlogItems.id, item.id), eq(backlogItems.projectId, PROJECT_ID)));
         await tx.delete(itemAssignees).where(eq(itemAssignees.itemId, item.id));
         if (assignments.length) await tx.insert(itemAssignees).values(assignments.map((userId) => ({ itemId: item.id, userId })));

@@ -23,7 +23,7 @@ function set(newState: AppState) {
   listeners.forEach((listener) => listener());
 }
 
-async function command(payload: Record<string, unknown>): Promise<void> {
+export async function dispatch(payload: Record<string, unknown>): Promise<void> {
   try {
     const response = await fetch("/api/commands", {
       method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
@@ -40,6 +40,9 @@ async function command(payload: Record<string, unknown>): Promise<void> {
     window.alert(error instanceof Error ? error.message : "Operação não concluída");
   }
 }
+
+// Aliasing for internal usage
+const command = dispatch;
 
 function unavailable(): void {
   window.alert("Esta funcionalidade ainda não está disponível com integração real.");
@@ -106,6 +109,7 @@ export function createBacklogItem(draft: {
   priority: BacklogPriority;
   value: BacklogItem["value"];
   sprintId: string | null;
+  parentId: string | null;
   assigneeIds: string[];
   deadline: string | null;
 }) {

@@ -210,7 +210,7 @@ export default function SprintPage() {
               <Link href="/fluxo" className="btn btn-primary w-full">
                 <Flag size={15} /> Acompanhar fluxo Kanban
               </Link>
-              <Link href="/backlog" className="btn btn-secondary w-full">
+              <Link href="/planejamento" className="btn btn-secondary w-full">
                 Planejar / adaptar itens
               </Link>
                {canManageSprint && viewingSprint.status === "planned" && (

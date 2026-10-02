@@ -16,6 +16,7 @@ export interface CreateBacklogInput {
   frontId: string;
   priority: BacklogPriority;
   deadline?: string | null;
+  parentId?: string | null;
 }
 
 export interface BacklogDeps {
@@ -56,6 +57,7 @@ export async function createBacklogItem(
     frontId,
     priority: input.priority,
     deadline: input.deadline ?? null,
+    parentId: input.parentId ?? null,
   });
 
   await deps.backlog.save(item);
