@@ -90,6 +90,7 @@ export default function PessoasPage() {
                       <td>
                         <div style={{ fontWeight: 600 }}>{person.name}</div>
                         <div className="text-xs text-muted">{person.email}</div>
+                        {person.phone && <div className="text-xs text-muted">{person.phone}</div>}
                       </td>
                       <td>
                         <div className="flex gap-1 wrap" style={{ alignItems: "center" }}>

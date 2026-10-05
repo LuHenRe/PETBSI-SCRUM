@@ -48,6 +48,7 @@ export const commandSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("createProject"), id: id, name: z.string().trim().min(3).max(150), description: z.string().max(2000).default("") }),
   z.object({ action: z.literal("createFront"), projectId: id, name: z.string().trim().min(3).max(150), description: z.string().max(2000).default(""), color: z.string().regex(/^#[0-9A-Fa-f]{6}$/) }),
   z.object({ action: z.literal("setPersonTags"), personId: id, tags: z.array(z.string().trim().min(2).max(30)).max(4) }),
+  z.object({ action: z.literal("updatePersonalInfo"), personId: id, displayName: z.string().trim().max(100), phone: z.string().trim().max(30) }),
 ]);
 export type Command = z.infer<typeof commandSchema>;
 
@@ -99,6 +100,14 @@ export async function executeCommand(member: Member, command: Command): Promise<
           description: command.description,
         });
         await audit("createProject", command.id);
+        break;
+      }
+      case "updatePersonalInfo": {
+        ensure(member.id === command.personId || member.systemRole === "ADMIN", "Somente o próprio usuário ou um Admin pode alterar dados pessoais.");
+        await tx.update(users)
+          .set({ displayName: command.displayName, phone: command.phone })
+          .where(eq(users.id, command.personId));
+        await audit("updatePersonalInfo", command.personId);
         break;
       }
       case "createFront": {
