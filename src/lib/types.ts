@@ -40,6 +40,8 @@ export interface Person {
   name: string;
   email: string;
   initials: string;
+  displayName?: string;
+  phone?: string;
   tags?: string[];
   systemRole?: string;
 }

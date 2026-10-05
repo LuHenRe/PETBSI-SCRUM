@@ -48,26 +48,6 @@ export default function PessoasPage() {
     setEditTagsOpen(false);
   };
 
-  const currentUser = state.people.find(p => p.id === state.currentUserId);
-  const isAdmin = currentUser?.systemRole === "ADMIN";
-
-  const [editTagsOpen, setEditTagsOpen] = useState(false);
-  const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
-  const [tagsInput, setTagsInput] = useState("");
-
-  const handleOpenEditTags = (personId: string, currentTags: string[]) => {
-    setSelectedPersonId(personId);
-    setTagsInput(currentTags.join(", "));
-    setEditTagsOpen(true);
-  };
-
-  const handleSaveTags = () => {
-    if (!selectedPersonId) return;
-    const newTags = tagsInput.split(",").map(t => t.trim()).filter(Boolean).slice(0, 4);
-    dispatch({ action: "setPersonTags", personId: selectedPersonId, tags: newTags });
-    setEditTagsOpen(false);
-  };
-
   const activePOId = state.rotationConfig.activeProductOwnerId ?? calculateActiveRole(state, "PRODUCT_OWNER");
   const activeSMId = state.rotationConfig.activeScrumMasterId ?? calculateActiveRole(state, "SCRUM_MASTER");
   
@@ -110,6 +90,7 @@ export default function PessoasPage() {
                       <td>
                         <div style={{ fontWeight: 600 }}>{person.name}</div>
                         <div className="text-xs text-muted">{person.email}</div>
+                        {person.phone && <div className="text-xs text-muted">{person.phone}</div>}
                       </td>
                       <td>
                         <div className="flex gap-1 wrap" style={{ alignItems: "center" }}>

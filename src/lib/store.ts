@@ -235,6 +235,10 @@ export function changePersonRole(personId: string, newRole: AppState["membership
   unavailable();
 }
 
+export function updatePersonalInfo(personId: string, displayName: string, phone: string) {
+  void command({ action: "updatePersonalInfo", personId, displayName, phone });
+}
+
 export function removePerson(personId: string) {
   void personId;
   unavailable();
