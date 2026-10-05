@@ -173,13 +173,19 @@ export default function AgendaPage() {
             <div className="list">
               {deadlines.length === 0 && <p className="text-muted text-sm">Nenhum prazo em aberto.</p>}
               {deadlines.map((item) => (
-                <Link key={item.id} href={`/itens/${item.id}`} className="card row-item" style={{ textDecoration: "none" }}>
-                  <FrontTag front={frontById(state, item.frontId)} />
-                  <div className="flex-1" style={{ minWidth: 0 }}>
-                    <div className="text-sm" style={{ fontWeight: 600 }}>{item.title}</div>
-                    <div className="text-xs text-muted">{formatDate(item.deadline)}</div>
+                <Link key={item.id} href={`/itens/${item.id}`} className="card" style={{ textDecoration: "none", display: "flex", flexDirection: "column", gap: "12px", padding: "16px" }}>
+                  <div>
+                    <FrontTag front={frontById(state, item.frontId)} />
                   </div>
-                  <DeadlinePill deadline={item.deadline} />
+                  <div className="flex justify-between items-center gap-3">
+                    <div style={{ minWidth: 0 }}>
+                      <div className="text-sm" style={{ fontWeight: 600, marginBottom: "4px" }}>{item.title}</div>
+                      <div className="text-xs text-muted">{formatDate(item.deadline)}</div>
+                    </div>
+                    <div style={{ flexShrink: 0 }}>
+                      <DeadlinePill deadline={item.deadline} />
+                    </div>
+                  </div>
                 </Link>
               ))}
             </div>
