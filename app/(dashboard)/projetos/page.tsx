@@ -3,11 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Layers, Plus } from "lucide-react";
-import { dispatch, useAppState } from "@/lib/store";
+import { dispatch, useGlobalAppState } from "@/lib/store";
 import { Avatar, Card, EmptyState, Modal, TextInput, TextArea, Field, Badge, Button } from "@/components/ui";
 
 export default function ProjetosPage() {
-  const state = useAppState();
+  const state = useGlobalAppState();
 
   const user = state.people.find(p => p.id === state.currentUserId);
   const membership = state.memberships.find((m) => m.personId === state.currentUserId);

@@ -96,6 +96,7 @@ export interface BacklogItem {
 
 export interface Sprint {
   id: string;
+  projectId: string;
   name: string;
   goal: string;
   status: SprintStatus;
@@ -196,6 +197,7 @@ export interface RoleRotationConfig {
 
 export interface AppState {
   currentUserId: string | null;
+  activeProjectId: string | null;
   projects: Project[];
   people: Person[];
   pairs: Pair[];
