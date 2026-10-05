@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Users, Pencil } from "lucide-react";
-import { useAppState, dispatch } from "@/lib/store";
+import { useGlobalAppState, dispatch } from "@/lib/store";
 import { Avatar, Badge, Card, EmptyState, Modal, Field, TextInput, Button } from "@/components/ui";
 import { ROLE_LABEL } from "@/lib/labels";
 import type { AppState, ProjectRole } from "@/lib/types";
@@ -26,7 +26,27 @@ function calculateActiveRole(state: AppState, baseRole: ProjectRole): string | n
 }
 
 export default function PessoasPage() {
-  const state = useAppState();
+  const state = useGlobalAppState();
+
+  const currentUser = state.people.find(p => p.id === state.currentUserId);
+  const isAdmin = currentUser?.systemRole === "ADMIN";
+
+  const [editTagsOpen, setEditTagsOpen] = useState(false);
+  const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
+  const [tagsInput, setTagsInput] = useState("");
+
+  const handleOpenEditTags = (personId: string, currentTags: string[]) => {
+    setSelectedPersonId(personId);
+    setTagsInput(currentTags.join(", "));
+    setEditTagsOpen(true);
+  };
+
+  const handleSaveTags = () => {
+    if (!selectedPersonId) return;
+    const newTags = tagsInput.split(",").map(t => t.trim()).filter(Boolean).slice(0, 4);
+    dispatch({ action: "setPersonTags", personId: selectedPersonId, tags: newTags });
+    setEditTagsOpen(false);
+  };
 
   const currentUser = state.people.find(p => p.id === state.currentUserId);
   const isAdmin = currentUser?.systemRole === "ADMIN";

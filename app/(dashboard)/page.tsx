@@ -15,20 +15,23 @@ export default function OverviewPage() {
   const [frontFilter, setFrontFilter] = useState<string>("all");
   const [chartMode, setChartMode] = useState<"burndown" | "burnup">("burndown");
 
+  const allowedFronts = useMemo(() => {
+    if (frontFilter === "all") return new Set(state.fronts.map((f) => f.id));
+    return new Set([frontFilter]);
+  }, [frontFilter, state.fronts]);
+
   const activeSprint = state.sprints.find((s) => s.status === "active");
 
   const activeItems = useMemo(() => {
     if (!activeSprint) return [];
     let items = state.backlogItems.filter((i) => activeSprint.itemIds.includes(i.id));
-    if (frontFilter !== "all") {
-      items = items.filter((i) => i.frontId === frontFilter);
-    }
+    if (allowedFronts) items = items.filter((i) => allowedFronts.has(i.frontId));
     return items;
-  }, [state.backlogItems, activeSprint, frontFilter]);
+  }, [state.backlogItems, activeSprint, allowedFronts]);
 
   const counts = useMemo(() => {
     const base = state.backlogItems;
-    const items = frontFilter === "all" ? base : base.filter((i) => i.frontId === frontFilter);
+    const items = allowedFronts ? base.filter((i) => allowedFronts.has(i.frontId)) : base;
     return {
       total: items.length,
       open: items.filter((i) => i.status !== "done").length,
@@ -38,7 +41,7 @@ export default function OverviewPage() {
       review: items.filter((i) => i.status === "review").length,
       done: items.filter((i) => i.status === "done").length,
     };
-  }, [state.backlogItems, frontFilter]);
+  }, [state.backlogItems, allowedFronts]);
 
   const sprintProgress = activeItems.length
     ? Math.round((activeItems.filter((i) => i.status === "done").length / activeItems.length) * 100)
@@ -47,10 +50,10 @@ export default function OverviewPage() {
   const upcomingDeadlines = useMemo(
     () =>
       state.backlogItems
-        .filter((i) => i.deadline && i.status !== "done" && (frontFilter === "all" || i.frontId === frontFilter))
+        .filter((i) => i.deadline && i.status !== "done" && (!allowedFronts || allowedFronts.has(i.frontId)))
         .sort((a, b) => (a.deadline! < b.deadline! ? -1 : 1))
         .slice(0, 5),
-    [state.backlogItems, frontFilter]
+    [state.backlogItems, allowedFronts]
   );
 
   const openBlockers = state.blockers.filter((b) => !b.resolvedAt);
@@ -77,7 +80,7 @@ export default function OverviewPage() {
         </div>
         <div style={{ minWidth: 220 }}>
           <Select aria-label="Filtrar por frente" value={frontFilter} onChange={(e) => setFrontFilter(e.target.value)}>
-            <option value="all">Todas as frentes</option>
+            <option value="all">Todas as frentes deste projeto</option>
             {state.fronts.map((f) => (
               <option key={f.id} value={f.id}>{f.name}</option>
             ))}

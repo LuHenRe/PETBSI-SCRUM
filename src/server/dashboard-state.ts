@@ -14,19 +14,20 @@ export async function getDashboardState(member: Member): Promise<AppState> {
   const db = getDb();
   const [projectRows, frontRows, memberRows, sprintRows, columnRows, itemRows, eventRows, deliveryRows] = await Promise.all([
     db.select().from(projects),
-    db.select().from(fronts).where(eq(fronts.projectId, PROJECT_ID)),
+    db.select().from(fronts),
     db.select({ person: users, membership: projectMemberships }).from(projectMemberships)
       .innerJoin(users, eq(projectMemberships.userId, users.id))
-      .where(and(eq(projectMemberships.projectId, PROJECT_ID), eq(users.enabled, true))),
-    db.select().from(sprints).where(eq(sprints.projectId, PROJECT_ID)),
-    db.select().from(workflowColumns).where(eq(workflowColumns.projectId, PROJECT_ID)).orderBy(workflowColumns.orderIndex),
-    db.select().from(backlogItems).where(eq(backlogItems.projectId, PROJECT_ID)).orderBy(backlogItems.orderIndex),
-    db.select().from(calendarEvents).where(eq(calendarEvents.projectId, PROJECT_ID)),
-    db.select().from(deliveries).where(eq(deliveries.projectId, PROJECT_ID)),
+      .where(eq(users.enabled, true)),
+    db.select().from(sprints),
+    db.select().from(workflowColumns).orderBy(workflowColumns.orderIndex),
+    db.select().from(backlogItems).orderBy(backlogItems.orderIndex),
+    db.select().from(calendarEvents),
+    db.select().from(deliveries),
   ]);
   const permission = new ProjectMembership({ id: member.membershipId, personId: member.id,
     primaryFrontId: member.primaryFrontId, role: member.role, frontPermissions: member.frontPermissions });
-  const visibleFronts = frontRows.filter((front) => permission.canViewFront(front.id));
+  const isAdmin = member.systemRole === "ADMIN";
+  const visibleFronts = frontRows.filter((front) => isAdmin || permission.canViewFront(front.id));
   const visibleIds = new Set(visibleFronts.map((front) => front.id));
   const visibleItems = itemRows.filter((item) => visibleIds.has(item.frontId));
   const itemIds = visibleItems.map((item) => item.id);
@@ -36,11 +37,12 @@ export async function getDashboardState(member: Member): Promise<AppState> {
   const [assigneeRows, blockerRows, changeRows] = itemIds.length ? await Promise.all([
     db.select().from(itemAssignees).where(inArray(itemAssignees.itemId, itemIds)),
     db.select().from(blockers).where(inArray(blockers.itemId, itemIds)),
-    db.select().from(stateChanges).where(and(eq(stateChanges.projectId, PROJECT_ID), inArray(stateChanges.itemId, itemIds))),
+    db.select().from(stateChanges).where(inArray(stateChanges.itemId, itemIds)),
   ]) : [[], [], []];
 
   return {
     currentUserId: member.id,
+    activeProjectId: null,
     projects: projectRows.map(({ id, name, description }) => ({ id, name, description })),
     people: memberRows.map(({ person }) => ({ id: person.id, name: person.name ?? "Participante", email: person.email ?? "",
       initials: (person.name ?? "P").split(" ").slice(0, 2).map((s) => s[0]).join("").toUpperCase(),
@@ -60,7 +62,7 @@ export async function getDashboardState(member: Member): Promise<AppState> {
       sprintId: item.sprintId, parentId: item.parentId, assigneeIds: assigneeRows.filter((a) => a.itemId === item.id).map((a) => a.userId),
       deadline: item.deadline?.toISOString().slice(0, 10) ?? null, createdAt: item.createdAt.toISOString().slice(0, 10),
     })),
-    sprints: sprintRows.map((sprint) => ({ id: sprint.id, name: sprint.name, goal: sprint.goal,
+    sprints: sprintRows.map((sprint) => ({ id: sprint.id, projectId: sprint.projectId, name: sprint.name, goal: sprint.goal,
       status: sprint.status as SprintStatus, startDate: sprint.startDate.toISOString().slice(0, 10),
       endDate: sprint.endDate.toISOString().slice(0, 10), itemIds: visibleItems.filter((item) => item.sprintId === sprint.id).map((item) => item.id) })),
     columns: columnRows.filter((column) => statuses.has(column.status)).map((column) => ({

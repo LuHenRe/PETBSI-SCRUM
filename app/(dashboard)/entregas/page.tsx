@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Package } from "lucide-react";
 import { createDelivery, frontById, setDeliveryStatus, useAppState } from "@/lib/store";
 import { formatDate } from "@/lib/seed";
-import { Badge, Button, Card, EmptyState, Select, TextInput } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, Field, Select, TextInput } from "@/components/ui";
 
 export default function EntregasPage() {
   const state = useAppState();
@@ -36,30 +36,65 @@ export default function EntregasPage() {
       </div>
 
       {canManage && <Card title="Registrar entrega" className="mb-4">
-        <form className="flex flex-wrap gap-2" onSubmit={(event) => {
+        <form style={{ display: "flex", flexDirection: "column", gap: "16px" }} onSubmit={(event) => {
           event.preventDefault();
           if (!frontId || itemIds.length === 0) return;
           createDelivery({ title, description, frontId, sprintId: sprintId || null, itemIds });
           setTitle(""); setDescription(""); setItemIds([]);
         }}>
-          <TextInput aria-label="Título da entrega" placeholder="Título da entrega" value={title} onChange={(event) => setTitle(event.target.value)} required minLength={3} />
-          <TextInput aria-label="Descrição da entrega" placeholder="Descrição" value={description} onChange={(event) => setDescription(event.target.value)} />
-          <Select aria-label="Frente da entrega" value={frontId} onChange={(event) => { setFrontId(event.target.value); setItemIds([]); }} required>
-            <option value="">Selecione a frente</option>
-            {state.fronts.map((front) => <option key={front.id} value={front.id}>{front.name}</option>)}
-          </Select>
-          <Select aria-label="Sprint da entrega" value={sprintId} onChange={(event) => setSprintId(event.target.value)}>
-            <option value="">Sem Sprint</option>
-            {state.sprints.map((sprint) => <option key={sprint.id} value={sprint.id}>{sprint.name}</option>)}
-          </Select>
-          <div style={{ width: "100%" }}>
-            <strong className="text-sm">Itens relacionados (ao menos um)</strong>
-            {state.backlogItems.filter((item) => item.frontId === frontId).map((item) => <label key={item.id} className="flex gap-2 items-center text-sm">
-              <input type="checkbox" checked={itemIds.includes(item.id)} onChange={(event) => setItemIds((selected) => event.target.checked
-                ? [...selected, item.id] : selected.filter((id) => id !== item.id))} /> {item.title}
-            </label>)}
+          {/* Primeira linha: Campos de texto e selects */}
+          <div className="flex flex-wrap gap-4" style={{ alignItems: "flex-end" }}>
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <Field label="Título da entrega">
+                <TextInput aria-label="Título da entrega" placeholder="Ex: MVP da Autenticação" value={title} onChange={(event) => setTitle(event.target.value)} required minLength={3} />
+              </Field>
+            </div>
+            
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <Field label="Descrição (opcional)">
+                <TextInput aria-label="Descrição da entrega" placeholder="Detalhes" value={description} onChange={(event) => setDescription(event.target.value)} />
+              </Field>
+            </div>
+            
+            <div style={{ flex: 1, minWidth: 160 }}>
+              <Field label="Frente">
+                <Select aria-label="Frente da entrega" value={frontId} onChange={(event) => { setFrontId(event.target.value); setItemIds([]); }} required>
+                  <option value="">Selecione a frente</option>
+                  {state.fronts.map((front) => <option key={front.id} value={front.id}>{front.name}</option>)}
+                </Select>
+              </Field>
+            </div>
+
+            <div style={{ flex: 1, minWidth: 160 }}>
+              <Field label="Sprint relacionada">
+                <Select aria-label="Sprint da entrega" value={sprintId} onChange={(event) => setSprintId(event.target.value)}>
+                  <option value="">Nenhuma / Sem Sprint</option>
+                  {state.sprints.map((sprint) => <option key={sprint.id} value={sprint.id}>{sprint.name}</option>)}
+                </Select>
+              </Field>
+            </div>
           </div>
-          <Button variant="primary" type="submit" disabled={!frontId || itemIds.length === 0}>Criar entrega</Button>
+
+          {/* Segunda linha: Itens relacionados e botão */}
+          <div className="flex flex-wrap gap-4 justify-between" style={{ alignItems: "flex-end" }}>
+            <div style={{ flex: 1, minWidth: 250 }}>
+              <strong className="text-sm text-muted mb-1 block">Itens relacionados (ao menos um)</strong>
+              {frontId && state.backlogItems.filter((item) => item.frontId === frontId).length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
+                  {state.backlogItems.filter((item) => item.frontId === frontId).map((item) => <label key={item.id} className="flex gap-2 items-center text-sm" style={{ cursor: "pointer" }}>
+                    <input type="checkbox" checked={itemIds.includes(item.id)} onChange={(event) => setItemIds((selected) => event.target.checked
+                      ? [...selected, item.id] : selected.filter((id) => id !== item.id))} /> {item.title}
+                  </label>)}
+                </div>
+              ) : (
+                <div className="text-xs text-muted mt-2">Selecione uma frente primeiro para ver os itens disponíveis.</div>
+              )}
+            </div>
+
+            <div>
+              <Button variant="primary" type="submit" style={{ height: "40px" }} disabled={!frontId || itemIds.length === 0}>Criar entrega</Button>
+            </div>
+          </div>
         </form>
       </Card>}
 

@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useSyncExternalStore, useMemo } from "react";
 import type {
   AppState,
   BacklogItem,
@@ -10,7 +10,7 @@ import type {
 } from "./types";
 
 const emptyState: AppState = {
-  currentUserId: null, people: [], pairs: [], fronts: [], memberships: [], backlogItems: [],
+  currentUserId: null, activeProjectId: null, projects: [], people: [], pairs: [], fronts: [], memberships: [], backlogItems: [],
   sprints: [], columns: [], blockers: [], stateChanges: [], deliveries: [], attachments: [],
   notifications: [], events: [], telegramMessages: [],
   rotationConfig: { intervalDays: 7, startDayOfWeek: 2, startDate: "", activeScrumMasterId: null, activeProductOwnerId: null },
@@ -35,7 +35,8 @@ export async function dispatch(payload: Record<string, unknown>): Promise<void> 
     }
     const snapshot = await fetch("/api/state", { credentials: "same-origin", cache: "no-store" });
     if (!snapshot.ok) throw new Error("Não foi possível atualizar os dados");
-    set(await snapshot.json() as AppState);
+    const newSnapshot = await snapshot.json() as AppState;
+    setServerState(newSnapshot);
   } catch (error) {
     window.alert(error instanceof Error ? error.message : "Operação não concluída");
   }
@@ -55,8 +56,27 @@ function subscribe(listener: () => void) {
   };
 }
 
-export function useAppState(): AppState {
+export function useGlobalAppState(): AppState {
   return useSyncExternalStore(subscribe, () => state, () => emptyState);
+}
+
+export function useAppState(): AppState {
+  const globalState = useGlobalAppState();
+  return useMemo(() => {
+    if (!globalState.activeProjectId) return globalState;
+    
+    const activeProject = globalState.activeProjectId;
+    const projectFronts = globalState.fronts.filter(f => f.projectId === activeProject);
+    const frontIds = new Set(projectFronts.map(f => f.id));
+    
+    return {
+      ...globalState,
+      fronts: projectFronts,
+      backlogItems: globalState.backlogItems.filter(i => frontIds.has(i.frontId)),
+      sprints: globalState.sprints.filter(s => s.projectId === activeProject),
+      deliveries: globalState.deliveries.filter(d => frontIds.has(d.frontId)),
+    };
+  }, [globalState]);
 }
 
 export function getState(): AppState {
@@ -64,7 +84,17 @@ export function getState(): AppState {
 }
 
 export function setServerState(snapshot: AppState) {
-  set(snapshot);
+  // Preserve local active project if not set in snapshot
+  const finalState = { ...snapshot, activeProjectId: state.activeProjectId };
+  // Fallback to first available project if none is active
+  if (!finalState.activeProjectId && finalState.projects.length > 0) {
+    finalState.activeProjectId = finalState.projects[0].id;
+  }
+  set(finalState);
+}
+
+export function setActiveProject(projectId: string) {
+  set({ ...state, activeProjectId: projectId });
 }
 
 export function uid(prefix: string): string {

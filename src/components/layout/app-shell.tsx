@@ -17,11 +17,11 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import { useAppState, setServerState, personById } from "@/lib/store";
+import { useAppState, setServerState, personById, setActiveProject } from "@/lib/store";
 import { signOut } from "next-auth/react";
 import type { AppState } from "@/lib/types";
 import { ROLE_LABEL, isCoordinator, isTechAdmin } from "@/lib/labels";
-import { Avatar, Badge, Button } from "@/components/ui";
+import { Avatar, Badge, Button, Select } from "@/components/ui";
 import { frontById } from "@/lib/store";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -121,6 +121,23 @@ export function AppShell({ children, initialState }: { children: React.ReactNode
             {isCollapsed ? <ChevronsRight size={18} /> : <ChevronsLeft size={18} />}
           </Button>
         </div>
+
+        {!isCollapsed && state.projects.length > 0 && (
+          <div style={{ padding: "0 16px 16px 16px", borderBottom: "1px solid var(--border)", marginBottom: "16px" }}>
+            <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-soft)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>
+              Projeto Ativo
+            </span>
+            <Select 
+              value={state.activeProjectId || ""} 
+              onChange={(e) => setActiveProject(e.target.value)} 
+              aria-label="Selecionar Projeto Ativo"
+            >
+              {state.projects.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </Select>
+          </div>
+        )}
 
         <nav className="sidebar-nav" aria-label="Seções">
           {NAV.map((section) => (

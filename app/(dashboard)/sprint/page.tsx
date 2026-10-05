@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, Flag, Pencil, Target } from "lucide-react";
 import { closeSprint, createSprint, startSprint, updateSprintGoal, useAppState } from "@/lib/store";
 import { formatDate } from "@/lib/seed";
-import { Badge, Button, Card, EmptyState, Select, TextArea, TextInput } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, Select, TextArea, TextInput, Field } from "@/components/ui";
 import { Assignees, DeadlinePill, FrontTag, StatusBadge, TypeBadge } from "@/components/shared";
 import { frontById } from "@/lib/store";
 
@@ -23,18 +23,34 @@ function CreateSprintForm() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   return <Card className="mb-4" title="Nova Sprint">
-    <form className="flex flex-wrap gap-2" onSubmit={(event) => {
+    <form className="flex flex-wrap gap-4" style={{ alignItems: "flex-end" }} onSubmit={(event) => {
       event.preventDefault();
       if (name && goal && startDate && endDate && startDate <= endDate) {
         createSprint({ name, goal, startDate, endDate });
         setName(""); setGoal(""); setStartDate(""); setEndDate("");
       }
     }}>
-      <TextInput aria-label="Nome da Sprint" placeholder="Nome da Sprint" value={name} onChange={(event) => setName(event.target.value)} required minLength={3} />
-      <TextInput aria-label="Meta da Sprint" placeholder="Meta da Sprint" value={goal} onChange={(event) => setGoal(event.target.value)} required minLength={3} />
-      <TextInput aria-label="Data de início" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} required />
-      <TextInput aria-label="Data de término" type="date" value={endDate} min={startDate} onChange={(event) => setEndDate(event.target.value)} required />
-      <Button variant="primary" type="submit">Criar Sprint</Button>
+      <div style={{ flex: 1, minWidth: 200 }}>
+        <Field label="Nome da Sprint">
+          <TextInput placeholder="Ex: Sprint 3" value={name} onChange={(event) => setName(event.target.value)} required minLength={3} />
+        </Field>
+      </div>
+      <div style={{ flex: 2, minWidth: 250 }}>
+        <Field label="Meta da Sprint">
+          <TextInput placeholder="Qual o objetivo principal?" value={goal} onChange={(event) => setGoal(event.target.value)} required minLength={3} />
+        </Field>
+      </div>
+      <div style={{ width: 140 }}>
+        <Field label="Data de início">
+          <TextInput type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} required />
+        </Field>
+      </div>
+      <div style={{ width: 140 }}>
+        <Field label="Data de término">
+          <TextInput type="date" value={endDate} min={startDate} onChange={(event) => setEndDate(event.target.value)} required />
+        </Field>
+      </div>
+      <Button variant="primary" type="submit" style={{ height: "40px" }}>Criar Sprint</Button>
     </form>
   </Card>;
 }
