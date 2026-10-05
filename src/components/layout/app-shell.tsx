@@ -16,6 +16,7 @@ import {
   Users,
   ChevronsLeft,
   ChevronsRight,
+  HelpCircle,
 } from "lucide-react";
 import { useAppState, setServerState, personById, setActiveProject } from "@/lib/store";
 import { signOut } from "next-auth/react";
@@ -24,6 +25,8 @@ import { ROLE_LABEL, isCoordinator, isTechAdmin } from "@/lib/labels";
 import { Avatar, Badge, Button, Select } from "@/components/ui";
 import { frontById } from "@/lib/store";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 const NAV = [
   {
@@ -70,6 +73,59 @@ const TITLES: Record<string, string> = {
   "/itens/[itemId]": "Detalhe do item",
 };
 
+const TUTORIALS: Record<string, any[]> = {
+  "/": [
+    { element: '.topbar', popover: { title: 'Visão Geral', description: 'Aqui você tem uma visão ampla de tudo o que está acontecendo.' } },
+    { element: '.widget-grid', popover: { title: 'Métricas', description: 'Observe os indicadores e o progresso das frentes.' } },
+    { element: '.sidebar-nav', popover: { title: 'Navegação', description: 'Acesse atalhos rápidos para as atividades mais importantes.' } }
+  ],
+  "/backlog": [
+    { element: '.page h1', popover: { title: 'Product Backlog', description: 'O Product Backlog é a lista de tudo o que precisa ser feito.' } },
+    { popover: { title: 'Novo Item', description: "Clique em 'Novo item' para adicionar uma tarefa, documento ou pesquisa." } },
+    { element: '.table-wrap', popover: { title: 'Organização', description: 'Reordene os itens arrastando para definir a prioridade.' } }
+  ],
+  "/planejamento": [
+    { element: '.page h1', popover: { title: 'Sprint Planning', description: 'Aqui você planeja a próxima iteração (Sprint).' } },
+    { element: '.card:first-child', popover: { title: 'Backlog', description: 'Avalie a capacidade da equipe e mova os itens do backlog para a Sprint.' } },
+    { popover: { title: 'Sprint Atual', description: 'Certifique-se de definir uma meta clara para a Sprint.' } }
+  ],
+  "/sprint": [
+    { element: '.page h1', popover: { title: 'Sprint', description: 'Acompanhe o andamento dos itens que estão ativamente sendo trabalhados.' } },
+    { popover: { title: 'Meta', description: 'Acompanhe a meta atual e verifique se há gargalos.' } },
+    { popover: { title: 'Finalizar', description: 'Finalize a Sprint quando o tempo se esgotar ou tudo for concluído.' } }
+  ],
+  "/fluxo": [
+    { element: '.page h1', popover: { title: 'Fluxo Kanban', description: 'Este é o quadro Kanban visual.' } },
+    { popover: { title: 'Colunas', description: 'Arraste os cartões pelas colunas para atualizar o status (Ex: Em andamento, Revisão, Concluído).' } },
+    { popover: { title: 'Limites WIP', description: 'Fique de olho nos limites de trabalho em progresso (WIP) de cada coluna.' } }
+  ],
+  "/projetos": [
+    { element: '.page h1', popover: { title: 'Projetos', description: 'Gerencie os múltiplos projetos e suas frentes de trabalho.' } },
+    { popover: { title: 'Acesso', description: 'Apenas Administradores Globais podem criar novos projetos.' } },
+    { element: '.card', popover: { title: 'Frentes', description: 'Crie frentes específicas e atribua uma cor para facilitar a identificação.' } }
+  ],
+  "/entregas": [
+    { element: '.page h1', popover: { title: 'Entregas', description: 'Registre os produtos, documentos e códigos que foram concluídos e entregues.' } },
+    { element: '.card:first-child', popover: { title: 'Nova Entrega', description: 'Vincule os itens do backlog que compõem a entrega.' } },
+    { popover: { title: 'Histórico', description: 'Acompanhe o histórico para ter rastreabilidade do valor gerado.' } }
+  ],
+  "/pessoas": [
+    { element: '.page h1', popover: { title: 'Pessoas', description: 'Visualize quem faz parte do projeto.' } },
+    { element: '.table-wrap', popover: { title: 'Funções', description: 'Veja as funções de cada um (Scrum Master, Product Owner, Membro).' } },
+    { popover: { title: 'Edição', description: 'Verifique e ajuste as frentes de atuação de cada participante.' } }
+  ],
+  "/agenda": [
+    { element: '.page h1', popover: { title: 'Agenda', description: 'Veja o calendário de reuniões semanais.' } },
+    { popover: { title: 'Reuniões', description: 'Acompanhe as próximas agendas do time.' } },
+    { popover: { title: 'Prazos', description: 'Acompanhe os prazos definidos para as tarefas do Backlog e crie novos eventos.' } }
+  ],
+  "/itens/[itemId]": [
+    { element: '.page h1', popover: { title: 'Detalhe do item', description: 'Nesta tela você vê todas as informações detalhadas de uma atividade.' } },
+    { element: '.card', popover: { title: 'Edição', description: 'Associe responsáveis, altere a descrição, mude a prioridade ou data de entrega.' } },
+    { popover: { title: 'Bloqueios', description: 'Adicione bloqueios se a tarefa estiver dependendo de fatores externos.' } }
+  ],
+};
+
 export function AppShell({ children, initialState }: { children: React.ReactNode; initialState: AppState }) {
   useEffect(() => { setServerState(initialState); }, [initialState]);
   const state = useAppState();
@@ -88,6 +144,23 @@ export function AppShell({ children, initialState }: { children: React.ReactNode
     if (pathname.startsWith("/configuracoes")) return "Configurações";
     return TITLES[pathname] ?? "PETBSI Scrum";
   }, [pathname]);
+
+  const tutorial = useMemo(() => {
+    if (pathname.startsWith("/itens/")) return TUTORIALS["/itens/[itemId]"];
+    return TUTORIALS[pathname];
+  }, [pathname]);
+
+  const handleStartTour = () => {
+    if (!tutorial) return;
+    const driverObj = driver({
+      showProgress: true,
+      nextBtnText: 'Próximo',
+      prevBtnText: 'Anterior',
+      doneBtnText: 'Entendi',
+      steps: tutorial
+    });
+    driverObj.drive();
+  };
 
   if (state.currentUserId !== initialState.currentUserId || !user) {
     return (
@@ -123,7 +196,7 @@ export function AppShell({ children, initialState }: { children: React.ReactNode
         </div>
 
         {!isCollapsed && state.projects.length > 0 && (
-          <div style={{ padding: "0 16px 16px 16px", borderBottom: "1px solid var(--border)", marginBottom: "16px" }}>
+          <div style={{ padding: "0 16px 20px 16px", borderBottom: "1px solid var(--border)", marginBottom: "8px" }}>
             <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-soft)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px", display: "block" }}>
               Projeto Ativo
             </span>
@@ -189,6 +262,13 @@ export function AppShell({ children, initialState }: { children: React.ReactNode
         <header className="topbar">
           <div className="topbar-title">{title}</div>
           <div className="topbar-spacer" />
+          
+          {pathname !== "/configuracoes" && tutorial && (
+            <Button variant="ghost" size="sm" onClick={handleStartTour} title="Tutorial da página" aria-label="Abrir tutorial">
+              <HelpCircle size={18} />
+            </Button>
+          )}
+
           <ThemeToggle />
           {roleLabel && (
             <Badge tone={admin ? "warn" : coordinator ? "info" : "muted"}>{roleLabel}</Badge>
