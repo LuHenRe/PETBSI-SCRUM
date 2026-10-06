@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { signInEmailAction, signInGoogleAction, signInPreviewAction } from "./actions";
+import { signInEmailAction, signInGoogleAction } from "./actions";
 
 function SubmitEmailButton({ isRegister }: { isRegister: boolean }) {
   const { pending } = useFormStatus();
@@ -70,30 +70,6 @@ export function GoogleForm({ isRegister }: { isRegister: boolean }) {
   return (
     <form action={signInGoogleAction}>
       <SubmitGoogleButton isRegister={isRegister} />
-    </form>
-  );
-}
-
-function SubmitPreviewButton() {
-  const { pending } = useFormStatus();
-  return (
-    <button type="submit" disabled={pending} style={{ 
-      width: "100%", padding: "0.875rem", borderRadius: "8px", 
-      backgroundColor: '#e2e8f0', color: '#4a5568', 
-      border: '1px dashed #cbd5e0',
-      fontSize: '0.9rem', fontWeight: 600, cursor: pending ? 'not-allowed' : 'pointer',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-      transition: 'background-color 0.2s', opacity: pending ? 0.7 : 1
-    }} className="outline-btn" title="Modo Preview (Administrador)">
-      {pending ? "Entrando..." : "Modo Preview (Temporário)"}
-    </button>
-  );
-}
-
-export function PreviewForm() {
-  return (
-    <form action={signInPreviewAction} style={{ marginTop: '1rem' }}>
-      <SubmitPreviewButton />
     </form>
   );
 }

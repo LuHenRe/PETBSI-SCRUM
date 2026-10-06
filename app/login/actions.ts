@@ -9,6 +9,3 @@ export async function signInGoogleAction() {
   await signIn("google", { redirectTo: "/" });
 }
 
-export async function signInPreviewAction() {
-  await signIn("preview", { redirectTo: "/" });
-}
