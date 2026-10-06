@@ -7,7 +7,7 @@ import { createBacklogItem, reorderBacklogItem, updateBacklogItem, useAppState }
 import { Button, Card, EmptyState, Select, TextInput } from "@/components/ui";
 import { Assignees, DeadlinePill, FrontTag, PriorityIcon, StatusBadge, TypeBadge } from "@/components/shared";
 import { ItemFormModal, type ItemDraft } from "@/components/item-form";
-import type { WorkItem, WorkItemStatus } from "@/lib/types";
+import type { BacklogItem, WorkItemStatus } from "@/lib/types";
 
 type SortKey = "title" | "frontId" | "type" | "priority" | "value" | "status" | "deadline" | "assignees" | null;
 
@@ -143,7 +143,7 @@ export default function BacklogPage() {
     );
   };
 
-  const renderItemRow = (item: WorkItem, isMinor: boolean, index: number, total: number) => (
+  const renderItemRow = (item: BacklogItem, isMinor: boolean, index: number, total: number) => (
     <tr key={item.id} style={{ background: isMinor ? "var(--bg-card)" : "transparent" }}>
       <td className="sticky-col" style={{ paddingLeft: isMinor ? "32px" : "12px", borderLeft: isMinor ? "2px solid var(--border)" : "none" }}>
         <div className="flex items-center gap-2 mb-1">
