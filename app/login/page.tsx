@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { auth, signIn } from "@/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
-import { EmailForm, GoogleForm, PreviewForm } from "./components";
+import { EmailForm, GoogleForm } from "./components";
 
 export default async function LoginPage(props: { searchParams: Promise<{ verifyRequest?: string, mode?: string }> }) {
   const session = await auth();
@@ -108,8 +108,6 @@ export default async function LoginPage(props: { searchParams: Promise<{ verifyR
 
               <GoogleForm isRegister={isRegister} />
 
-              {/* MODO PREVIEW - TEMPORÁRIO PARA APRESENTAÇÃO */}
-              <PreviewForm />
             </>
           )}
         </div>
