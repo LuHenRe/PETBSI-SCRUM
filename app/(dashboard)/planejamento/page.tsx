@@ -71,8 +71,8 @@ export default function PlanejamentoPage() {
 
   // Painel Esquerdo: Product Backlog
   // Majors e seus Minors desatrelados
-  const backlogMinors = state.backlogItems.filter(i => !i.sprintId && i.parentId !== null && i.status !== "done" && i.status !== "cancelled");
-  const backlogMajors = state.backlogItems.filter(i => i.parentId === null && !i.sprintId && i.status !== "done" && i.status !== "cancelled");
+  const backlogMinors = state.backlogItems.filter(i => !i.sprintId && i.parentId !== null && i.status !== "done");
+  const backlogMajors = state.backlogItems.filter(i => i.parentId === null && !i.sprintId && i.status !== "done");
   const orphanMinors = backlogMinors.filter(i => !state.backlogItems.find(m => m.id === i.parentId));
 
   return (
