@@ -48,7 +48,7 @@ export async function getDashboardState(member: Member): Promise<AppState> {
       initials: (person.name ?? "P").split(" ").slice(0, 2).map((s) => s[0]).join("").toUpperCase(),
       displayName: person.displayName ?? undefined, phone: person.phone ?? undefined,
       tags: person.tags as string[], systemRole: person.systemRole }))
-      .concat(member.id === "preview-user-id" ? [{ id: "preview-user-id", name: "Admin Preview", email: "preview@petbsi.com", initials: "AP", tags: [], systemRole: "ADMIN" }] : []),
+      .concat(member.id === "preview-user-id" ? [{ id: "preview-user-id", name: "Admin Preview", email: "preview@petbsi.com", initials: "AP", displayName: undefined, phone: undefined, tags: [], systemRole: "ADMIN" }] : []),
     pairs: [],
     fronts: visibleFronts.map(({ id, projectId, name, description, color }) => ({ id, projectId, name, description, color })),
     memberships: memberRows.map(({ membership }) => ({ id: membership.id, personId: membership.userId,

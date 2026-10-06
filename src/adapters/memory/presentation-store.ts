@@ -168,6 +168,7 @@ export class PresentationStore {
       assigneeIds: [...extras.assigneeIds],
       deadline: item.deadline,
       createdAt: extras.createdAt,
+      parentId: null,
     });
     this.order.unshift(item.id);
   }
