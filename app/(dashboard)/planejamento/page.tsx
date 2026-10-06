@@ -6,6 +6,7 @@ import { useAppState, updateBacklogItem, frontById } from "@/lib/store";
 import { Card, Badge } from "@/components/ui";
 import { PriorityIcon, FrontTag, TypeBadge, Assignees } from "@/components/shared";
 import { GripVertical } from "lucide-react";
+import type { WorkItem } from "@/lib/types";
 
 export default function PlanejamentoPage() {
   const state = useAppState();
@@ -44,7 +45,7 @@ export default function PlanejamentoPage() {
     e.preventDefault();
   };
 
-  const ItemCard = ({ item }: { item: any }) => (
+  const ItemCard = ({ item }: { item: WorkItem }) => (
     <div 
       draggable
       onDragStart={(e) => handleDragStart(e, item.id)}
