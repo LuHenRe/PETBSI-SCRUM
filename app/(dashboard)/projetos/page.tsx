@@ -61,7 +61,7 @@ export default function ProjetosPage() {
                 {project.description && <p className="text-muted text-sm">{project.description}</p>}
               </div>
               {canCreate && (
-                <Button variant="outline" size="sm" onClick={() => { setSelectedProjectId(project.id); setFrontModalOpen(true); }}>
+                <Button variant="ghost" size="sm" onClick={() => { setSelectedProjectId(project.id); setFrontModalOpen(true); }}>
                   <Plus size={16} /> Nova Frente
                 </Button>
               )}
@@ -132,10 +132,10 @@ export default function ProjetosPage() {
         </div>
       }>
         <div className="flex flex-col gap-4">
-          <Field label="ID do Projeto (Slug)" error={!projectForm.id ? "Obrigatório (ex: petbsi)" : undefined}>
+          <Field label="ID do Projeto (Slug)" hint={!projectForm.id ? <span className="text-danger text-sm">Obrigatório (ex: petbsi)</span> : undefined}>
             <TextInput placeholder="meu-projeto" value={projectForm.id} onChange={(e) => setProjectForm({ ...projectForm, id: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })} />
           </Field>
-          <Field label="Nome do Projeto" error={!projectForm.name ? "Obrigatório" : undefined}>
+          <Field label="Nome do Projeto" hint={!projectForm.name ? <span className="text-danger text-sm">Obrigatório</span> : undefined}>
             <TextInput placeholder="Ex: PETBSI Scrum" value={projectForm.name} onChange={(e) => setProjectForm({ ...projectForm, name: e.target.value })} />
           </Field>
           <Field label="Descrição">
@@ -152,7 +152,7 @@ export default function ProjetosPage() {
         </div>
       }>
         <div className="flex flex-col gap-4">
-          <Field label="Nome da Frente" error={!frontForm.name ? "Obrigatório" : undefined}>
+          <Field label="Nome da Frente" hint={!frontForm.name ? <span className="text-danger text-sm">Obrigatório</span> : undefined}>
             <TextInput placeholder="Ex: Frontend" value={frontForm.name} onChange={(e) => setFrontForm({ ...frontForm, name: e.target.value })} />
           </Field>
           <Field label="Descrição">

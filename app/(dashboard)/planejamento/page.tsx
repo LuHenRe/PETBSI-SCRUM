@@ -6,6 +6,7 @@ import { useAppState, updateBacklogItem, frontById } from "@/lib/store";
 import { Card, Badge } from "@/components/ui";
 import { PriorityIcon, FrontTag, TypeBadge, Assignees } from "@/components/shared";
 import { GripVertical } from "lucide-react";
+import type { BacklogItem } from "@/lib/types";
 
 export default function PlanejamentoPage() {
   const state = useAppState();
@@ -44,7 +45,7 @@ export default function PlanejamentoPage() {
     e.preventDefault();
   };
 
-  const ItemCard = ({ item }: { item: any }) => (
+  const ItemCard = ({ item }: { item: BacklogItem }) => (
     <div 
       draggable
       onDragStart={(e) => handleDragStart(e, item.id)}
@@ -70,8 +71,8 @@ export default function PlanejamentoPage() {
 
   // Painel Esquerdo: Product Backlog
   // Majors e seus Minors desatrelados
-  const backlogMinors = state.backlogItems.filter(i => !i.sprintId && i.parentId !== null && i.status !== "done" && i.status !== "cancelled");
-  const backlogMajors = state.backlogItems.filter(i => i.parentId === null && !i.sprintId && i.status !== "done" && i.status !== "cancelled");
+  const backlogMinors = state.backlogItems.filter(i => !i.sprintId && i.parentId !== null && i.status !== "done");
+  const backlogMajors = state.backlogItems.filter(i => i.parentId === null && !i.sprintId && i.status !== "done");
   const orphanMinors = backlogMinors.filter(i => !state.backlogItems.find(m => m.id === i.parentId));
 
   return (

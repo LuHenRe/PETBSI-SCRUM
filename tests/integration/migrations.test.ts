@@ -18,6 +18,7 @@ describe("migrações versionadas PostgreSQL", () => {
     await database.query('insert into "user" ("id", "email") values ($1, $2)', ["person-1", "member@example.org"]);
     const { rows } = await database.query<{ enabled: boolean }>('select "enabled" from "user" where "id" = $1', ["person-1"]);
     expect(rows[0].enabled).toBe(false);
+    await database.query('insert into "project" ("id", "name", "description") values ($1, $2, $3)', ["petbsi", "PETBSI Scrum", "Default project"]);
     await database.query('insert into "project_membership" ("id", "userId", "role") values ($1, $2, $3)', ["m1", "person-1", "MEMBER"]);
     await expect(database.query('insert into "project_membership" ("id", "userId", "role") values ($1, $2, $3)', ["m2", "person-1", "PRODUCT_OWNER"]))
       .rejects.toThrow();

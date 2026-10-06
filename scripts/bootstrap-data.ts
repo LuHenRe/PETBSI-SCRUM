@@ -4,7 +4,7 @@ import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { fronts, projectMemberships, users, workflowColumns } from "../src/db/schema";
+import { fronts, projects, projectMemberships, users, workflowColumns } from "../src/db/schema";
 
 config({ path: ".env.local" });
 const url = process.env.MIGRATION_DATABASE_URL;
@@ -26,6 +26,7 @@ const workflow = [
 
 async function core() {
   await db.transaction(async (tx) => {
+    await tx.insert(projects).values({ id: projectId, name: "PETBSI Scrum", description: "Default project" }).onConflictDoNothing();
     for (const [id, name, description, color] of frontNames) {
       await tx.insert(fronts).values({ id, projectId, name, description, color }).onConflictDoNothing();
     }

@@ -9,7 +9,7 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("PostgreSQL: caso de uso com aut
       throw new Error("TEST_DATABASE_URL deve apontar para um banco descartável *_test");
     }
     process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
-    const [{ getDb }, { users, projectMemberships, backlogItems, blockers, workflowColumns, stateChanges, auditEvents }, { executeCommand }, { allowGoogleLogin }, { getDashboardState }] = await Promise.all([
+    const [{ getDb }, { users, projects, fronts, projectMemberships, backlogItems, blockers, workflowColumns, stateChanges, auditEvents }, { executeCommand }, { allowGoogleLogin }, { getDashboardState }] = await Promise.all([
       import("@/db"), import("@/db/schema"), import("@/server/commands"),
       import("@/server/authorization/membership"), import("@/server/dashboard-state"),
     ]);
@@ -17,6 +17,8 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("PostgreSQL: caso de uso com aut
     const db = getDb();
     const id = crypto.randomUUID();
     await db.insert(users).values({ id, name: "Usuário de teste", email: `${id}@example.org`, enabled: true });
+    await db.insert(projects).values({ id: "petbsi", name: "PETBSI Scrum", description: "Default project" }).onConflictDoNothing();
+    await db.insert(fronts).values({ id: "f4", projectId: "petbsi", name: "Gestão Ágil", description: "Gestão Ágil", color: "#d97706" }).onConflictDoNothing();
     const membershipId = crypto.randomUUID();
     await db.insert(projectMemberships).values({ id: membershipId, userId: id, projectId: "petbsi",
       role: "PRODUCT_OWNER", primaryFrontId: "f4", frontPermissions: [] });

@@ -168,12 +168,15 @@ export default function PessoasPage() {
         </div>
       }>
         <div className="flex flex-col gap-4">
-          <Field label="Tags (separadas por vírgula)" error={tagsInput.split(",").filter(t => t.trim()).length > 4 ? "Máximo de 4 tags" : undefined}>
+          <Field label="Tags (separadas por vírgula)">
             <TextInput 
               placeholder="Ex: Desenvolvedor, Design, QA" 
               value={tagsInput} 
               onChange={e => setTagsInput(e.target.value)} 
             />
+            {tagsInput.split(",").filter(t => t.trim()).length > 4 && (
+              <span style={{ color: "var(--danger)", fontSize: "0.85em", marginTop: "4px", display: "block" }}>Máximo de 4 tags</span>
+            )}
           </Field>
           <p className="text-sm text-muted">Apenas as 4 primeiras tags serão exibidas.</p>
         </div>

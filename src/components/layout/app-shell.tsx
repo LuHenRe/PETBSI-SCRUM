@@ -73,7 +73,7 @@ const TITLES: Record<string, string> = {
   "/itens/[itemId]": "Detalhe do item",
 };
 
-const TUTORIALS: Record<string, any[]> = {
+const TUTORIALS: Record<string, { element?: string; popover: { title: string; description: string } }[]> = {
   "/": [
     { element: '.topbar', popover: { title: 'Visão Geral', description: 'Aqui você tem uma visão ampla de tudo o que está acontecendo.' } },
     { element: '.widget-grid', popover: { title: 'Métricas', description: 'Observe os indicadores e o progresso das frentes.' } },
